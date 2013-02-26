@@ -10,6 +10,18 @@ stored by the application.
 
 To learn more, check out the [Crypton website](https://crypton.io/).
 
+## WARNING
+
+This is an early stage project at v0.0.1 which is a proof of core concepts.  It
+is not yet intended for production use until v0.1.0.  There are known serious
+bugs and weaknesses.
+
+Most importantly, it has not been through a first round of refactoring, general
+code cleanup, and security review. It does not have comprehensive test
+coverage.  All of these things will change in the versions between v0.0.1 and
+v0.1.0, at which point we'll make a first stable release that we encourage for
+production and commercial uses. 
+
 ## Get Started
 
 To get started with Crypton development, you will need node.js v0.8.x with npm,

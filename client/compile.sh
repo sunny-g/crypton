@@ -49,8 +49,6 @@ compile() {
     src/message.js \
     src/request.js \
     src/diff.js \
-    src/crypto/*.js \
-    src/rsa/*.js \
     src/vendor/*.js \
     > dist/crypton.js
   uglifyjs dist/crypton.js > dist/crypton.min.js

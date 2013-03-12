@@ -37,7 +37,7 @@ echo "select * from pg_tables" \
     | psql -h localhost -U crypton_test_user crypton_test \
     | grep -q account || {
         psql -h localhost -U crypton_test_user crypton_test < \
-            $SERVER_SRC_DIR/lib/stores/postgres/setup.sql
+            $SERVER_SRC_DIR/lib/stores/postgres/sql/setup.sql
       }
 
 # add crypton-dev.local to /etc/hosts

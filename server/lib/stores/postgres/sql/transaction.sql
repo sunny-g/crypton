@@ -23,13 +23,12 @@ create temp table txtmp_add_container as
       from transaction t
       join transaction_add_container tac using (transaction_id)
      where transaction_id={{transactionId}};
+
 /*
      where account_id=(select account_id 
                          from account 
                         where username='test_username');
 */
-select * from transaction_add_container join txtmp_add_container using (id);
-
 /* create temp table for transaction_add_container_session_key
  * that adds new columns: container_session_key_id
  *                        container_id,
@@ -56,11 +55,6 @@ create temp table txtmp_add_container_session_key as
       from transaction_add_container_session_key tacsk
      where transaction_id={{transactionId}};
 
-select tacsk.*, tx_tacsk.*, transaction.*
-  from transaction_add_container_session_key tacsk
-  join txtmp_add_container_session_key tx_tacsk using (id)
-  join transaction using (transaction_id);
-
 /* calculate new columns: container_session_key_id */
 create temp table txtmp_add_container_session_key_share as
     select tacsks.id,
@@ -78,11 +72,6 @@ create temp table txtmp_add_container_session_key_share as
            ) as container_session_key_id
       from transaction_add_container_session_key_share tacsks
      where transaction_id={{transactionId}};
-
-select tacsks.*, tx_tacsks.*, transaction.*
-  from transaction_add_container_session_key_share tacsks
-  join txtmp_add_container_session_key_share tx_tacsks using (id)
-  join transaction using (transaction_id);
 
 /* calculate new columns: 
  *  container_record_id, container_id, container_session_key_id */
@@ -110,11 +99,6 @@ create temp table txtmp_add_container_record as
            ) as container_session_key_id
   from transaction_add_container_record tar
  where transaction_id={{transactionId}};
-
-select tacr.*, tx_tacr.*, t.*
-  from transaction_add_container_record tacr
-  join txtmp_add_container_record tx_tacr using (id)
-  join transaction t using (transaction_id);
 
 /* now, we can finally calculate the latest_record_id value for new containers
  * we're adding */

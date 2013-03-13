@@ -29,8 +29,8 @@ var crypto = require('crypto');
  * Create session cookie
  */
 app.post('/account', function (req, res) {
-  // TODO sanitize
   var account = req.body;
+
   db.saveAccount(account, function (err) {
     if (err) {
       res.send({
@@ -39,7 +39,7 @@ app.post('/account', function (req, res) {
       });
       return;
     }
-    // TODO set session cookie here
+
     res.send({
       success: true
     });

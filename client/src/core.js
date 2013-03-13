@@ -28,8 +28,8 @@ var crypton = {};
   };
 
   function randomBytes (nbytes) {
-    return CryptoJS.lib.WordArray.random(nbytes);
-  };
+    return sjcl.random.randomWords(nbytes);
+  }
   crypton.randomBytes = randomBytes;
 
   crypton.generateAccount = function (username, passphrase, step, callback, options) {
@@ -37,7 +37,8 @@ var crypton = {};
 
     var defaults = {
       keypairBits: 2048,
-      save: true,
+      keypairCurve: 384,
+      save: false, // true
       debug: false
     };
 
@@ -47,12 +48,10 @@ var crypton = {};
 
     var account = new crypton.Account();
     account.username = username;
-    account.keypairSalt = randomBytes(32);
-    account.challengeKeySalt = randomBytes(32);
 
-    var containerNameHmacKey = randomBytes(32);
-    var symkey = randomBytes(32);
-    var hmacKey = randomBytes(32);
+    var containerNameHmacKey = randomBytes(8);
+    var symkey = randomBytes(8);
+    var hmacKey = randomBytes(8);
 
     if (options.debug) { 
         console.log("generateAccount 2"); 
@@ -61,106 +60,66 @@ var crypton = {};
     step();
 
     var keypairBits = options.keypairBits;
+    var keypairCurve = options.keypairCurve;
     var start = +new Date();
-    var keypair = new RSAKey();
+    var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
+
     if (options.debug) {
-      console.log("generateAccount 3");
+        console.log("generateAccount 4");
     }
 
-    keypair.generateAsync(keypairBits, '03', step, function done () {
-      if (options.debug) {
-          console.log("generateAccount 4");
-      }
+    //account.pubKey = hex2b64(keypair.n.toString(16));
+    account.pubKey = keypair.pub.serialize();
+    account.symkeyCiphertext = sjcl.encrypt(keypair.pub, symkey);
 
-      account.pubKey = hex2b64(keypair.n.toString(16));
-      account.symkeyCiphertext = keypair.encrypt(symkey.toString());
+    step();
 
-      step();
+    account.challengeKey = sjcl.misc.cachedPbkdf2(passphrase, account.challengeKeySalt);
 
-      account.challengeKey = CryptoJS.PBKDF2(passphrase, account.challengeKeySalt, { 
-        keySize: 256 / 32,
-        // iterations: 1000
-      }).toString();
+    step();
 
-      step();
+    if (options.debug) {
+      console.log("generateAccount 5");
+    }
 
-      if (options.debug) {
-        console.log("generateAccount 5");
-      }
+    var keypairKey = sjcl.misc.cachedPbkdf2(passphrase, account.keypairSalt);
 
-      var keypairKey = CryptoJS.PBKDF2(passphrase, account.keypairSalt, {
-        keySize: 256 / 32,
-        // iterations: 1000
+    step();
+
+    if (options.debug) {
+      console.log("generateAccount 6");
+    }
+
+    account.keypairCiphertext = sjcl.encrypt(keypairKey.key, JSON.stringify(keypair.sec.serialize())); // need whole keypair
+
+    if (options.debug) {
+      console.log("generateAccount 7");
+    }
+
+    step();
+
+    account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey, containerNameHmacKey);
+
+    if (options.debug) {
+      console.log("generateAccount 8");
+    }
+
+    step();
+
+    account.hmacKeyCiphertext = sjcl.encrypt(symkey, hmacKey);
+
+    if (options.debug) {
+      console.log("generateAccount 9");
+    }
+
+    if (options.save) {
+      account.save(function (err) {
+        callback(err, account);
       });
+      return;
+    }
 
-      step();
-
-      if (options.debug) {
-        console.log("generateAccount 6");
-      }
-
-      account.keypairIv = randomBytes(16);
-      account.keypairCiphertext = CryptoJS.AES.encrypt(
-        keypair.serialize(), keypairKey, {
-          iv: account.keypairIv,
-          mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.Pkcs7
-        }
-      ).ciphertext.toString();
-
-      if (options.debug) {
-        console.log("generateAccount 7");
-      }
-
-      step();
-
-      account.containerNameHmacKeyIv = randomBytes(16);
-      account.containerNameHmacKeyCiphertext = CryptoJS.AES.encrypt(
-        containerNameHmacKey, symkey, {
-          iv: account.containerNameHmacKeyIv,
-          mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.NoPadding
-        }
-      ).ciphertext.toString();
-
-      if (options.debug) {
-        console.log("generateAccount 8");
-      }
-
-      step();
-
-      account.hmacKeyIv = randomBytes(16);
-      account.hmacKeyCiphertext = CryptoJS.AES.encrypt(
-        hmacKey, symkey, {
-          iv: account.hmacKeyIv,
-          mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.NoPadding
-        }
-      ).ciphertext.toString();
-
-      // convert WordArrays to strings for serialization
-      account.challengeKeySalt = account.challengeKeySalt.toString();
-      account.keypairSalt = account.keypairSalt.toString();
-      account.keypairIv = account.keypairIv.toString();
-      account.keypairCiphertext = account.keypairCiphertext;
-      account.containerNameHmacKeyIv = account.containerNameHmacKeyIv.toString();
-      account.containerNameHmacKeyCiphertext = account.containerNameHmacKeyCiphertext;
-      account.hmacKeyIv = account.hmacKeyIv.toString();
-      account.hmacKeyCiphertext = account.hmacKeyCiphertext;
-
-      if (options.debug) {
-        console.log("generateAccount 9");
-      }
-
-      if (options.save) {
-        account.save(function (err) {
-          callback(err, account);
-        });
-        return;
-      }
-
-      callback(null, account);
-    });
+    callback(null, account);
 
     if (options.debug) {
       console.log("generateAccount end");

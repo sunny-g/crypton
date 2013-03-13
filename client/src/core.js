@@ -35,7 +35,7 @@ var crypton = {};
   crypton.generateAccount = function (username, passphrase, step, callback, options) {
     options = options || {};
     var keypairCurve = options.keypairCurve || 384;
-    var save = options.save || false; // true
+    var save = options.save || true;
 
     var account = new crypton.Account();
     var containerNameHmacKey = randomBytes(8);
@@ -51,12 +51,12 @@ var crypton = {};
     account.challengeKeySalt = JSON.stringify(challengeKeySalt);
     account.pubKeySerialized = JSON.stringify(keypair.pub.serialize());
     account.symkeyCiphertext = sjcl.encrypt(keypair.pub, symkey);
-    account.challengeKey = sjcl.misc.cachedPbkdf2(passphrase, challengeKeySalt).key.toString();
+    account.challengeKey = JSON.stringify(sjcl.misc.cachedPbkdf2(passphrase, challengeKeySalt).key);
     account.keypairCiphertext = sjcl.encrypt(keypairKey.key, JSON.stringify(keypair.sec.serialize()));
     account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey, containerNameHmacKey);
     account.hmacKeyCiphertext = sjcl.encrypt(symkey, hmacKey);
 
-    if (options.save) {
+    if (save) {
       account.save(function (err) {
         callback(err, account);
       });

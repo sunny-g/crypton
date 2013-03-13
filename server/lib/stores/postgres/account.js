@@ -32,7 +32,6 @@ exports.saveAccount = function saveAccount(account, callback) {
           + "returning account_id, base_keyring_id",
       values: [account.username]
     }, function (err, result) {
-
       if (err) {
         client.query('rollback');
         if (err.code === '23505') {
@@ -43,29 +42,23 @@ exports.saveAccount = function saveAccount(account, callback) {
         }
         return;
       }
+
       client.query({
         text: "insert into base_keyring ("
             + "  base_keyring_id, account_id,"
             + "  challenge_key, challenge_key_salt,"
-            + "  keypair_salt, keypair_iv, keypair, pubkey, symkey,"
-            + "  container_name_hmac_key_iv, container_name_hmac_key,"
-            + "  hmac_key_iv, hmac_key"
-            + ") values ("
-            + "  $1, $2,"
-            + "  decode($3, 'hex'), decode($4, 'hex'), decode($5, 'hex'),"
-            + "  decode($6, 'hex'), decode($7, 'hex'), decode($8, 'base64'),"
-            + "  decode($9, 'hex'), decode($10, 'hex'), decode($11, 'hex'),"
-            + "  decode($12, 'hex'), decode($13, 'hex')"
-            + ")",
+            + "  keypair, pubkey, symkey,"
+            + "  container_name_hmac_key,"
+            + "  hmac_key"
+            + ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
           account.challengeKey, account.challengeKeySalt,
-          account.keypairSalt, account.keypairIv, account.keypairCiphertext,
+          account.keypairCiphertext,
           account.pubkey, account.symkeyCiphertext,
-          account.containerNameHmacKeyIv,
           account.containerNameHmacKeyCiphertext,
-          account.hmacKeyIv, account.hmacKeyCiphertext
+          account.hmacKeyCiphertext
         ]
       }, function (err) {
         if (err) {

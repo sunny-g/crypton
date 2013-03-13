@@ -78,6 +78,7 @@ CREATE TABLE base_keyring (
     hmac_key_iv bytea,
     hmac_key bytea,
     deletion_time timestamp
+    /*
     constraint challenge_key_len
         check (octet_length(challenge_key)=32)
     constraint challenge_key_salt_len
@@ -98,6 +99,7 @@ CREATE TABLE base_keyring (
         check (octet_length(hmac_key_iv)=16)
     constraint hmac_key_len
         check (octet_length(hmac_key)=32)
+    */
 );
 
 COMMENT ON TABLE base_keyring IS

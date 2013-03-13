@@ -34,42 +34,20 @@ var crypton = {};
 
   crypton.generateAccount = function (username, passphrase, step, callback, options) {
     options = options || {};
-
-    var defaults = {
-      keypairBits: 2048,
-      keypairCurve: 384,
-      save: false, // true
-      debug: false
-    };
-
-    for (var param in defaults) {
-      options[param] = options.hasOwnProperty(param) ? options[param] : defaults[param];
-    }
+    var keypairCurve = options.keypairCurve || 384;
+    var save = options.save || false; // true
 
     var account = new crypton.Account();
     account.username = username;
-
     var containerNameHmacKey = randomBytes(8);
     var symkey = randomBytes(8);
     var hmacKey = randomBytes(8);
 
-    if (options.debug) { 
-        console.log("generateAccount 2"); 
-    }
-
     step();
 
-    var keypairBits = options.keypairBits;
-    var keypairCurve = options.keypairCurve;
-    var start = +new Date();
     var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
 
-    if (options.debug) {
-        console.log("generateAccount 4");
-    }
-
-    //account.pubKey = hex2b64(keypair.n.toString(16));
-    account.pubKey = keypair.pub.serialize();
+    account.pubKeySerialized = JSON.stringify(keypair.pub.serialize());
     account.symkeyCiphertext = sjcl.encrypt(keypair.pub, symkey);
 
     step();
@@ -78,39 +56,19 @@ var crypton = {};
 
     step();
 
-    if (options.debug) {
-      console.log("generateAccount 5");
-    }
-
     var keypairKey = sjcl.misc.cachedPbkdf2(passphrase, account.keypairSalt);
 
     step();
 
-    if (options.debug) {
-      console.log("generateAccount 6");
-    }
-
     account.keypairCiphertext = sjcl.encrypt(keypairKey.key, JSON.stringify(keypair.sec.serialize())); // need whole keypair
-
-    if (options.debug) {
-      console.log("generateAccount 7");
-    }
 
     step();
 
     account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey, containerNameHmacKey);
 
-    if (options.debug) {
-      console.log("generateAccount 8");
-    }
-
     step();
 
     account.hmacKeyCiphertext = sjcl.encrypt(symkey, hmacKey);
-
-    if (options.debug) {
-      console.log("generateAccount 9");
-    }
 
     if (options.save) {
       account.save(function (err) {
@@ -120,10 +78,6 @@ var crypton = {};
     }
 
     callback(null, account);
-
-    if (options.debug) {
-      console.log("generateAccount end");
-    }
   };
 
   crypton.authorize = function (username, passphrase, callback) {

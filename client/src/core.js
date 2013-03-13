@@ -38,36 +38,22 @@ var crypton = {};
     var save = options.save || false; // true
 
     var account = new crypton.Account();
-    account.username = username;
     var containerNameHmacKey = randomBytes(8);
     var symkey = randomBytes(8);
     var hmacKey = randomBytes(8);
-
-    step();
-
     var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
+    var keypairSalt = randomBytes(8);
+    var challengeKeySalt = randomBytes(8);
+    var keypairKey = sjcl.misc.cachedPbkdf2(passphrase, keypairSalt);
 
+    account.username = username;
+    account.keypairSalt = JSON.stringify(keypairSalt);
+    account.challengeKeySalt = JSON.stringify(challengeKeySalt);
     account.pubKeySerialized = JSON.stringify(keypair.pub.serialize());
     account.symkeyCiphertext = sjcl.encrypt(keypair.pub, symkey);
-
-    step();
-
-    account.challengeKey = sjcl.misc.cachedPbkdf2(passphrase, account.challengeKeySalt);
-
-    step();
-
-    var keypairKey = sjcl.misc.cachedPbkdf2(passphrase, account.keypairSalt);
-
-    step();
-
-    account.keypairCiphertext = sjcl.encrypt(keypairKey.key, JSON.stringify(keypair.sec.serialize())); // need whole keypair
-
-    step();
-
+    account.challengeKey = sjcl.misc.cachedPbkdf2(passphrase, challengeKeySalt).key.toString();
+    account.keypairCiphertext = sjcl.encrypt(keypairKey.key, JSON.stringify(keypair.sec.serialize()));
     account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey, containerNameHmacKey);
-
-    step();
-
     account.hmacKeyCiphertext = sjcl.encrypt(symkey, hmacKey);
 
     if (options.save) {

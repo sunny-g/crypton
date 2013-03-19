@@ -19,7 +19,86 @@ data structures.
 Many developers are already familiar with using an Object Database, but they
 are so easy to understand we'll give a brief description here.
 
-TODO
+```javascript
+// The basic idea of an object database is simply that you store objects as
+// they exist natively within your programming language, and the object
+// database takes care of persisting them, caching them, saving changes, etc. 
+
+// The interface to an object database is generally through a root object, 
+// which you extend to many levels to store whatever data your applicaiton
+// needs.
+
+// Object databases generally
+// expose a root object, which can be extended to any level.
+var db = new ObjectDB();
+
+// For example, a book catalog might look like this:
+
+// We just add objects to the database.
+db.books = [];
+db.authors = [];
+db.publishers = [];
+
+// and treat them like regular objects.
+
+new_author_id = uuid();
+db.authors.push({ 
+  id: new_author_id,
+  name: "Arnold Robbits"
+});
+
+new_publisher_id = uuid();
+db.publishers.push({
+  id: new_publisher_id,
+  name: "O'Reilly Media, Inc.",
+  phone: "800-998-9938"
+});
+      
+new_book_id = uuid();
+db.books.push({
+  id: new_book_id,
+  name: "Bash Pocket Reference",
+  date: "2010-05-01",
+  isbn: "987-1-449-38788-4",
+  author: new_author_id,
+  publisher: new_publisher_id,
+});
+
+// save all of our changes atomically.
+
+db.save();
+
+// we could re-arrange and add "index objects" for quick lookups by name, etc.
+
+// later we will show how to have the Object DB automatically maintain index
+// objects for you, but this illustrates the concept.
+db.authors = { list: db.authors };
+db.authors.by_id = make_index(db.authors.list, "id");
+db.authors.by_name = make_index(db.authors.list, "name");
+
+function make_index(list, key) {
+  "use strict";
+  var i = 0;
+  var index = {};
+  for (; i < list.length; i++) {
+    if (list[i] && list[i][key]) {
+      if (!index[list[i][key]]) {
+        index[list[i][key]] = [];
+      }
+      index[list[i][key]].push(i);
+    }
+  }
+}
+
+
+
+db.save();
+
+// Anyway, the basic idea is just that you persist data by way of using
+// objects very close to the ways they exist naturally.
+// The Object DB's job is to efficiently handle storage, updates, caching, etc.
+// for you.
+```
 
 Cryptographically, changes to the object database are batched into transactions
 (more on transactions below) and streamed to the server as records.  Each

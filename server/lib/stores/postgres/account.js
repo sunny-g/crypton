@@ -46,7 +46,7 @@ exports.saveAccount = function saveAccount(account, callback) {
       client.query({
         text: "insert into base_keyring ("
             + "  base_keyring_id, account_id,"
-            + "  challenge_key, challenge_key_salt,"
+            + "  challenge_key_hash, challenge_key_salt,"
             + "  keypair, pubkey, symkey,"
             + "  container_name_hmac_key,"
             + "  hmac_key"
@@ -54,7 +54,7 @@ exports.saveAccount = function saveAccount(account, callback) {
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
-          account.challengeKey, account.challengeKeySalt,
+          account.challengeKeyHash, account.challengeKeySalt,
           account.keypairCiphertext,
           account.pubkey, account.symkeyCiphertext,
           account.containerNameHmacKeyCiphertext,
@@ -90,7 +90,9 @@ exports.getAccount = function getAccount(username, callback) {
   connect(function (client, done) {
     client.query({
       text: "select username,"
-          + "  account.account_id, base_keyring_id,"
+          + "  account.account_id, base_keyring_id," +
+"challenge_key_hash, challenge_key_salt, keypair, pubkey, symkey, container_name_hmac_key, hmac_key "
+/*
           + "  encode(challenge_key, 'hex') as challenge_key,"
           + "  encode(challenge_key_salt, 'hex') as challenge_key_salt,"
           + "  encode(keypair_salt, 'hex') as keypair_salt,"
@@ -104,6 +106,7 @@ exports.getAccount = function getAccount(username, callback) {
           + "    as container_name_hmac_key,"
           + "  encode(hmac_key_iv, 'hex') as hmac_key_iv,"
           + "  encode(hmac_key, 'hex') as hmac_key "
+*/
           + "from account left join base_keyring using (base_keyring_id) "
           + "where username=$1",
       values: [username]
@@ -124,17 +127,17 @@ exports.getAccount = function getAccount(username, callback) {
         username: result.rows[0].username,
         accountId: result.rows[0].account_id,
         keyringId: result.rows[0].base_keyring_id,
-        challengeKey: result.rows[0].challenge_key,
-        challengeKeySalt: result.rows[0].challenge_key_salt,
+        challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
+        challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
         keypairSalt: result.rows[0].keypair_salt,
         keypairIv: result.rows[0].keypair_iv,
-        keypairCiphertext: result.rows[0].keypair,
-        pubkey: result.rows[0].pubkey,
-        symkeyCiphertext: result.rows[0].symkey,
+        keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
+        pubkey: result.rows[0].pubkey, //.toString(),
+        symkeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
         containerNameHmacKeyIv: result.rows[0].container_name_hmac_key_iv,
-        containerNameHmacKeyCiphertext: result.rows[0].container_name_hmac_key,
+        containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
         hmacKeyIv: result.rows[0].hmac_key_iv,
-        hmacKeyCiphertext: result.rows[0].hmac_key
+        hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
       });
     });
   });

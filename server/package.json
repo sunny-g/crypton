@@ -21,7 +21,8 @@
     "connect": "2.7.x",
     "commander": "1.1.x",
     "pg": "0.13.x",
-    "node-uuid": "1.4.x"
+    "node-uuid": "1.4.x",
+    "bcrypt": "0.5.x"
   },
   "devDependencies": {
     "mocha": "1.8.x",

@@ -23,27 +23,36 @@ var db = app.datastore;
 var middleware = require('../lib/middleware');
 var challenge = require('../lib/challenge');
 var crypto = require('crypto');
+var bcrypt = require('bcrypt');
 
 /*
  * Save account to server
- * Create session cookie
  */
 app.post('/account', function (req, res) {
   var account = req.body;
+  var challengeKeyDigest = new Buffer(account.challengeKey).toString('hex');
 
-  db.saveAccount(account, function (err) {
-    if (err) {
-      res.send({
-        success: false,
-        error: err
+  bcrypt.genSalt(12, function (err, salt) {
+    bcrypt.hash(challengeKeyDigest, salt, function (err, hash) {
+      account.challengeKeyHash = hash;
+      delete account.challengeKey;
+
+      db.saveAccount(account, function (err) {
+        if (err) {
+          res.send({
+            success: false,
+            error: err
+          });
+          return;
+        }
+
+        res.send({
+          success: true
+        });
       });
-      return;
-    }
-
-    res.send({
-      success: true
     });
   });
+
 });
 
 /*
@@ -59,30 +68,10 @@ app.post('/account/:username', function (req, res) {
       return;
     }
 
-    var newChallenge = challenge.makeChallenge(account);
-    db.saveChallengeAnswer(
-      account, newChallenge.answerDigest,
-      function (err, challengeId) {
-        if (err) {
-          res.send({
-            success: false,
-            error: err
-          });
-          return;
-        }
-
-        var response = {
-          success: true,
-          challengeId: challengeId // TODO public_id(challengeId)
-        };
-
-        for (var i in newChallenge.challenge) {
-          response[i] = newChallenge.challenge[i];
-        }
-
-        res.send(response);
-      }
-    );
+    res.send({
+      success: true,
+      challengeKeySalt: account.challengeKeySalt
+    });
   });
 });
 
@@ -90,10 +79,9 @@ app.post('/account/:username', function (req, res) {
 * Authorize with server
 */
 app.post('/account/:username/answer', function (req, res) {
-  var challengeId = req.body.challengeId;
-  var answer = req.body.answer;
+  var challengeKey = req.body.challengeKey;
 
-  if (!challengeId || !answer) {
+  if (!challengeKey) {
     res.send({
       success: false,
       error: 'Missing required fields'
@@ -101,37 +89,18 @@ app.post('/account/:username/answer', function (req, res) {
     return;  
   }
 
-  answer = new Buffer(answer, 'hex');
-  var answerDigest = crypto.createHash('sha256').update(answer).digest('hex');
-
-  db.getChallengeAnswer(challengeId, function (err, challenge) {
+  db.getAccount(req.params.username, function (err, account) {
     if (err) {
       res.send({
         success: false,
         error: err
       });
-      return;  
+      return;
     }
 
-    db.getAccount(req.params.username, function (err, user) {
-      if (err) {
-        res.send({
-          success: false,
-          error: err
-        });
-        return;
-      }
-
-      if (challenge.accountId != user.accountId) {
-        res.send({
-          success: false,
-          error: 'Incorrect username'
-        });
-        return;
-      }
-
-      // TODO: use constant time compare here to avoid timing attack
-      if (challenge.expectedAnswerDigest != answerDigest) {
+    var challengeKeyDigest = new Buffer(JSON.stringify(challengeKey)).toString('hex');
+    bcrypt.compare(challengeKeyDigest, account.challengeKeyHash, function (err, success) {
+      if (err || !success) {
         res.send({
           success: false,
           error: 'Incorrect password'
@@ -139,11 +108,11 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-      req.session.accountId = user.accountId;
+      req.session.accountId = account.accountId;
 
       res.send({
         success: true,
-        account: user,
+        account: account,
         sessionIdentifier: req.sessionID
       });
     });

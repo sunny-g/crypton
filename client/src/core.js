@@ -39,20 +39,19 @@ var crypton = {};
 
     var account = new crypton.Account();
     var containerNameHmacKey = randomBytes(8);
-    var symkey = randomBytes(8);
     var hmacKey = randomBytes(8);
     var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
     var keypairSalt = randomBytes(8);
+    var symkey = keypair.pub.kem(0).key;
     var challengeKeySalt = randomBytes(8);
-    var keypairKey = sjcl.misc.cachedPbkdf2(passphrase, keypairSalt);
+    var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
 
     account.username = username;
     account.keypairSalt = JSON.stringify(keypairSalt);
     account.challengeKeySalt = JSON.stringify(challengeKeySalt);
-    account.pubKeySerialized = JSON.stringify(keypair.pub.serialize());
-    account.symkeyCiphertext = sjcl.encrypt(keypair.pub, symkey);
-    account.challengeKey = JSON.stringify(sjcl.misc.cachedPbkdf2(passphrase, challengeKeySalt).key);
-    account.keypairCiphertext = sjcl.encrypt(keypairKey.key, JSON.stringify(keypair.sec.serialize()));
+    account.pubKey = JSON.stringify(keypair.pub.serialize());
+    account.challengeKey = JSON.stringify(sjcl.misc.pbkdf2(passphrase, challengeKeySalt));
+    account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()));
     account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey, containerNameHmacKey);
     account.hmacKeyCiphertext = sjcl.encrypt(symkey, hmacKey);
 
@@ -75,40 +74,8 @@ var crypton = {};
         }
 
         var body = res.body;
-        var iv = CryptoJS.enc.Hex.parse(body.iv);
-        var challengeKeySalt = CryptoJS.enc.Hex.parse(body.challengeKeySalt);
-        var challengeKey = CryptoJS.PBKDF2(passphrase, challengeKeySalt, {
-          keySize: 256 / 32,
-          // iterations: 1000
-        });
-
-        var encrypted = CryptoJS.lib.CipherParams.create({
-          ciphertext: CryptoJS.enc.Hex.parse(body.challenge),
-          salt: challengeKeySalt,
-          iv: iv
-        });
-
-        var challenge = CryptoJS.AES.decrypt(
-          encrypted, challengeKey, {
-            iv: iv,
-            mode: CryptoJS.mode.CFB,
-            padding: CryptoJS.pad.NoPadding
-          }
-        );
-
-        var timeValueDigest = CryptoJS.SHA256(body.time);
-        var timeValueCiphertext = CryptoJS.AES.encrypt(
-          timeValueDigest, challenge, {
-            iv: iv,
-            mode: CryptoJS.mode.CFB,
-            padding: CryptoJS.pad.NoPadding
-          }
-        ).ciphertext.toString();
-
-        var response = {
-          challengeId: body.challengeId,
-          answer: timeValueCiphertext
-        };
+        var response = {};
+        response.challengeKey = sjcl.misc.pbkdf2(passphrase, body.challengeKeySalt);
 
         superagent.post(crypton.url() + '/account/' + username + '/answer')
           .send(response)

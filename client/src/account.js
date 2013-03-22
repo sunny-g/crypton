@@ -35,50 +35,25 @@
   };
 
   Account.prototype.unravel = function (callback) {
-    var hp = CryptoJS.enc.Hex.parse;
+console.log(this);
 
     // reconstruct keypairKey from passphrase
-    var keypairSalt = hp(this.keypairSalt);
-    var keypairKey = CryptoJS.PBKDF2(this.passphrase, keypairSalt, {
-      keySize: 256 / 32,
-      // iterations: 1000
-    });
+    var keypairKey = sjcl.misc.pbkdf2(this.passphrase, this.keypairSalt);
 
     // decrypt keypair
-    var keypairIv = hp(this.keypairIv);
-    var encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: hp(this.keypairCiphertext),
-      iv: keypairIv,
-      salt: hp(this.keypairSalt)
-    });
-    var keypairSerialized = CryptoJS.AES.decrypt(
-      encrypted, keypairKey, {
-        iv: keypairIv,
-        mode: CryptoJS.mode.CFB,
-        padding: CryptoJS.pad.Pkcs7
-      }
-    ).toString(CryptoJS.enc.Utf8);
+    var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext)));
+    var exponent = sjcl.bn.fromBits(secret.exponent);
+    var secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
 
-    // reconstruct keypair
-    this.keypair = new RSAKey().fromString(keypairSerialized);
-
-    // decrypt symkey
-    var symkey = this.keypair.decrypt(this.symkeyCiphertext);
-    this.symkey = hp(symkey);
+    var pub = JSON.parse(this.pubKey);
+    var point = sjcl.ecc.curves['c' + pub.curve].fromBits(pub.point);
+    var pubKey = new sjcl.ecc.elGamal.publicKey(pub.curve, point.curve, point);
+    var symKey = secretKey.unkem(pubKey.kem(0).tag);
+console.log(symKey);
 
     // decrypt containerNameHmacKey
-    var containerNameHmacKeyIv = hp(this.containerNameHmacKeyIv);
-    encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: hp(this.containerNameHmacKeyCiphertext),
-      iv: containerNameHmacKeyIv
-    });
-    this.containerNameHmacKey = CryptoJS.AES.decrypt(
-      encrypted, this.symkey, {
-        iv: containerNameHmacKeyIv,
-        mode: CryptoJS.mode.CFB,
-        padding: CryptoJS.pad.NoPadding
-      }
-    );
+    this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext));
+    console.log(this.containerNameHmacKey);
 
     // decrypt hmacKey
     var hmacKeyIv = hp(this.hmacKeyIv);

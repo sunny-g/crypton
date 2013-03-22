@@ -21,7 +21,6 @@
 var app = process.app;
 var db = app.datastore;
 var middleware = require('../lib/middleware');
-var challenge = require('../lib/challenge');
 var crypto = require('crypto');
 var bcrypt = require('bcrypt');
 

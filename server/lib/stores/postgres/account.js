@@ -20,10 +20,10 @@
 
 var connect = require('./').connect;
 
-
 /* Save a new account
  * Add keyring info to it */
 exports.saveAccount = function saveAccount(account, callback) {
+console.log(account);
   connect(function (client, done) {
     client.query('begin');
     client.query({
@@ -47,16 +47,16 @@ exports.saveAccount = function saveAccount(account, callback) {
         text: "insert into base_keyring ("
             + "  base_keyring_id, account_id,"
             + "  challenge_key_hash, challenge_key_salt,"
-            + "  keypair, pubkey, symkey,"
+            + "  keypair, keypair_salt, pubkey, symkey,"
             + "  container_name_hmac_key,"
             + "  hmac_key"
-            + ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            + ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
           account.challengeKeyHash, account.challengeKeySalt,
-          account.keypairCiphertext,
-          account.pubkey, account.symkeyCiphertext,
+          account.keypairCiphertext, account.keypairSalt,
+          account.pubKey, account.symkeyCiphertext,
           account.containerNameHmacKeyCiphertext,
           account.hmacKeyCiphertext
         ]
@@ -91,7 +91,7 @@ exports.getAccount = function getAccount(username, callback) {
     client.query({
       text: "select username,"
           + "  account.account_id, base_keyring_id," +
-"challenge_key_hash, challenge_key_salt, keypair, pubkey, symkey, container_name_hmac_key, hmac_key "
+"challenge_key_hash, challenge_key_salt, keypair, keypair_salt, pubkey, symkey, container_name_hmac_key, hmac_key "
 /*
           + "  encode(challenge_key, 'hex') as challenge_key,"
           + "  encode(challenge_key_salt, 'hex') as challenge_key_salt,"
@@ -129,11 +129,11 @@ exports.getAccount = function getAccount(username, callback) {
         keyringId: result.rows[0].base_keyring_id,
         challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
         challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
-        keypairSalt: result.rows[0].keypair_salt,
+        keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
         keypairIv: result.rows[0].keypair_iv,
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
-        pubkey: result.rows[0].pubkey, //.toString(),
-        symkeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
+        pubKey: result.rows[0].pubkey.toString(),
+        //symkeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
         containerNameHmacKeyIv: result.rows[0].container_name_hmac_key_iv,
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
         hmacKeyIv: result.rows[0].hmac_key_iv,

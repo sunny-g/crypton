@@ -51,8 +51,8 @@ var crypton = {};
     account.challengeKeySalt = JSON.stringify(challengeKeySalt);
     account.challengeKey = JSON.stringify(sjcl.misc.pbkdf2(passphrase, challengeKeySalt));
     account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()));
-    account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, containerNameHmacKey);
-    account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, hmacKey);
+    account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(containerNameHmacKey));
+    account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(hmacKey));
     account.pubKey = JSON.stringify({
       key: keypair.pub.serialize(),
       tag: symkey.tag

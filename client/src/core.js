@@ -42,18 +42,21 @@ var crypton = {};
     var hmacKey = randomBytes(8);
     var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
     var keypairSalt = randomBytes(8);
-    var symkey = keypair.pub.kem(0).key;
+    var symkey = keypair.pub.kem(0);
     var challengeKeySalt = randomBytes(8);
     var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
 
     account.username = username;
     account.keypairSalt = JSON.stringify(keypairSalt);
     account.challengeKeySalt = JSON.stringify(challengeKeySalt);
-    account.pubKey = JSON.stringify(keypair.pub.serialize());
     account.challengeKey = JSON.stringify(sjcl.misc.pbkdf2(passphrase, challengeKeySalt));
     account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()));
-    account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey, containerNameHmacKey);
-    account.hmacKeyCiphertext = sjcl.encrypt(symkey, hmacKey);
+    account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, containerNameHmacKey);
+    account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, hmacKey);
+    account.pubKey = JSON.stringify({
+      key: keypair.pub.serialize(),
+      tag: symkey.tag
+    });
 
     if (save) {
       account.save(function (err) {

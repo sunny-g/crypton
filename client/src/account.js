@@ -46,9 +46,10 @@ console.log(this);
     var secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
 
     var pub = JSON.parse(this.pubKey);
-    var point = sjcl.ecc.curves['c' + pub.curve].fromBits(pub.point);
-    var pubKey = new sjcl.ecc.elGamal.publicKey(pub.curve, point.curve, point);
-    var symKey = secretKey.unkem(pubKey.kem(0).tag);
+console.log(pub);
+    var point = sjcl.ecc.curves['c' + pub.key.curve].fromBits(pub.key.point);
+    var pubKey = new sjcl.ecc.elGamal.publicKey(pub.key.curve, point.curve, point);
+    var symKey = secretKey.unkem(pub.tag);
 console.log(symKey);
 
     // decrypt containerNameHmacKey

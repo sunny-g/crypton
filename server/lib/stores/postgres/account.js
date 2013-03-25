@@ -23,7 +23,6 @@ var connect = require('./').connect;
 /* Save a new account
  * Add keyring info to it */
 exports.saveAccount = function saveAccount(account, callback) {
-console.log(account);
   connect(function (client, done) {
     client.query('begin');
     client.query({

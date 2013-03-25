@@ -35,40 +35,23 @@
   };
 
   Account.prototype.unravel = function (callback) {
-console.log(this);
-
-    // reconstruct keypairKey from passphrase
+    // regenerate keypair key from password
     var keypairKey = sjcl.misc.pbkdf2(this.passphrase, this.keypairSalt);
 
-    // decrypt keypair
+    // decrypt secret key
     var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext)));
     var exponent = sjcl.bn.fromBits(secret.exponent);
     var secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
 
+    // reconstruct public key and personal symkey
     var pub = JSON.parse(this.pubKey);
-console.log(pub);
     var point = sjcl.ecc.curves['c' + pub.key.curve].fromBits(pub.key.point);
     var pubKey = new sjcl.ecc.elGamal.publicKey(pub.key.curve, point.curve, point);
     var symKey = secretKey.unkem(pub.tag);
-console.log(symKey);
 
-    // decrypt containerNameHmacKey
+    // decrypt hmac keys
     this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext));
-    console.log(this.containerNameHmacKey);
-
-    // decrypt hmacKey
-    var hmacKeyIv = hp(this.hmacKeyIv);
-    encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: hp(this.hmacKeyCiphertext),
-      iv: hmacKeyIv
-    });
-    this.hmacKey = CryptoJS.AES.decrypt(
-      encrypted, this.symkey, {
-        iv: hmacKeyIv,
-        mode: CryptoJS.mode.CFB,
-        padding: CryptoJS.pad.NoPadding
-      }
-    );
+    this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext));
 
     callback();
   };

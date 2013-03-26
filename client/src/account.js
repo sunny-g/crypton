@@ -41,13 +41,15 @@
     // decrypt secret key
     var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext)));
     var exponent = sjcl.bn.fromBits(secret.exponent);
-    var secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
+    this.secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
 
     // reconstruct public key and personal symkey
     var pub = JSON.parse(this.pubKey);
     var point = sjcl.ecc.curves['c' + pub.key.curve].fromBits(pub.key.point);
-    var pubKey = new sjcl.ecc.elGamal.publicKey(pub.key.curve, point.curve, point);
-    var symKey = secretKey.unkem(pub.tag);
+    this.pubKey = new sjcl.ecc.elGamal.publicKey(pub.key.curve, point.curve, point);
+
+    var symKey = this.secretKey.unkem(pub.tag);
+    this.symkey = symKey;
 
     // decrypt hmac keys
     this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext));

@@ -66,6 +66,7 @@
         payloadIv: payloadIv.toString(),
         payloadCiphertext: payloadCiphertext
       };
+console.log(chunk);
 
       // TODO handle errs
       var tx = new crypton.Transaction(this.session, function (err) {
@@ -103,15 +104,21 @@
   };
 
   Container.prototype.getPublicName = function () {
+    /*
     var containerNameHmac = CryptoJS.HmacSHA256(
       this.name,
       this.session.account.containerNameHmacKey
     );
     return containerNameHmac.toString();
+    */
+    var hmac = new sjcl.misc.hmac(this.session.account.containerNameHmacKey);
+    var containerNameHmac = hmac.encrypt(this.name);
+    return sjcl.codec.hex.fromBits(containerNameHmac);
   };
 
   Container.prototype.getHistory = function (callback) {
     var containerNameHmac = this.getPublicName();
+console.log(containerNameHmac);
     superagent.get(crypton.url() + '/container/' + containerNameHmac)
       .set('session-identifier', this.session.id)
       .end(function (res) {

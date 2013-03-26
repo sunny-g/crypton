@@ -341,9 +341,11 @@ create table container_record (
     account_id int8 not null references account,
     transaction_id int8 not null,
     creation_time timestamp not null default current_timestamp,
-    hmac bytea not null,
+    hmac bytea, /*not null,
     payload_iv bytea not null,
+*/
     payload_ciphertext bytea not null
+/*
     constraint hmac_len
         check (octet_length(hmac)=32)
     constraint payload_iv_len
@@ -352,6 +354,7 @@ create table container_record (
         check (octet_length(payload_ciphertext) % 16 = 0)
     constraint payload_ciphertext_len
         check (octet_length(payload_ciphertext) BETWEEN 16 and 26214400)
+*/
 );
 
 COMMENT ON TABLE container_record IS
@@ -705,9 +708,12 @@ create table transaction_add_container_record (
     transaction_id int8 not null references transaction,
     name_hmac bytea not null,
     latest_record_id int8,
+/*
     hmac bytea not null,
     payload_iv bytea not null,
+*/
     payload_ciphertext bytea not null
+/*
     constraint hmac_len
         check (octet_length(hmac)=32)
     constraint payload_iv_len
@@ -716,6 +722,7 @@ create table transaction_add_container_record (
         check (octet_length(payload_ciphertext) % 16 = 0)
     constraint payload_ciphertext_len
         check (octet_length(payload_ciphertext) BETWEEN 16 and 26214400)
+*/
 );
 
 create table transaction_add_message (

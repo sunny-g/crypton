@@ -165,7 +165,7 @@ console.log(containerNameHmac);
     ////var payloadHmac = new sjcl.misc.hmac(hmacKey);
     ////payloadHmac = payloadHmac.encrypt(record.payloadCiphertext);
 
-    var payload = JSONC.decrypt(sjcl.decrypt(hmacKey, record.payloadCiphertext));
+    var payload = JSON.parse(sjcl.decrypt(sjcl.decrypt(hmacKey, record.payloadCiphertext)));
 /*
     var payloadIv = hp(record.payloadIv);
     var encrypted = CryptoJS.lib.CipherParams.create({

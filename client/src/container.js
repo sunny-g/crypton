@@ -49,6 +49,8 @@
       this.versions[now] = JSON.parse(JSON.stringify(this.keys));
       this.version = now;
 
+      var payloadCiphertext = sjcl.encrypt(this.hmacKey, JSON.stringify(diff));
+/*
       var payloadIv = crypton.randomBytes(16);
       var payloadCiphertext = CryptoJS.AES.encrypt(
         JSON.stringify(diff), this.hmacKey, {
@@ -58,12 +60,13 @@
         }
       ).ciphertext.toString();
       var payloadHmac = CryptoJS.HmacSHA256(payloadCiphertext, this.hmacKey);
+*/
 
       var chunk = {
         type: 'addContainerRecord',
         containerNameHmac: this.getPublicName(),
-        hmac: payloadHmac.toString(),
-        payloadIv: payloadIv.toString(),
+        //hmac: payloadHmac.toString(),
+        //payloadIv: payloadIv.toString(),
         payloadCiphertext: payloadCiphertext
       };
 console.log(chunk);

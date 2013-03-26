@@ -146,13 +146,14 @@ console.log(containerNameHmac);
   };
 
   Container.prototype.decryptRecord = function (record) {
-    var hp = CryptoJS.enc.Hex.parse;
+    console.log(record);
+    //var sessionKeyCiphertext = hp(record.sessionKeyCiphertext).toString(CryptoJS.enc.Utf8);
+    //var sessionKey = hp(this.session.account.keypair.decrypt(sessionKeyCiphertext));
+    var sessionKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.sessionKeyCiphertext));
 
-    var sessionKeyCiphertext = hp(record.sessionKeyCiphertext).toString(CryptoJS.enc.Utf8);
-    var sessionKey = hp(this.session.account.keypair.decrypt(sessionKeyCiphertext));
-
-    var hmacKeyCiphertext = hp(record.hmacKeyCiphertext).toString(CryptoJS.enc.Utf8);
-    var hmacKey = hp(this.session.account.keypair.decrypt(hmacKeyCiphertext));
+    //var hmacKeyCiphertext = hp(record.hmacKeyCiphertext).toString(CryptoJS.enc.Utf8);
+    //var hmacKey = hp(this.session.account.keypair.decrypt(hmacKeyCiphertext));
+    var hmacKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.hmacKeyCiphertext));
 
     // XXX is this the correct way to store these?
     // do they need to come with ever record?
@@ -160,8 +161,12 @@ console.log(containerNameHmac);
     this.hmacKey = hmacKey;
 
     // TODO authenticate payload
-    var payloadHmac = CryptoJS.HmacSHA256(record.payloadCiphertext, hmacKey);
+    //var payloadHmac = CryptoJS.HmacSHA256(record.payloadCiphertext, hmacKey);
+    ////var payloadHmac = new sjcl.misc.hmac(hmacKey);
+    ////payloadHmac = payloadHmac.encrypt(record.payloadCiphertext);
 
+    var payload = JSONC.decrypt(sjcl.decrypt(hmacKey, record.payloadCiphertext));
+/*
     var payloadIv = hp(record.payloadIv);
     var encrypted = CryptoJS.lib.CipherParams.create({
       ciphertext: hp(record.payloadCiphertext),
@@ -175,6 +180,7 @@ console.log(containerNameHmac);
       }
     );
     var payload = JSON.parse(payloadRaw.toString(CryptoJS.enc.Utf8));
+*/
 
     return {
       time: +new Date(record.creationTime),

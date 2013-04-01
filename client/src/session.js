@@ -56,12 +56,16 @@
       }
     }
 
+    var cipherOptions = {
+      mode: 'gcm'
+    };
+
     var sessionKey = crypton.randomBytes(8);
     var hmacKey = crypton.randomBytes(8);
     //var sessionKeyCiphertext = this.account.keypair.encrypt(sessionKey.toString());
-    var sessionKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(sessionKey));
+    var sessionKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(sessionKey), cipherOptions);
     //var hmacKeyCiphertext = this.account.keypair.encrypt(hmacKey.toString());
-    var hmacKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(hmacKey));
+    var hmacKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(hmacKey), cipherOptions);
     //var keyshmac = CryptoJS.HmacSHA256(sessionKey.toString() + hmacKey.toString(), '');
     var keyshmac = new sjcl.misc.hmac(crypton.randomBytes(8));
     keyshmac = sjcl.codec.hex.fromBits(keyshmac.encrypt(JSON.stringify(sessionKey) + JSON.stringify(hmacKey)));
@@ -88,7 +92,7 @@
       }
     ).ciphertext.toString();
 */
-    var payloadCiphertext = sjcl.encrypt(hmacKey, JSON.stringify({}));
+    var payloadCiphertext = sjcl.encrypt(hmacKey, JSON.stringify({}), cipherOptions);
     //var payloadHmac = CryptoJS.HmacSHA256(payloadCiphertext, hmacKey);
 
     var that = this;

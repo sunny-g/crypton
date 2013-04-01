@@ -36,6 +36,9 @@ var crypton = {};
     options = options || {};
     var keypairCurve = options.keypairCurve || 384;
     var save = options.save || true;
+    var cipherOptions = {
+      mode: 'gcm'
+    };
 
     var account = new crypton.Account();
     var containerNameHmacKey = randomBytes(8);
@@ -50,9 +53,9 @@ var crypton = {};
     account.keypairSalt = JSON.stringify(keypairSalt);
     account.challengeKeySalt = JSON.stringify(challengeKeySalt);
     account.challengeKey = JSON.stringify(sjcl.misc.pbkdf2(passphrase, challengeKeySalt));
-    account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()));
-    account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(containerNameHmacKey));
-    account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(hmacKey));
+    account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), cipherOptions);
+    account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(containerNameHmacKey), cipherOptions);
+    account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(hmacKey), cipherOptions);
     account.pubKey = JSON.stringify({
       key: keypair.pub.serialize(),
       tag: symkey.tag

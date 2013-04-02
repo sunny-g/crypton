@@ -49,7 +49,7 @@
       this.versions[now] = JSON.parse(JSON.stringify(this.keys));
       this.version = now;
 
-      var payloadCiphertext = sjcl.encrypt(this.hmacKey, JSON.stringify(diff));
+      var payloadCiphertext = sjcl.encrypt(this.hmacKey, JSON.stringify(diff), crypton.cipherOptions);
 
       var chunk = {
         type: 'addContainerRecord',

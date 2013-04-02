@@ -49,6 +49,12 @@
       this.versions[now] = JSON.parse(JSON.stringify(this.keys));
       this.version = now;
 
+      // don't do anything if the container hasn't changed
+      if (!diff) {
+        callback();
+        return;
+      }
+
       var payloadCiphertext = sjcl.encrypt(this.hmacKey, JSON.stringify(diff), crypton.cipherOptions);
 
       var chunk = {

@@ -35,15 +35,11 @@
   };
 
   Account.prototype.unravel = function (callback) {
-    var cipherOptions = {
-      mode: 'gcm'
-    };
-
     // regenerate keypair key from password
     var keypairKey = sjcl.misc.pbkdf2(this.passphrase, this.keypairSalt);
 
     // decrypt secret key
-    var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext), cipherOptions));
+    var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext), crypton.cipherOptions));
     var exponent = sjcl.bn.fromBits(secret.exponent);
     this.secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
 
@@ -56,8 +52,8 @@
     this.symkey = symKey;
 
     // decrypt hmac keys
-    this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext), cipherOptions);
-    this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext), cipherOptions);
+    this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext), crypton.cipherOptions);
+    this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext), crypton.cipherOptions);
 
     callback();
   };

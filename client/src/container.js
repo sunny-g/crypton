@@ -50,26 +50,12 @@
       this.version = now;
 
       var payloadCiphertext = sjcl.encrypt(this.hmacKey, JSON.stringify(diff));
-/*
-      var payloadIv = crypton.randomBytes(16);
-      var payloadCiphertext = CryptoJS.AES.encrypt(
-        JSON.stringify(diff), this.hmacKey, {
-          iv: payloadIv,
-          mode: CryptoJS.mode.CFB,
-          padding: CryptoJS.pad.Pkcs7
-        }
-      ).ciphertext.toString();
-      var payloadHmac = CryptoJS.HmacSHA256(payloadCiphertext, this.hmacKey);
-*/
 
       var chunk = {
         type: 'addContainerRecord',
         containerNameHmac: this.getPublicName(),
-        //hmac: payloadHmac.toString(),
-        //payloadIv: payloadIv.toString(),
         payloadCiphertext: payloadCiphertext
       };
-console.log(chunk);
 
       // TODO handle errs
       var tx = new crypton.Transaction(this.session, function (err) {
@@ -107,13 +93,6 @@ console.log(chunk);
   };
 
   Container.prototype.getPublicName = function () {
-    /*
-    var containerNameHmac = CryptoJS.HmacSHA256(
-      this.name,
-      this.session.account.containerNameHmacKey
-    );
-    return containerNameHmac.toString();
-    */
     var hmac = new sjcl.misc.hmac(this.session.account.containerNameHmacKey);
     var containerNameHmac = hmac.encrypt(this.name);
     return sjcl.codec.hex.fromBits(containerNameHmac);
@@ -121,7 +100,7 @@ console.log(chunk);
 
   Container.prototype.getHistory = function (callback) {
     var containerNameHmac = this.getPublicName();
-console.log(containerNameHmac);
+
     superagent.get(crypton.url() + '/container/' + containerNameHmac)
       .set('session-identifier', this.session.id)
       .end(function (res) {
@@ -140,7 +119,6 @@ console.log(containerNameHmac);
 
     for (var i in records) {
       var record = this.decryptRecord(records[i]);
-      // TODO apply diff to keys object
       keys = crypton.diff.apply(record.delta, keys);
       versions[record.time] = JSON.parse(JSON.stringify(keys));
     }
@@ -149,40 +127,14 @@ console.log(containerNameHmac);
   };
 
   Container.prototype.decryptRecord = function (record) {
-    //var sessionKeyCiphertext = hp(record.sessionKeyCiphertext).toString(CryptoJS.enc.Utf8);
-    //var sessionKey = hp(this.session.account.keypair.decrypt(sessionKeyCiphertext));
     var sessionKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.sessionKeyCiphertext, crypton.cipherOptions));
 
-    //var hmacKeyCiphertext = hp(record.hmacKeyCiphertext).toString(CryptoJS.enc.Utf8);
-    //var hmacKey = hp(this.session.account.keypair.decrypt(hmacKeyCiphertext));
     var hmacKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.hmacKeyCiphertext, crypton.cipherOptions));
 
-    // XXX is this the correct way to store these?
-    // do they need to come with ever record?
     this.sessionKey = sessionKey;
     this.hmacKey = hmacKey;
 
-    // TODO authenticate payload
-    //var payloadHmac = CryptoJS.HmacSHA256(record.payloadCiphertext, hmacKey);
-    ////var payloadHmac = new sjcl.misc.hmac(hmacKey);
-    ////payloadHmac = payloadHmac.encrypt(record.payloadCiphertext);
-
     var payload = JSON.parse(sjcl.decrypt(hmacKey, record.payloadCiphertext, crypton.cipherOptions));
-/*
-    var payloadIv = hp(record.payloadIv);
-    var encrypted = CryptoJS.lib.CipherParams.create({
-      ciphertext: hp(record.payloadCiphertext),
-      iv: payloadIv
-    });
-    var payloadRaw = CryptoJS.AES.decrypt(
-      encrypted, hmacKey, {
-        iv: payloadIv,
-        mode: CryptoJS.mode.CFB,
-        padding: CryptoJS.pad.Pkcs7
-      }
-    );
-    var payload = JSON.parse(payloadRaw.toString(CryptoJS.enc.Utf8));
-*/
 
     return {
       time: +new Date(record.creationTime),

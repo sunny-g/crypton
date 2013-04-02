@@ -58,38 +58,16 @@
 
     var sessionKey = crypton.randomBytes(8);
     var hmacKey = crypton.randomBytes(8);
-    //var sessionKeyCiphertext = this.account.keypair.encrypt(sessionKey.toString());
     var sessionKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(sessionKey), crypton.cipherOptions);
-    //var hmacKeyCiphertext = this.account.keypair.encrypt(hmacKey.toString());
     var hmacKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(hmacKey), crypton.cipherOptions);
-    //var keyshmac = CryptoJS.HmacSHA256(sessionKey.toString() + hmacKey.toString(), '');
+
     var keyshmac = new sjcl.misc.hmac(crypton.randomBytes(8));
     keyshmac = sjcl.codec.hex.fromBits(keyshmac.encrypt(JSON.stringify(sessionKey) + JSON.stringify(hmacKey)));
-    // > v = String.fromCharCode.apply(String, new Uint8Array(new Uint32Array(c.CryptoJS.SHA512('moo').words).buffer))
-    // this would be the way to get a binary hash out, but we need to figure out how we're doing data marshalling in
-    // this whole ball of wax.  Alan says that we should be working on binary data as much as possible. all the RSA stuff is
-    // implicitly stringencoding.  CryptoJS gives the option not to, but we probably need to factor all the crypto stuff to separate
-    // crypto from encoding.  I'm going to leave this as is, with the example code above.  I'm also pretty confident that rsasign.js should work, but
-    // we need to patch/refactor pretty much everything under rsa/* to not pervasively toString() everything.
+
     var signature = 'hello'; // TODO sign with private key
     var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
     containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac.encrypt(containerName));
-/*
-    var containerNameHmac = CryptoJS.HmacSHA256(
-      containerName,
-      this.account.containerNameHmacKey
-    ).toString();
-    var payloadIv = crypton.randomBytes(16);
-    var payloadCiphertext = CryptoJS.AES.encrypt(
-      JSON.stringify({}), hmacKey, {
-        iv: payloadIv,
-        mode: CryptoJS.mode.CFB,
-        padding: CryptoJS.pad.Pkcs7
-      }
-    ).ciphertext.toString();
-*/
     var payloadCiphertext = sjcl.encrypt(hmacKey, JSON.stringify({}), crypton.cipherOptions);
-    //var payloadHmac = CryptoJS.HmacSHA256(payloadCiphertext, hmacKey);
 
     var that = this;
     new crypton.Transaction(this, function (err, tx) {
@@ -109,8 +87,6 @@
         }, {
           type: 'addContainerRecord',
           containerNameHmac: containerNameHmac,
-          //hmac: payloadHmac.toString(),
-          //payloadIv: payloadIv.toString(),
           payloadCiphertext: payloadCiphertext
         }
       ];

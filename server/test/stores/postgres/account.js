@@ -60,15 +60,10 @@ describe("postgres/account", function () {
   var newAccount = {
     username: 'testuser',
     challengeKey: 'challenge key',
-    challengeKeySalt: 'challenge key salt',
-    keypairSalt: 'keypair salt',
-    keypairIv: 'keypair iv',
     keypairCiphertext: 'keypair ciphertext',
     pubkey: 'pubkey',
     symkeyCiphertext: 'symkey ciphertext',
-    containerNameHmacKeyIv: 'container name hmac key iv',
     containerNameHmacKeyCiphertext: 'container name hmac key ciphertext',
-    hmacKeyIv: 'hmac key iv',
     hmacKeyCiphertext: 'hmack key ciphertext'
   };
 
@@ -90,24 +85,29 @@ describe("postgres/account", function () {
     it("inserts rows for account and keyring", function (done) {
       client.callbackArgs = [
         undefined,
-        [null, { rows: [{
-          account_id: accountId,
-          base_keyring_id: baseKeyringId
-        }] }]
+        [
+          null, {
+            rows: [{
+              account_id: accountId,
+              base_keyring_id: baseKeyringId
+            }]
+          }
+        ]
       ];
+
       var expected = [
         /^begin$/,
-        { text: /^insert into account /, values: [newAccount.username] },
+        { text: /^insert into account /, values: [ newAccount.username ] },
         { text: /^insert into base_keyring /, values: [
-          baseKeyringId, accountId,
-          newAccount.challengeKey, newAccount.challengeKeySalt,
-          newAccount.keypairSalt, newAccount.keypairIv,
+          baseKeyringId,
+          accountId,
+          newAccount.challengeKey,
           newAccount.keypairCiphertext,
-          newAccount.pubkey, newAccount.symkeyCiphertext,
-          newAccount.containerNameHmacKeyIv,
+          newAccount.pubkey,
+          newAccount.symkeyCiphertext,
           newAccount.containerNameHmacKeyCiphertext,
-          newAccount.hmacKeyIv, newAccount.hmacKeyCiphertext
-        ] },
+          newAccount.hmacKeyCiphertext
+        ]},
         /^commit$/
       ];
       account.saveAccount(newAccount, function (err) {

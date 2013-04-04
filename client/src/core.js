@@ -56,10 +56,8 @@ var crypton = {};
     account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
     account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(containerNameHmacKey), crypton.cipherOptions);
     account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(hmacKey), crypton.cipherOptions);
-    account.pubKey = JSON.stringify({
-      key: keypair.pub.serialize(),
-      tag: symkey.tag
-    });
+    account.pubKey = JSON.stringify(keypair.pub.serialize());
+    account.symKeyCiphertext = JSON.stringify(symkey.tag);
 
     if (save) {
       account.save(function (err) {

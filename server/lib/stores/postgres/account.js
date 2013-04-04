@@ -42,22 +42,21 @@ exports.saveAccount = function saveAccount(account, callback) {
         return;
       }
 
+console.log(Object.keys(account));
       client.query({
         text: "insert into base_keyring ("
             + "  base_keyring_id, account_id,"
-            + "  challenge_key_hash, challenge_key_salt,"
-            + "  keypair, keypair_salt, pubkey, symkey,"
+            + "  keypair, pubkey, symkey,"
             + "  container_name_hmac_key,"
             + "  hmac_key"
             + ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
-          account.challengeKeyHash, account.challengeKeySalt,
-          account.keypairCiphertext, account.keypairSalt,
+          account.keypairCiphertext,
           account.pubKey, account.symkeyCiphertext,
           account.containerNameHmacKeyCiphertext,
-          account.hmacKeyCiphertext
+          account.hmacKe,yCiphertext
         ]
       }, function (err) {
         if (err) {

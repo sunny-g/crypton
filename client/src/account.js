@@ -44,11 +44,10 @@
     this.secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
 
     // reconstruct public key and personal symkey
-    var pub = JSON.parse(this.pubKey);
-    var point = sjcl.ecc.curves['c' + pub.key.curve].fromBits(pub.point);
-    this.pubKey = new sjcl.ecc.elGamal.publicKey(pub.curve, point.curve, point);
+    var point = sjcl.ecc.curves['c' + this.pubKey.curve].fromBits(this.pubKey.point);
+    this.pubKey = new sjcl.ecc.elGamal.publicKey(this.pubKey.curve, point.curve, point);
 
-    var symKey = this.secretKey.unkem(JSON.parse(this.symKey));
+    var symKey = this.secretKey.unkem(this.symkeyCiphertext);
     this.symkey = symKey;
 
     // decrypt hmac keys

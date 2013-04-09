@@ -26,22 +26,29 @@ describe('postgres/account', function () {
   var newAccount = {
     username: 'testuser',
     keypairCiphertext: '{ "keypair": "ciphertext" }',
+    keypairSalt: '[ 1, 2, 3 ]',
     pubKey: '{ "pubkey": "ciphertext" }',
-    symkeyCiphertext: '{ "symkey": "ciphertext" }',
+    symkeyCiphertext: '[ 1, 2, 3 ]',
     containerNameHmacKeyCiphertext: '{ "containerNameHmacKey": "ciphertext" }',
-    hmacKeyCiphertext: '{ "hmacKey": "ciphertext" }'
+    hmacKeyCiphertext: '{ "hmacKey": "ciphertext" }',
+    challengeKeySalt: '[ 1, 2, 3 ]',
+    challengeKeyHash: 'bcrypt hash'
   };
 
   var expectedAccount = {
     username: 'testuser',
     accountId: 2,
     keyringId: 3,
+    keypairSalt: [ 1, 2, 3 ],
     keypairCiphertext: { keypair: 'ciphertext' },
     pubKey: { pubkey: 'ciphertext' },
-    symkeyCiphertext: { symkey: 'ciphertext' },
+    symkeyCiphertext: [ 1, 2, 3 ],
+    challengeKeySalt: [ 1, 2, 3 ],
+    challengeKeyHash: 'bcrypt hash',
     containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
     hmacKeyCiphertext: { hmacKey: 'ciphertext' }
   };
+
 
   describe('saveAccount', function () {
     it('inserts rows for account and keyring', function (done) {

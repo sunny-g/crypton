@@ -35,10 +35,10 @@ var crypton = {};
   }
   crypton.randomBytes = randomBytes;
 
-  crypton.generateAccount = function (username, passphrase, step, callback, options) {
+  crypton.generateAccount = function (username, passphrase, callback, options) {
     options = options || {};
     var keypairCurve = options.keypairCurve || 384;
-    var save = options.save || true;
+    var save = typeof options.save !== 'undefined' ? options.save : true;
 
     var account = new crypton.Account();
     var containerNameHmacKey = randomBytes(8);

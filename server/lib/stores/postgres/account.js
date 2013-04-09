@@ -33,30 +33,33 @@ exports.saveAccount = function saveAccount(account, callback) {
     }, function (err, result) {
       if (err) {
         client.query('rollback');
+        done();
+
         if (err.code === '23505') {
           callback('Username already taken.');
         } else {
           console.log('Unhandled database error: ' + err);
           callback('Database error.');
         }
+
         return;
       }
 
-console.log(Object.keys(account));
       client.query({
         text: "insert into base_keyring ("
             + "  base_keyring_id, account_id,"
             + "  keypair, pubkey, symkey,"
             + "  container_name_hmac_key,"
             + "  hmac_key"
-            + ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+            + ") values ($1, $2, $3, $4, $5, $6, $7)",
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
           account.keypairCiphertext,
-          account.pubKey, account.symkeyCiphertext,
+          account.pubKey,
+          account.symkeyCiphertext,
           account.containerNameHmacKeyCiphertext,
-          account.hmacKe,yCiphertext
+          account.hmacKeyCiphertext
         ]
       }, function (err) {
         if (err) {
@@ -125,16 +128,10 @@ exports.getAccount = function getAccount(username, callback) {
         username: result.rows[0].username,
         accountId: result.rows[0].account_id,
         keyringId: result.rows[0].base_keyring_id,
-        challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
-        challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
-        keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
-        keypairIv: result.rows[0].keypair_iv,
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
-        pubKey: result.rows[0].pubkey.toString(),
-        //symkeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
-        containerNameHmacKeyIv: result.rows[0].container_name_hmac_key_iv,
+        pubKey: JSON.parse(result.rows[0].pubkey.toString()),
+        symkeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
-        hmacKeyIv: result.rows[0].hmac_key_iv,
         hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
       });
     });

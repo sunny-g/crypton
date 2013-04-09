@@ -101,14 +101,22 @@ exports.saveAccount = function saveAccount(account, callback) {
 /* Get an account and its keyring */
 exports.getAccount = function getAccount(username, callback) {
   connect(function (client, done) {
-    client.query({
-      text: "select username,"
-          + "  account.account_id, base_keyring_id," +
-"challenge_key_hash, challenge_key_salt, keypair, keypair_salt, pubkey, symkey, container_name_hmac_key, hmac_key "
-          + "from account left join base_keyring using (base_keyring_id) "
-          + "where username=$1",
-      values: [username]
-    }, function (err, result) {
+    var accountQuery = {
+      text:
+        "select username, " +
+        "account.account_id, base_keyring_id, " +
+        "challenge_key_hash, challenge_key_salt, " +
+        "keypair, keypair_salt, " +
+        "pubkey, symkey, " +
+        "container_name_hmac_key, hmac_key " +
+        "from account left join base_keyring using (base_keyring_id) " +
+        "where username=$1",
+      values: [
+        username
+      ]
+    };
+
+    client.query(accountQuery, function (err, result) {
       done();
 
       if (err) {

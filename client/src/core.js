@@ -44,13 +44,11 @@ var crypton = {};
     var containerNameHmacKey = randomBytes(8);
     var hmacKey = randomBytes(8);
     var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
-    var keypairSalt = randomBytes(8);
     var symkey = keypair.pub.kem(0);
     var challengeKeySalt = randomBytes(8);
     var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
 
     account.username = username;
-    account.keypairSalt = JSON.stringify(keypairSalt);
     account.challengeKeySalt = JSON.stringify(challengeKeySalt);
     account.challengeKey = JSON.stringify(sjcl.misc.pbkdf2(passphrase, challengeKeySalt));
     account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);

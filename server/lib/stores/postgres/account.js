@@ -25,12 +25,18 @@ var connect = require('./').connect;
 exports.saveAccount = function saveAccount(account, callback) {
   connect(function (client, done) {
     client.query('begin');
-    client.query({
-      text: "insert into account (username, base_keyring_id) "
-          + "values ($1, nextval('version_identifier')) "
-          + "returning account_id, base_keyring_id",
-      values: [account.username]
-    }, function (err, result) {
+
+    var accountQuery = {
+      text:
+        "insert into account (username, base_keyring_id) " +
+        "values ($1, nextval('version_identifier')) " +
+        "returning account_id, base_keyring_id",
+      values: [
+        account.username
+      ]
+    };
+
+    client.query(accountQuery, function (err, result) {
       if (err) {
         client.query('rollback');
         done();
@@ -45,13 +51,14 @@ exports.saveAccount = function saveAccount(account, callback) {
         return;
       }
 
-      client.query({
-        text: "insert into base_keyring ("
-            + "  base_keyring_id, account_id,"
-            + "  keypair, keypair_salt, pubkey, symkey,"
-            + "  container_name_hmac_key,"
-            + "  hmac_key, challenge_key_salt, challenge_key_hash"
-            + ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+      var keyringQuery = {
+        text:
+          "insert into base_keyring (" +
+          "  base_keyring_id, account_id," +
+          "  keypair, keypair_salt, pubkey, symkey," +
+          "  container_name_hmac_key," +
+          "  hmac_key, challenge_key_salt, challenge_key_hash" +
+          ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
@@ -64,7 +71,9 @@ exports.saveAccount = function saveAccount(account, callback) {
           account.challengeKeySalt,
           account.challengeKeyHash
         ]
-      }, function (err) {
+      };
+
+      client.query(keyringQuery, function (err) {
         if (err) {
           client.query('rollback');
           done();

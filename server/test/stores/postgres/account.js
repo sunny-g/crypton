@@ -32,6 +32,17 @@ describe('postgres/account', function () {
     hmacKeyCiphertext: '{ "hmacKey": "ciphertext" }'
   };
 
+  var expectedAccount = {
+    username: 'testuser',
+    accountId: 2,
+    keyringId: 3,
+    keypairCiphertext: { keypair: 'ciphertext' },
+    pubKey: { pubkey: 'ciphertext' },
+    symkeyCiphertext: { symkey: 'ciphertext' },
+    containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
+    hmacKeyCiphertext: { hmacKey: 'ciphertext' }
+  };
+
   describe('saveAccount', function () {
     it('inserts rows for account and keyring', function (done) {
       crypton.account.saveAccount(newAccount, function (err) {
@@ -41,18 +52,6 @@ describe('postgres/account', function () {
         }
 
         crypton.account.getAccount(newAccount.username, function (err, account) {
-          // this isn't really necessary here because getAccount is tested
-          var expectedAccount = {
-            username: 'testuser',
-            accountId: 2,
-            keyringId: 3,
-            keypairCiphertext: { keypair: 'ciphertext' },
-            pubKey: { pubkey: 'ciphertext' },
-            symkeyCiphertext: { symkey: 'ciphertext' },
-            containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
-            hmacKeyCiphertext: { hmacKey: 'ciphertext' }
-          };
-
           assert.equal(err, null);
           assert.deepEqual(expectedAccount, account);
           done();
@@ -71,17 +70,6 @@ describe('postgres/account', function () {
   describe('getAccount', function () {
     it('returns account info and keyring', function (done) {
       crypton.account.getAccount(newAccount.username, function (err, account) {
-        var expectedAccount = {
-          username: 'testuser',
-          accountId: 2,
-          keyringId: 3,
-          keypairCiphertext: { keypair: 'ciphertext' },
-          pubKey: { pubkey: 'ciphertext' },
-          symkeyCiphertext: { symkey: 'ciphertext' },
-          containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
-          hmacKeyCiphertext: { hmacKey: 'ciphertext' }
-        };
-
         assert.equal(err, null);
         assert.deepEqual(account, expectedAccount);
         done();

@@ -31,16 +31,12 @@ $(document).ready(function () {
     $(this).hide();
     $('#progress').show();
 
-    var steps = 0;
     var progress = document.getElementById('progBar');
     var status = document.getElementById('status');
     var username = $('#username').val();
     var password = $('#password').val()
 
-    crypton.generateAccount(username, password, function step () {
-      progress.value = ++steps;
-      status.innerHTML = steps;
-    }, function done (err, account) {
+    crypton.generateAccount(username, password, function done (err, account) {
       progress.value = 2048;
       if (err) {
         console.log(err);

@@ -96,21 +96,6 @@ exports.getAccount = function getAccount(username, callback) {
       text: "select username,"
           + "  account.account_id, base_keyring_id," +
 "challenge_key_hash, challenge_key_salt, keypair, keypair_salt, pubkey, symkey, container_name_hmac_key, hmac_key "
-/*
-          + "  encode(challenge_key, 'hex') as challenge_key,"
-          + "  encode(challenge_key_salt, 'hex') as challenge_key_salt,"
-          + "  encode(keypair_salt, 'hex') as keypair_salt,"
-          + "  encode(keypair_iv, 'hex') as keypair_iv,"
-          + "  encode(keypair, 'hex') as keypair,"
-          + "  encode(pubkey, 'base64') as pubkey,"
-          + "  encode(symkey, 'hex') as symkey,"
-          + "  encode(container_name_hmac_key_iv, 'hex')"
-          + "    as container_name_hmac_key_iv,"
-          + "  encode(container_name_hmac_key, 'hex')"
-          + "    as container_name_hmac_key,"
-          + "  encode(hmac_key_iv, 'hex') as hmac_key_iv,"
-          + "  encode(hmac_key, 'hex') as hmac_key "
-*/
           + "from account left join base_keyring using (base_keyring_id) "
           + "where username=$1",
       values: [username]

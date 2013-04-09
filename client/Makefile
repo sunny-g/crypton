@@ -1,7 +1,6 @@
 # apparently the order of these files matters
 SRC = src/core.js src/account.js src/session.js src/container.js \
-	src/transaction.js src/peer.js src/message.js src/diff.js \
-	src/crypto/*.js src/rsa/*.js src/vendor/*.js
+	src/transaction.js src/peer.js src/message.js src/diff.js src/vendor/*.js
 
 dist/crypton.min.js: dist/crypton.js
 	uglifyjs dist/crypton.js > dist/crypton.min.js

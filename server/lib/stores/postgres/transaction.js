@@ -217,16 +217,16 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
       text: "\
         insert into transaction_add_container_record \
         (transaction_id, name_hmac, latest_record_id, \
-        hmac, payload_iv, payload_ciphertext) \
-        values ($1, $2, $3, decode($4, 'hex'), \
-        decode($5, 'hex'), decode($6, 'hex'))",
+        /*hmac, payload_iv, */payload_ciphertext) \
+        values ($1, $2, $3, $4)", // decode($4, 'hex'), \
+        //decode($5, 'hex'), decode($6, 'hex'))",
       /*jslint multistr: false*/
       values: [
         transaction.transactionId,
         data.containerNameHmac,
         data.latestRecordId,
-        data.hmac,
-        data.payloadIv,
+        //data.hmac,
+        //data.payloadIv,
         data.payloadCiphertext
       ]
     };

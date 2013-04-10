@@ -24,14 +24,12 @@ describe('core functionality', function () {
 
     before(function (done) {
       crypton.generateAccount('user', 'pass', function () {
-        step = true;
-        console.log(++steps);
-      }, function () {
-        console.log('done');
         err = arguments[0];
         user = arguments[1];
         done();
-      }, {keypairBits: 512, debug: true, save: false});
+      }, {
+        save: false
+      });
     });
 
     it('should exist', function () {

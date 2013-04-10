@@ -142,10 +142,10 @@ insert into container_session_key_share (container_session_key_share_id,
 
 insert into container_record (container_record_id, container_id, 
     container_session_key_id, account_id, transaction_id, 
-    hmac, payload_iv, payload_ciphertext)
+    /*hmac, payload_iv,*/ payload_ciphertext)
     select tx_tacr.container_record_id, tx_tacr.container_id,
            tx_tacr.container_session_key_id, t.account_id, t.transaction_id,
-           tacr.hmac, tacr.payload_iv, tacr.payload_ciphertext
+           /* tacr.hmac, tacr.payload_iv,*/ tacr.payload_ciphertext
       from transaction_add_container_record tacr
       join txtmp_add_container_record tx_tacr using (id)
       join transaction t using (transaction_id);

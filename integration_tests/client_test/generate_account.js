@@ -1,9 +1,5 @@
 (function () {
 
-    var logstep = function logstep() {
-        console.log("step");
-    };
-
     var signal_complete = function signal_complete() {
         console.log("signal_complete start");
         var request = window.superagent;
@@ -39,7 +35,6 @@
         crypton_test_result.success = null;
         crypton.generateAccount(crypton_test_config.username, 
                                 crypton_test_config.passphrase, 
-                                logstep, 
                                 complete_cb, 
                                 {keypairBits: 512,
                                        debug: true,

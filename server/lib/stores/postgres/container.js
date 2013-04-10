@@ -48,7 +48,7 @@ exports.getContainerRecords = function (containerNameHmac, accountId, callback) 
       result.rows.forEach(function (row) {
         Object.keys(row).forEach(function (key) {
           if (Buffer.isBuffer(row[key])) {
-            row[key] = row[key].toString('hex');
+            row[key] = row[key].toString();
           }
         });
 

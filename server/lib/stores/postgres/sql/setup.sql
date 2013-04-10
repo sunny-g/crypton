@@ -62,42 +62,18 @@ of account_id.  This makes references to an account stable across username
 changes and such.';
 
 CREATE TABLE base_keyring (
-
     base_keyring_id int8 not null primary key default nextval('version_identifier'),
     account_id int8 not null references account,
     creation_time timestamp not null default current_timestamp,
-    challenge_key bytea,
+    challenge_key_hash bytea,
     challenge_key_salt bytea,
     keypair_salt bytea,
-    keypair_iv bytea,
     keypair bytea,
     pubkey bytea,
     symkey bytea,
-    container_name_hmac_key_iv bytea,
     container_name_hmac_key bytea,
-    hmac_key_iv bytea,
     hmac_key bytea,
     deletion_time timestamp
-    constraint challenge_key_len
-        check (octet_length(challenge_key)=32)
-    constraint challenge_key_salt_len
-        check (octet_length(challenge_key_salt)=32)
-    constraint keypair_salt_len
-        check (octet_length(keypair_salt)=32)
-    constraint keypair_iv_len
-        check (octet_length(keypair_iv)=16)
-    constraint keypair_len_modulo
-        check (octet_length(keypair) % 16 = 0)
-    constraint keypair_len
-        check (octet_length(keypair) BETWEEN 16 and 26214400)
-    constraint container_name_hmac_key_iv_len
-        check (octet_length(container_name_hmac_key_iv)=16)
-    constraint container_name_hmac_key_len
-        check (octet_length(container_name_hmac_key)=32)
-    constraint hmac_key_iv_len
-        check (octet_length(hmac_key_iv)=16)
-    constraint hmac_key_len
-        check (octet_length(hmac_key)=32)
 );
 
 COMMENT ON TABLE base_keyring IS
@@ -107,55 +83,20 @@ These are stored separately from account, even though only one base_keyring
 should be active at any given time.';
 COMMENT ON COLUMN base_keyring.challenge_key_salt IS
 'Salt used with KDF and passphrase to create challenge_key';
-COMMENT ON COLUMN base_keyring.challenge_key IS
+COMMENT ON COLUMN base_keyring.challenge_key_hash IS
 'A key the server can use to issue auth challenges to the client';
 COMMENT ON COLUMN base_keyring.keypair_salt IS
 'Salt used with KDF and passphrase to create AES256 key used to encrypt keypair';
-COMMENT ON COLUMN base_keyring.keypair_iv IS
-'AES IV used with passphrase derived key for encrypted keypair';
 COMMENT ON COLUMN base_keyring.keypair IS
 'AES ciphertext of serialize public/private keypair';
 COMMENT ON COLUMN base_keyring.pubkey IS
 'Plaintext of serialized public key from the keypair';
 COMMENT ON COLUMN base_keyring.symkey IS
 'AES256 sym key as encrypted by private key';
-COMMENT ON COLUMN base_keyring.container_name_hmac_key_iv IS
-'AES IV used with symkey to decrypt container_name_hmac_key';
 COMMENT ON COLUMN base_keyring.container_name_hmac_key IS
 'AES output ciphertext of 32 byte HMAC key used for container names';
-COMMENT ON COLUMN base_keyring.hmac_key_iv IS
-'IV used with symkey to decrypt hmac_key';
 COMMENT ON COLUMN base_keyring.hmac_key IS
 'AES output ciphertext of 32 byte HMAC key for general data authentication';
-
-CREATE TABLE challenge (
-    challenge_id int8 not null primary key default nextval('version_identifier'),
-    account_id int8 not null references account,
-    base_keyring_id int8 not null references base_keyring,
-    creation_time timestamp not null default current_timestamp,
-    expected_answer_digest bytea
-    constraint expected_answer_digest_len
-        check (octet_length(expected_answer_digest)=32)
-);
-
-COMMENT ON TABLE challenge IS
-'Crypto auth challenges waiting to be answered.
-Rows in this table are created in response to an challenge request from a
-client.  These challenges are zero knowledge password proofs -- a requestor can
-prove that they know their password without divulging the password to the
-server.';
-COMMENT ON COLUMN challenge.base_keyring_id IS
-'The base_keyring (and specifically challenge_key) that the challenge was
-issued against.  A challenge is only valid if account.base_keyring_id continues
-to point to the same base_keyring_id as when the challenge was issued.';
-COMMENT ON COLUMN challenge.creation_time IS
-'When the challenge was created.  It is good policy for a challenge to expire
-after a brief time (maybe 5 minutes) regardless of being answered.';
-COMMENT ON COLUMN challenge.expected_answer_digest IS
-'The SHA256 digest of the answer we expect the client to provide.
-
-Remember to compare this with the supplied answer using a constant time string
-comparison function to avoid timing attacks!';
 
 create table container (
     container_id int8 not null primary key default nextval('version_identifier'),
@@ -339,17 +280,7 @@ create table container_record (
     account_id int8 not null references account,
     transaction_id int8 not null,
     creation_time timestamp not null default current_timestamp,
-    hmac bytea not null,
-    payload_iv bytea not null,
     payload_ciphertext bytea not null
-    constraint hmac_len
-        check (octet_length(hmac)=32)
-    constraint payload_iv_len
-        check (octet_length(payload_iv)=16)
-    constraint payload_ciphertext_len_modulo
-        check (octet_length(payload_ciphertext) % 16 = 0)
-    constraint payload_ciphertext_len
-        check (octet_length(payload_ciphertext) BETWEEN 16 and 26214400)
 );
 
 COMMENT ON TABLE container_record IS
@@ -363,12 +294,6 @@ account_id.  However, when we have containers that allow modifications by
 multiple users, this tells us which user made the modification.';
 COMMENT ON COLUMN container_record.transaction_id IS
 'Transaction ID that added this record.';
-COMMENT ON COLUMN container_record.hmac IS
-'HMAC of the payload_ciphertext, created by the account authoring this record.
-The HMAC is made with the current session hmac key, which is provided in
-container_session_key and container_session_key_share to the accounts who
-should be able to read records in the container.  The server does not know the
-plaintext of the container''s session hmac_key.';
 
 CREATE OR REPLACE VIEW readable_container_records_by_account AS
     SELECT container_record.*,
@@ -439,31 +364,19 @@ create table message (
     to_account_id int8 not null references account (account_id),
     keys_ciphertext bytea not null,
     keys_signature bytea not null,
-    header_iv bytea not null,
     header_ciphertext bytea not null,
-    header_hmac bytea not null,
-    payload_iv bytea not null,
     payload_ciphertext bytea not null,
-    payload_hmac bytea not null,
     deletion_time timestamp
     constraint deleted_after_created 
         check (deletion_time is null or deletion_time >= creation_time)
-    constraint header_iv_len
-        check (octet_length(header_iv)=16)
     constraint header_ciphertext_len_modulo
         check (octet_length(header_ciphertext) % 16 = 0)
     constraint header_ciphertext_len
         check (octet_length(header_ciphertext) BETWEEN 16 and 4096)
-    constraint header_hmac_len
-        check (octet_length(header_hmac)=32)
-    constraint payload_iv_len
-        check (octet_length(payload_iv)=16)
     constraint payload_ciphertext_len_modulo
         check (octet_length(payload_ciphertext) % 16 = 0)
     constraint payload_ciphertext_len
         check (octet_length(payload_ciphertext) BETWEEN 16 and 1048576)
-    constraint payload_hmac_len
-        check (octet_length(payload_hmac)=32)
 );
 
 COMMENT ON TABLE message IS 'realtime messages between accounts';
@@ -497,18 +410,10 @@ eachother would have to perform the RSA operations infrequently.
 ';
 COMMENT ON COLUMN message.keys_signature IS
 'signature made by from_account_id''s private RSA key of keys_ciphertext';
-COMMENT ON COLUMN message.header_iv IS 'AES IV for header_ciphertext';
 COMMENT ON COLUMN message.header_ciphertext IS 
 'AES256CFB of header, key=data key, segment_width=128, PKCS1 padding';
-COMMENT ON COLUMN message.header_hmac IS 
-'SHA256 HMAC of header_ciphertext using hmac key';
-COMMENT ON COLUMN message.payload_iv IS 
-'A distinct IV to be used with the same data key for deciphering 
-payload_ciphertext';
 COMMENT ON COLUMN message.payload_ciphertext IS 
 'AES256CFB of payload, key=data key, segment_width=128, PKCS1 padding';
-COMMENT ON COLUMN message.payload_hmac IS 
-'SHA256 HMAC of payload_ciphertext using hmac key';
 
 create table transaction (
     transaction_id int8 not null primary key default nextval('version_identifier'),
@@ -703,17 +608,7 @@ create table transaction_add_container_record (
     transaction_id int8 not null references transaction,
     name_hmac bytea not null,
     latest_record_id int8,
-    hmac bytea not null,
-    payload_iv bytea not null,
     payload_ciphertext bytea not null
-    constraint hmac_len
-        check (octet_length(hmac)=32)
-    constraint payload_iv_len
-        check (octet_length(payload_iv)=16)
-    constraint payload_ciphertext_len_modulo
-        check (octet_length(payload_ciphertext) % 16 = 0)
-    constraint payload_ciphertext_len
-        check (octet_length(payload_ciphertext) BETWEEN 16 and 26214400)
 );
 
 create table transaction_add_message (
@@ -723,28 +618,8 @@ create table transaction_add_message (
     to_account_id int8 not null,
     keys_ciphertext bytea not null,
     keys_signature bytea not null,
-    header_iv bytea not null,
     header_ciphertext bytea not null,
-    header_hmac bytea not null,
-    payload_iv bytea not null,
-    payload_ciphertext bytea not null,
-    payload_hmac bytea not null
-    constraint header_iv_len
-        check (octet_length(header_iv)=16)
-    constraint header_ciphertext_len_modulo
-        check (octet_length(header_ciphertext) % 16 = 0)
-    constraint header_ciphertext_len
-        check (octet_length(header_ciphertext) BETWEEN 16 and 4096)
-    constraint header_hmac_len
-        check (octet_length(header_hmac)=32)
-    constraint payload_iv_len
-        check (octet_length(payload_iv)=16)
-    constraint payload_ciphertext_len_modulo
-        check (octet_length(payload_ciphertext) % 16 = 0)
-    constraint payload_ciphertext_len
-        check (octet_length(payload_ciphertext) BETWEEN 16 and 1048576)
-    constraint payload_hmac_len
-        check (octet_length(payload_hmac)=32)
+    payload_ciphertext bytea not null
 );
 
 create table transaction_delete_message (

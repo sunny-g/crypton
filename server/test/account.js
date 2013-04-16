@@ -16,15 +16,35 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-"use strict";
+var assert = require('assert');
+var Account = require('../lib/account');
 
-var util = require("util")
-  , assert = require('assert');
+describe('account model', function () {
+  it('should create a blank account object', function () {
+    var account = new Account();
+    assert(account instanceof Account);
+    assert(JSON.stringify(account.serialize()) == JSON.stringify({}));
+  });
 
-util.log("lib account tests");
+  describe('update()', function () {
+    it('should update the account by key/value', function () {
+      var account = new Account();
+      account.update('foo', 'bar');
+      assert(account.foo == 'bar');
+    });
 
-describe("account lib functions", function () {
-  it("should not fail", function () { assert(true); });
+    it('should update the account with an object of key/value pairs', function () {
+      var account = new Account();
+      account.update({
+        foo: 'bar',
+        bar: 'baz'
+      });
+      assert(account.foo == 'bar');
+      assert(account.bar == 'baz');
+    });
+  });
+  
+/*
   it("should suceed in creating a new unique account");
   it("should error creating a dupe account");
   it("return account for lookup of existing account");
@@ -36,4 +56,6 @@ describe("account lib functions", function () {
   it("update an existing account with a new password");
   it("mark an existing account as deleted");
   it("error trying to auth to a deleted account");
+*/
 });
+

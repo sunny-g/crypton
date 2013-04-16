@@ -31,12 +31,14 @@ Account.prototype.get = function (username, callback) {
       return;
     }
 
-    callback(null, that);
+    that.update(account);
+    callback(null);
   });
 };
 
 Account.prototype.generateChallenge = function (callback) {
   var that = this;
+  var challengeKeyDigest = new Buffer(this.challengeKey).toString('hex');
 
   bcrypt.genSalt(12, function (err, salt) {
     if (err) {
@@ -52,11 +54,25 @@ Account.prototype.generateChallenge = function (callback) {
 
       that.challengeKeyHash = hash;
       delete that.challengeKey;
-      callback(null, that);
+      callback(null);
     });
   });
 };
 
+Account.prototype.verifyChallenge = function (challengeKey, callback) {
+  var challengeKeyDigest = new Buffer(JSON.stringify(challengeKey)).toString('hex');
+
+  bcrypt.compare(challengeKeyDigest, this.challengeKeyHash, function (err, success) {
+    if (err || !success) {
+      callback('Incorrect password');
+      return;
+    }
+
+    callback(null);
+  });
+};
+
+// TODO add validation and callback
 Account.prototype.update = function () {
   // update({ key: 'value' });
   if (typeof arguments[0] == 'object') {

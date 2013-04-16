@@ -21,49 +21,53 @@
 var app = process.app;
 var db = app.datastore;
 var middleware = require('../lib/middleware');
-var crypto = require('crypto');
-var bcrypt = require('bcrypt');
+var Account = require('../lib/account');
 
 /*
  * Save account to server
  */
 app.post('/account', function (req, res) {
-  var account = req.body;
-  var challengeKeyDigest = new Buffer(account.challengeKey).toString('hex');
+  var account = new Account();
+  account.update(req.body);
 
-  bcrypt.genSalt(12, function (err, salt) {
-    bcrypt.hash(challengeKeyDigest, salt, function (err, hash) {
-      account.challengeKeyHash = hash;
-      delete account.challengeKey;
+  account.generateChallenge(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+    }
 
-      db.saveAccount(account, function (err) {
-        if (err) {
-          res.send({
-            success: false,
-            error: err
-          });
-          return;
-        }
-
+    account.save(function (err) {
+      if (err) {
         res.send({
-          success: true
+          success: false,
+          error: err
         });
+
+        return;
+      }
+
+      res.send({
+        success: true
       });
     });
   });
-
 });
 
 /*
 * Authorize with server
 */
 app.post('/account/:username', function (req, res) {
-  db.getAccount(req.params.username, function (err, account) {
+  var account = new Account();
+
+  account.get(req.params.username, function (err) {
     if (err) {
       res.send({
         success: false,
         error: err
       });
+
       return;
     }
 
@@ -78,32 +82,25 @@ app.post('/account/:username', function (req, res) {
 * Authorize with server
 */
 app.post('/account/:username/answer', function (req, res) {
-  var challengeKey = req.body.challengeKey;
+  var account = new Account();
 
-  if (!challengeKey) {
-    res.send({
-      success: false,
-      error: 'Missing required fields'
-    });
-    return;  
-  }
-
-  db.getAccount(req.params.username, function (err, account) {
+  account.get(req.params.username, function (err) {
     if (err) {
       res.send({
         success: false,
         error: err
       });
+
       return;
     }
 
-    var challengeKeyDigest = new Buffer(JSON.stringify(challengeKey)).toString('hex');
-    bcrypt.compare(challengeKeyDigest, account.challengeKeyHash, function (err, success) {
-      if (err || !success) {
+    account.verifyChallenge(req.body.challengeKey, function (err) {
+      if (err) {
         res.send({
           success: false,
-          error: 'Incorrect password'
+          error: err
         });
+
         return;
       }
 
@@ -111,7 +108,7 @@ app.post('/account/:username/answer', function (req, res) {
 
       res.send({
         success: true,
-        account: account,
+        account: account.serialize(),
         sessionIdentifier: req.sessionID
       });
     });

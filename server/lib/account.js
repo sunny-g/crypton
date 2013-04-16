@@ -16,7 +16,7 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var app = process.app;
+var app = require('../app');
 var db = app.datastore;
 var bcrypt = require('bcrypt');
 

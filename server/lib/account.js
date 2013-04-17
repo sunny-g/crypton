@@ -25,7 +25,7 @@ var Account = module.exports = function Account () {};
 Account.prototype.get = function (username, callback) {
   var that = this;
 
-  db.getAccount(req.params.username, function (err, account) {
+  db.getAccount(username, function (err, account) {
     if (err) {
       callback(err);
       return;

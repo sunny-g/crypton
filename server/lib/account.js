@@ -37,6 +37,15 @@ Account.prototype.get = function (username, callback) {
 };
 
 Account.prototype.generateChallenge = function (callback) {
+  if (!this.challengeKey) {
+    callback('Must supply challengeKey');
+    return;
+  }
+
+  if (typeof challengeKey != 'string') {
+    challengeKey = JSON.stringify(challengeKey);
+  }
+
   var that = this;
   var challengeKeyDigest = new Buffer(this.challengeKey).toString('hex');
 
@@ -60,7 +69,11 @@ Account.prototype.generateChallenge = function (callback) {
 };
 
 Account.prototype.verifyChallenge = function (challengeKey, callback) {
-  var challengeKeyDigest = new Buffer(JSON.stringify(challengeKey)).toString('hex');
+  if (typeof challengeKey != 'string') {
+    challengeKey = JSON.stringify(challengeKey);
+  }
+
+  var challengeKeyDigest = new Buffer(challengeKey).toString('hex');
 
   bcrypt.compare(challengeKeyDigest, this.challengeKeyHash, function (err, success) {
     if (err || !success) {
@@ -72,7 +85,7 @@ Account.prototype.verifyChallenge = function (challengeKey, callback) {
   });
 };
 
-// TODO add validation and callback
+// TODO add field validation and callback
 Account.prototype.update = function () {
   // update({ key: 'value' });
   if (typeof arguments[0] == 'object') {

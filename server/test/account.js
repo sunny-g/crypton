@@ -117,11 +117,57 @@ describe('Account model', function () {
   });
 
   describe('save()', function () {
+    it('should save valid accounts', function (done) {
+      var account = new Account();
 
+      var user = {
+        username: 'pizza',
+        keypairSalt: [1,2,3],
+        keypairCiphertext: { keypair: 'ciphertext' },
+        pubKey: { pub: 'key' }
+      };
+
+      account.update(user);
+
+      account.save(function (err) {
+        if (err) throw err;
+        done();
+      });
+    });
+
+/*
+// TODO currently the postgres driver throws DB exceptions
+// without passing them along - we should make it only throw
+// if a callback is not present
+
+    it('should err out for invalid accounts', function (done) {
+      var account = new Account();
+
+      account.save(function (err) {
+        assert(err !== null);
+        done();
+      });
+    });
+*/
   });
 
   describe('get()', function () {
+    it('should fill out account object', function (done) {
+      var account = new Account();
+      account.get('pizza', function (err) {
+        if (err) throw err;
+        assert.equals(account.username, 'pizza');
+        done();
+      });
+    });
 
+    it('should callback with error if given nonexistant username', function (done) {
+      var account = new Account();
+      account.get('pizzasaurus', function (err) {
+        if (err) throw err;
+        done();
+      });
+    });
   });
 });
 

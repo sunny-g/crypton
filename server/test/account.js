@@ -19,7 +19,7 @@
 var assert = require('assert');
 var Account = require('../lib/account');
 
-describe('account model', function () {
+describe('Account model', function () {
   it('should create a blank account object', function () {
     var account = new Account();
     assert(account instanceof Account);
@@ -30,7 +30,7 @@ describe('account model', function () {
     it('should update the account by key/value', function () {
       var account = new Account();
       account.update('foo', 'bar');
-      assert(account.foo == 'bar');
+      assert.equal(account.foo, 'bar');
     });
 
     it('should update the account with an object of key/value pairs', function () {
@@ -39,23 +39,78 @@ describe('account model', function () {
         foo: 'bar',
         bar: 'baz'
       });
-      assert(account.foo == 'bar');
-      assert(account.bar == 'baz');
+      assert.equal(account.foo, 'bar');
+      assert.equal(account.bar, 'baz');
     });
   });
-  
-/*
-  it("should suceed in creating a new unique account");
-  it("should error creating a dupe account");
-  it("return account for lookup of existing account");
-  it("return error on lookup a non-existing account");
-  it("return an auth challenge an existing account");
-  it("verify a valid auth challenge answer");
-  it("refuse an invalid auth challenge answer");
-  it("return an error for auth to non existing account");
-  it("update an existing account with a new password");
-  it("mark an existing account as deleted");
-  it("error trying to auth to a deleted account");
-*/
+
+  describe('generateChallenge()', function () {
+    it('should generate a challengeKeyHash', function (done) {
+      var account = new Account();
+      account.challengeKey = [];
+      account.generateChallenge(function (err) {
+        if (err) throw err;
+        assert.equal(typeof account.challengeKeyHash, 'string');
+        done();
+      });
+    });
+
+    it('should delete the challengeKey', function (done) {
+      var account = new Account();
+      account.challengeKey = [];
+      account.generateChallenge(function (err) {
+        assert.equal(typeof account.challengeKey, 'undefined');
+        done();
+      });
+    });
+
+    it('should fail if there is no challengeKey', function (done) {
+      var account = new Account();
+      account.generateChallenge(function (err) {
+        assert.equal(err, 'Must supply challengeKey');
+        done();
+      });
+    });
+  });
+
+  describe('verifyChallenge()', function () {
+    it('should callback with err on wrong password', function (done) {
+      var account = new Account();
+      account.challengeKey = [];
+      account.generateChallenge(function (err) {
+        var response = [];
+        account.verifyChallenge(response, function (err) {
+          assert.equal(err, 'Incorrect password');
+          done();
+        });
+      });
+    });
+
+    it('should callback without error on correct input', function (done) {
+      var account = new Account();
+      // pbkdf2 of 'bananas' and random salt
+      var key = '[-1284768048,-920447856,-475398093,1331192739,-1763268843,1822534881,-85602294,1946893769]';
+      account.challengeKey = key;
+      account.generateChallenge(function (err) {
+        // key would now be generated in browser with saved salt
+        account.verifyChallenge(key, function (err) {
+          if (err) throw err;
+          done();
+        });
+      });
+    });
+  });
+
+  describe('serialize()', function () {
+
+  });
+
+  describe('save()', function () {
+
+  });
+
+  describe('get()', function () {
+
+  });
 });
 

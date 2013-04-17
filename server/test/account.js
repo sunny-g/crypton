@@ -102,7 +102,18 @@ describe('Account model', function () {
   });
 
   describe('serialize()', function () {
+    it('should do return an object', function () {
+      var account = new Account();
+      var ret = account.serialize();
+      assert.equal(typeof ret, 'object');
+    });
 
+    it('should do return account properties', function () {
+      var account = new Account();
+      account.update('foo', 'bar');
+      var ret = account.serialize();
+      assert.equal(ret.foo, 'bar');
+    });
   });
 
   describe('save()', function () {

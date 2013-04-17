@@ -42,10 +42,6 @@ Account.prototype.generateChallenge = function (callback) {
     return;
   }
 
-  if (typeof challengeKey != 'string') {
-    challengeKey = JSON.stringify(challengeKey);
-  }
-
   var that = this;
   var challengeKeyDigest = new Buffer(this.challengeKey).toString('hex');
 

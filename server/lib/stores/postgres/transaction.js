@@ -87,10 +87,8 @@ datastore.updateTransaction = function (token, account, data, callback) {
   connect(function (client, done) {
     datastore.getTransaction(token, function (err, transaction) {
       if (account != transaction.accountId) {
-        res.send({
-          success: false,
-          error: 'Transaction does not belong to account'
-        });
+        callback('Transaction does not belong to account');
+        return;
       }
 
       datastore.transaction[type](data, transaction, function (err) {

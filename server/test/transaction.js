@@ -57,4 +57,141 @@ describe('Transaction model', function () {
       });
     });
   });
+
+  describe('#update()', function () {
+    it('should update the transaction by key/value', function () {
+      var tx = new Transaction();
+      tx.update('foo', 'bar');
+      assert.equal(tx.foo, 'bar');
+    });
+
+    it('should update the transaction with an object of key/value pairs', function () {
+      var tx = new Transaction();
+      tx.update({
+        foo: 'bar',
+        bar: 'baz'
+      });
+      assert.equal(tx.foo, 'bar');
+      assert.equal(tx.bar, 'baz');
+    });
+  });
+
+  describe('#add()', function () {
+    it('should refuse a non-standard operation', function (done) {
+      var tx = new Transaction();
+      tx.get(token, function (err) {
+        assert.equal(err, null);
+
+        var chunk = {};
+
+        tx.add(chunk, function (err) {
+          assert.equal(err, 'Invalid transaction type');
+          done();
+        });
+      });
+    });
+
+    it('should refuse to add transaction chunks if the transaction doesn\'t belong to the account', function (done) {
+      var tx = new Transaction();
+      tx.get(token, function (err) {
+        assert.equal(err, null);
+
+        // overwrite tx account id to non-owner
+        tx.update('accountId', 666);
+
+        var chunk = {
+          type: 'addContainer',
+          containerNameHmac: 'derp'
+        };
+
+        tx.add(chunk, function (err) {
+          assert.equal(err, 'Transaction does not belong to account');
+          done();
+        });
+      });
+    });
+
+    it('should execute valid addContainer request', function (done) {
+      var tx = new Transaction();
+
+      tx.get(token, function (err) {
+        assert.equal(err, null);
+
+        var chunk = {
+          type: 'addContainer',
+          containerNameHmac: 'derp'
+        };
+
+        tx.add(chunk, function (err) {
+          assert.equal(err, null);
+          done();
+        });
+      });
+    });
+
+    it('should execute valid addContainerSessionKey request', function (done) {
+      var tx = new Transaction();
+
+      tx.get(token, function (err) {
+        assert.equal(err, null);
+
+        var chunk = {
+          type: 'addContainerSessionKey',
+          containerNameHmac: 'derp',
+          signature: 'herp'
+        };
+
+        tx.add(chunk, function (err) {
+          assert.equal(err, null);
+          done();
+        });
+      });
+    });
+
+    it('should execute valid addContainerSessionKeyShare request', function (done) {
+      var tx = new Transaction();
+
+      tx.get(token, function (err) {
+        assert.equal(err, null);
+
+        var chunk = {
+          type: 'addContainerSessionKeyShare',
+          containerNameHmac: 'derp',
+          sessionKeyCiphertext: { sessionKey: 'ciphertext' },
+          hmacKeyCiphertext: { hmacKey: 'ciphertext' }
+        };
+
+        tx.add(chunk, function (err) {
+          assert.equal(err, null);
+          done();
+        });
+      });
+    });
+
+    it('should execute addContainerRecord', function (done) {
+      var tx = new Transaction();
+
+      tx.get(token, function (err) {
+        assert.equal(err, null);
+
+        var chunk = {
+          type: 'addContainerRecord',
+          containerNameHmac: 'derp',
+          latestRecordId: 123,
+          payloadCiphertext: { payload: 'ciphertext' }
+        };
+
+        tx.add(chunk, function (err) {
+          assert.equal(err, null);
+          done();
+        });
+      });
+    });
+  });
+
+  describe('#commit()', function () {
+  });
+
+  describe('#delete()', function () {
+  });
 });

@@ -66,13 +66,13 @@ Transaction.prototype.update = function () {
 };
 
 Transaction.prototype.add = function (data, callback) {
-  db.updateTransaction(this.token, this.accountId, data, callback);
+  db.updateTransaction(this.token || this.transactionId, this.accountId, data, callback);
 };
 
 Transaction.prototype.delete = function (callback) {
-  db.deleteTransaction(this.token, callback);
+  db.deleteTransaction(this.token || this.transactionId, callback);
 };
 
 Transaction.prototype.commit = function (callback) {
-  db.requestTransactionCommit(this.token, callback);
+  db.requestTransactionCommit(this.token || this.transactionId, callback);
 };

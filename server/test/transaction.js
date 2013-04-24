@@ -190,6 +190,31 @@ describe('Transaction model', function () {
   });
 
   describe('#commit()', function () {
+    it('should refuse to commit unknown transaction', function (done) {
+      var tx = new Transaction();
+
+      tx.get(666, function (err) {
+        assert.equal(err, null);
+
+        tx.commit(function (err) {
+          assert.equal(err, 'Transaction does not exist');
+          done();
+        });
+      });
+    });
+
+    it('should commit known transaction', function () {
+      var tx = new transaction();
+
+      tx.get(token, function (err) {
+        assert.equal(err, null);
+
+        tx.commit(function (err) {
+          assert.equal(err, null);
+          done();
+        });
+      });
+    });
   });
 
   describe('#delete()', function () {

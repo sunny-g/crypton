@@ -70,9 +70,9 @@ Transaction.prototype.add = function (data, callback) {
 };
 
 Transaction.prototype.delete = function (callback) {
-  db.deleteTransaction(this.token || this.transactionId, callback);
+  db.deleteTransaction(this.token || this.transactionId, this.accountId, callback);
 };
 
 Transaction.prototype.commit = function (callback) {
-  db.requestTransactionCommit(this.token || this.transactionId, callback);
+  db.requestTransactionCommit(this.token || this.transactionId, this.accountId, callback);
 };

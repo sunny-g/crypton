@@ -102,19 +102,19 @@ datastore.updateTransaction = function (token, account, data, callback) {
 datastore.requestTransactionCommit = function (token, account, callback) {
   connect(function (client, done) {
     datastore.getTransaction(token, function (err, transaction) {
+      if (!transaction.transactionId) {
+        callback('Transaction does not exist');
+        return;
+      }
+
       if (account != transaction.accountId) {
-        res.send({
-          success: false,
-          error: 'Transaction does not belong to account'
-        });
+        callback('Transaction does not belong to account');
+        return;
       }
 
       commit.request(transaction.transactionId, function (err) {
         done();
-
-        // TODO handle err
-
-        callback();
+        callback(err);
       });
     });
   });

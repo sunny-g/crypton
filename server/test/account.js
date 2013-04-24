@@ -124,7 +124,12 @@ describe('Account model', function () {
         username: 'pizza',
         keypairSalt: [1,2,3],
         keypairCiphertext: { keypair: 'ciphertext' },
-        pubKey: { pub: 'key' }
+        pubKey: { pub: 'key' },
+        challengeKeyHash: 'string',
+        challengeKeySalt: [1,2,3],
+        symKeyCiphertext: { sym: 'key' },
+        containerNameHmacKeyCiphertext: [1,2,3],
+        hmacKeyCiphertext: [1,2,3]
       };
 
       account.update(user);
@@ -156,7 +161,7 @@ describe('Account model', function () {
       var account = new Account();
       account.get('pizza', function (err) {
         if (err) throw err;
-        assert.equals(account.username, 'pizza');
+        assert.equal(account.username, 'pizza');
         done();
       });
     });
@@ -164,7 +169,7 @@ describe('Account model', function () {
     it('should callback with error if given nonexistant username', function (done) {
       var account = new Account();
       account.get('pizzasaurus', function (err) {
-        if (err) throw err;
+        assert.equal(err, 'Account not found.');
         done();
       });
     });

@@ -204,7 +204,7 @@ describe('Transaction model', function () {
     });
 
     it('should commit known transaction', function () {
-      var tx = new transaction();
+      var tx = new Transaction();
 
       tx.get(token, function (err) {
         assert.equal(err, null);
@@ -218,5 +218,19 @@ describe('Transaction model', function () {
   });
 
   describe('#delete()', function () {
+    it('should refuse to delete unknown transactions', function (done) {
+      throw new Error('not implemented');
+      done();
+    });
+
+    it('should refuse to delete transactions not belonging to current account', function (done) {
+      throw new Error('not implemented');
+      done();
+    });
+
+    it('should delete a transaction if it belongs to account', function (done) {
+      throw new Error('not implemented');
+      done();
+    });
   });
 });

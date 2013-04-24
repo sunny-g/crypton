@@ -22,19 +22,21 @@ var db = app.datastore;
 var Transaction = module.exports = function Transaction () {};
 
 Transaction.prototype.create = function (accountId, callback) {
+  var that = this;
   this.update('accountId', accountId);
+
   db.createTransaction(accountId, function (err, token) {
     if (err) {
       callback(err);
       return;
     }
 
-    this.update('token', token);
+    that.update('token', token);
     callback();
   });
 };
 
-Trnasaction.prototype.get = function (token, callback) {
+Transaction.prototype.get = function (token, callback) {
   var that = this;
 
   db.getTransaction(token, function (err, transaction) {

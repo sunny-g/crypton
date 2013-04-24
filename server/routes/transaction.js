@@ -40,7 +40,7 @@ app.post('/transaction/create', verifySession, function (req, res) {
   });
 });
 
-// start a transaction, get a transaction token
+// update a transaction
 app.post('/transaction/:token', verifySession, function (req, res) {
   var data = req.body;
   var token = req.params.token;

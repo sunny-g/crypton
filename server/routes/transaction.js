@@ -24,9 +24,9 @@ var Transaction = require('../lib/transaction');
 // start a transaction, get a transaction token
 app.post('/transaction/create', verifySession, function (req, res) {
   var accountId = req.session.accountId;
+
   var tx = new Transaction();
-  tx.update('accountId', accountId);
-  tx.create(function () {
+  tx.create(accountId, function () {
     if (err) {
       res.send({
         success: false,
@@ -100,7 +100,7 @@ app.post('/transaction/:token/commit', verifySession, function (req, res) {
 // abort a transaction w/o committing
 app.del('/transaction/:token', verifySession, function (req, res) {
   var token = req.params.token;
-  var accountId = 
+  var accountId = req.session.accountId;
 
   var tx = new Transaction();
 

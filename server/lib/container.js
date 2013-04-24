@@ -15,3 +15,8 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+var app = require('../app');
+var db = app.datastore;
+
+var Container = module.exports = function Container () {};

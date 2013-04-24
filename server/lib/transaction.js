@@ -19,8 +19,7 @@
 var app = require('../app');
 var db = app.datastore;
 
-var Transaction = module.exports = function Transaction () {
-};
+var Transaction = module.exports = function Transaction () {};
 
 Transaction.prototype.create = function (accountId, callback) {
   this.update('accountId', accountId);

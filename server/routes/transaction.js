@@ -19,12 +19,14 @@
 var app = process.app;
 var db = app.datastore;
 var verifySession = require('../lib/middleware').verifySession;
+var Transaction = require('../lib/transaction');
 
 // start a transaction, get a transaction token
 app.post('/transaction/create', verifySession, function (req, res) {
   var accountId = req.session.accountId;
-
-  db.createTransaction(accountId, function (err, token) {
+  var tx = new Transaction();
+  tx.update('accountId', accountId);
+  tx.create(function () {
     if (err) {
       res.send({
         success: false,
@@ -35,7 +37,7 @@ app.post('/transaction/create', verifySession, function (req, res) {
 
     res.send({
       success: true,
-      token: token
+      token: tx.token
     });
   });
 });
@@ -44,9 +46,10 @@ app.post('/transaction/create', verifySession, function (req, res) {
 app.post('/transaction/:token', verifySession, function (req, res) {
   var data = req.body;
   var token = req.params.token;
-  var account = req.session.accountId;
+  var accountId = req.session.accountId;
 
-  db.updateTransaction(token, account, data, function (err) {
+  var tx = new Transaction();
+  tx.get(token, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -55,8 +58,22 @@ app.post('/transaction/:token', verifySession, function (req, res) {
       return;
     }
 
-    res.send({
-      success: true
+    // overwrite account id received from db
+    // to allow errorchecking in db.updateTransaction
+    tx.update('accountId', accountId);
+
+    tx.add(data, function (err) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
+
+      res.send({
+        success: true
+      });
     });
   });
 });
@@ -64,9 +81,15 @@ app.post('/transaction/:token', verifySession, function (req, res) {
 // commit a transaction
 app.post('/transaction/:token/commit', verifySession, function (req, res) {
   var token = req.params.token;
-  var account = req.session.accountId;
+  var accountId = req.session.accountId;
 
-  db.requestTransactionCommit(token, account, function (err) {
+  var tx = new Transaction();
+
+  // add token to the object manually to avoid db trip
+  tx.update('token', token);
+  tx.update('accountId', accountId);
+
+  tx.commit(function (err) {
     // TODO handle error
     res.send({
       success: true
@@ -77,9 +100,15 @@ app.post('/transaction/:token/commit', verifySession, function (req, res) {
 // abort a transaction w/o committing
 app.del('/transaction/:token', verifySession, function (req, res) {
   var token = req.params.token;
+  var accountId = 
 
-  // TODO make sure transaction belongs to session
-  db.deleteTransaction(token, function (err, token) {
+  var tx = new Transaction();
+
+  // add token to the object manually to avoid db trip
+  tx.update('token', token);
+  tx.update('accountId', accountId);
+  
+  tx.delete(function () {
     if (err) {
       res.send({
         success: false,

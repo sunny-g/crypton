@@ -25,20 +25,20 @@ crypton.account = require('../../../lib/stores/postgres/account');
 describe('postgres/account', function () {
   var newAccount = {
     username: 'testuser',
-    keypairCiphertext: '{ "keypair": "ciphertext" }',
-    keypairSalt: '[ 1, 2, 3 ]',
-    pubKey: '{ "pubkey": "ciphertext" }',
-    symkeyCiphertext: '[ 1, 2, 3 ]',
-    containerNameHmacKeyCiphertext: '{ "containerNameHmacKey": "ciphertext" }',
-    hmacKeyCiphertext: '{ "hmacKey": "ciphertext" }',
-    challengeKeySalt: '[ 1, 2, 3 ]',
+    keypairCiphertext: { "keypair": "ciphertext" },
+    keypairSalt: [ 1, 2, 3 ],
+    pubKey: { "pubkey": "ciphertext" },
+    symKeyCiphertext: [ 1, 2, 3 ],
+    containerNameHmacKeyCiphertext: { "containerNameHmacKey": "ciphertext" },
+    hmacKeyCiphertext: { "hmacKey": "ciphertext" },
+    challengeKeySalt: [ 1, 2, 3 ],
     challengeKeyHash: 'bcrypt hash'
   };
 
   var expectedAccount = {
     username: 'testuser',
-    accountId: 2,
-    keyringId: 3,
+    accountId: 4,
+    keyringId: 5,
     keypairSalt: [ 1, 2, 3 ],
     keypairCiphertext: { keypair: 'ciphertext' },
     pubKey: { pubkey: 'ciphertext' },
@@ -47,20 +47,18 @@ describe('postgres/account', function () {
     challengeKeyHash: 'bcrypt hash',
     containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
     hmacKeyCiphertext: { hmacKey: 'ciphertext' }
-  };
-
+  }
 
   describe('saveAccount', function () {
     it('inserts rows for account and keyring', function (done) {
       crypton.account.saveAccount(newAccount, function (err) {
         if (err) {
-          done(err);
-          return;
+          throw err;
         }
 
         crypton.account.getAccount(newAccount.username, function (err, account) {
           assert.equal(err, null);
-          assert.deepEqual(expectedAccount, account);
+          assert.deepEqual(account, expectedAccount);
           done();
         });
       });

@@ -140,11 +140,6 @@ describe('Account model', function () {
       });
     });
 
-/*
-// TODO currently the postgres driver throws DB exceptions
-// without passing them along - we should make it only throw
-// if a callback is not present
-
     it('should err out for invalid accounts', function (done) {
       var account = new Account();
 
@@ -153,7 +148,6 @@ describe('Account model', function () {
         done();
       });
     });
-*/
   });
 
   describe('get()', function () {

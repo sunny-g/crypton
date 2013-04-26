@@ -203,7 +203,7 @@ describe('Transaction model', function () {
       });
     });
 
-    it('should commit known transaction', function () {
+    it('should commit known transaction', function (done) {
       var tx = new Transaction();
 
       tx.get(token, function (err) {

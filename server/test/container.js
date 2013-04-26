@@ -15,3 +15,62 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+var assert = require('assert');
+var Container = require('../lib/container');
+
+describe('Container model', function () {
+  it('should create a blank container object', function () {
+    var container = new Container();
+    assert(container instanceof Container);
+  });
+
+  describe('#update()', function () {
+    it('should update the container by key/value', function () {
+      var container = new Container();
+      container.update('foo', 'bar');
+      assert.equal(container.foo, 'bar');
+    });
+
+    it('should update the container with an object of key/value pairs', function () {
+      var container = new Container();
+      container.update({
+        foo: 'bar',
+        bar: 'baz'
+      });
+      assert.equal(container.foo, 'bar');
+      assert.equal(container.bar, 'baz');
+    });
+  });
+
+  describe('#get()', function () {
+    it('should err on invalid owner', function (done) {
+      var container = new Container();
+      container.update('accountId', 2);
+      container.get('exists', function (err) {
+        assert.equal(err, 'Container does not exist');
+        done();
+      });
+    });
+
+    it('should err on invalid containerNameHmac', function (done) {
+      var container = new Container();
+      container.update('accountId', 2);
+      container.get('grail', function (err) {
+        assert.equal(err, 'Container does not exist');
+        done();
+      });
+    });
+
+    it('should get said container\'s records', function (done) {
+      var container = new Container();
+      container.update('accountId', 2);
+      container.get('exists', function (err) {
+        assert.equal(err, null);
+        assert.equal(typeof container.records, 'array');
+        done();
+      });
+    });
+  });
+
+});

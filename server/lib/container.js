@@ -20,3 +20,40 @@ var app = require('../app');
 var db = app.datastore;
 
 var Container = module.exports = function Container () {};
+
+Container.prototype.get = function (containerNameHmac, callback) {
+  var that = this;
+
+  db.getContainerRecords(containerNameHmac, function (err, records) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    if (!records.length) {
+      callback('Container does not exist');
+      return;
+    }
+
+console.log(records[0]);
+
+    that.update('records', records);
+    callback(null);
+  });
+};
+
+// TODO add field validation and callback
+Container.prototype.update = function () {
+  // update({ key: 'value' });
+  if (typeof arguments[0] == 'object') {
+    for (var key in arguments[0]) {
+      this[key] = arguments[0][key];
+    }
+  }
+
+  // update('key', 'value')
+  else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
+    this[arguments[0]] = arguments[1];
+  }
+};
+

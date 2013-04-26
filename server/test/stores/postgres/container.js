@@ -17,9 +17,22 @@
 */
 
 var assert = require('assert');
+var container = require('../../../lib/stores/postgres/container');
 
+// TODO can this be executed after the transaction tests?
+// this will pass no matter what right now, it should check
+// if the records.length > 0
 describe('Postgres driver', function () {
   describe('Container', function () {
-
+    describe('getContainerRecords()', function () {
+      it('should return container records for known container', function (done) {
+        var containerNameHmac = 'exists';
+        var accountId = 2;
+        container.getContainerRecords(containerNameHmac, function (err) {
+          assert.equal(err, null);
+          done();
+        });
+      });
+    });
   });
 });

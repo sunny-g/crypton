@@ -67,7 +67,10 @@ datastore.getTransaction = function (token, callback) {
   });
 };
 
-datastore.deleteTransaction = function (token, callback) {
+datastore.deleteTransaction = function (token, account, callback) {
+  callback('Not implemented');
+  return;
+
   connect(function (client, done) {
     done();
     callback();

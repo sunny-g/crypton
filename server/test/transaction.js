@@ -219,18 +219,39 @@ describe('Transaction model', function () {
 
   describe('#delete()', function () {
     it('should refuse to delete unknown transactions', function (done) {
-      throw new Error('not implemented');
-      done();
+      var tx = new Transaction();
+      tx.get(666, function (err) {
+        assert.equal(err, null);
+
+        tx.delete(function (err) {
+          assert.equal(err, 'Transaction does not exist');
+          done();
+        });
+      });
     });
 
     it('should refuse to delete transactions not belonging to current account', function (done) {
-      throw new Error('not implemented');
-      done();
+      var tx = new Transaction();
+      tx.get(666, function (err) {
+        assert.equal(err, null);
+
+        tx.delete(function (err) {
+          assert.equal(err, 'Transaction does not belong to account');
+          done();
+        });
+      });
     });
 
     it('should delete a transaction if it belongs to account', function (done) {
-      throw new Error('not implemented');
-      done();
+      var tx = new Transaction();
+      tx.get(666, function (err) {
+        assert.equal(err, null);
+
+        tx.delete(function (err) {
+          assert.equal(err, null);
+          done();
+        });
+      });
     });
   });
 });

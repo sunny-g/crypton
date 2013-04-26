@@ -15,3 +15,11 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+var assert = require('assert');
+
+describe('Postgres driver', function () {
+  describe('Container', function () {
+
+  });
+});

@@ -15,7 +15,7 @@
     "crypton": "server.js"
   },
   "dependencies": {
-    "id_translator": "0.1.x",
+    "id_translator": "https://github.com/alanfairless/id_translator/tarball/master",
     "cryptojs": "2.5.x",
     "express": "3.x",
     "connect": "2.7.x",

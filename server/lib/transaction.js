@@ -25,23 +25,28 @@ Transaction.prototype.create = function (accountId, callback) {
   var that = this;
   this.update('accountId', accountId);
 
-  db.createTransaction(accountId, function (err, token) {
+  db.createTransaction(accountId, function (err, id) {
     if (err) {
       callback(err);
       return;
     }
 
-    that.update('token', token);
-    callback();
+    that.update('transactionId', id);
+    callback(null);
   });
 };
 
-Transaction.prototype.get = function (token, callback) {
+Transaction.prototype.get = function (id, callback) {
   var that = this;
 
-  db.getTransaction(token, function (err, transaction) {
+  db.getTransaction(id, function (err, transaction) {
     if (err) {
       callback(err);
+      return;
+    }
+
+    if (!transaction.transactionId) {
+      callback('Transaction does not exist');
       return;
     }
 
@@ -66,13 +71,30 @@ Transaction.prototype.update = function () {
 };
 
 Transaction.prototype.add = function (data, callback) {
-  db.updateTransaction(this.token || this.transactionId, this.accountId, data, callback);
+  var that = this;
+  this.assertOwnership(callback, function () {
+    db.updateTransaction(that, data, callback);
+  });
 };
 
-Transaction.prototype.delete = function (callback) {
-  db.deleteTransaction(this.token || this.transactionId, this.accountId, callback);
+Transaction.prototype.abort = function (callback) {
+  var that = this;
+  this.assertOwnership(callback, function () {
+    db.abortTransaction(that.transactionId, callback);
+  });
 };
 
 Transaction.prototype.commit = function (callback) {
-  db.requestTransactionCommit(this.token || this.transactionId, this.accountId, callback);
+  var that = this;
+  this.assertOwnership(callback, function () {
+    db.requestTransactionCommit(that.transactionId, that.accountId, callback);
+  });
+};
+
+Transaction.prototype.assertOwnership = function (callback, next) {
+  if (this.interactingAccount != this.accountId) {
+    callback('Transaction does not belong to account');
+  } else {
+    next();
+  }
 };

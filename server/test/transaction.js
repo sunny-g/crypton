@@ -25,32 +25,32 @@ describe('Transaction model', function () {
     assert(tx instanceof Transaction);
   });
 
-  var token;
+  var transactionId;
   describe('#create()', function () {
-    it('should add a token to the object', function (done) {
+    it('should add a transactionId to the object', function (done) {
       var accountId = 2; // account from account lib tests
       var tx = new Transaction();
       tx.create(accountId, function (err) {
         assert.equal(err, null);
-        assert.exist(tx.token);
-        token = tx.token;
+        assert.exist(tx.transactionId);
+        transactionId = tx.transactionId;
         done();
       });
     });
   });
 
   describe('#get()', function () {
-    it('should err on invalid token', function (done) {
+    it('should err on invalid transactionId', function (done) {
       var tx = new Transaction();
       tx.get(666, function (err) {
-        assert.equal(err, null);
+        assert.equal(err, 'Transaction does not exist');
         done();
       });
     });
 
     it('should get the created transaction', function (done) {
       var tx = new Transaction();
-      tx.get(token, function (err) {
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
         assert.equal(tx.numOperations, 0);
         done();
@@ -79,7 +79,10 @@ describe('Transaction model', function () {
   describe('#add()', function () {
     it('should refuse a non-standard operation', function (done) {
       var tx = new Transaction();
-      tx.get(token, function (err) {
+
+      tx.update('interactingAccount', 2);
+
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {};
@@ -93,11 +96,11 @@ describe('Transaction model', function () {
 
     it('should refuse to add transaction chunks if the transaction doesn\'t belong to the account', function (done) {
       var tx = new Transaction();
-      tx.get(token, function (err) {
-        assert.equal(err, null);
 
-        // overwrite tx account id to non-owner
-        tx.update('accountId', 666);
+      tx.update('interactingAccount', 666);
+
+      tx.get(transactionId, function (err) {
+        assert.equal(err, null);
 
         var chunk = {
           type: 'addContainer',
@@ -114,7 +117,9 @@ describe('Transaction model', function () {
     it('should execute valid addContainer request', function (done) {
       var tx = new Transaction();
 
-      tx.get(token, function (err) {
+      tx.update('interactingAccount', 2);
+
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
@@ -132,7 +137,9 @@ describe('Transaction model', function () {
     it('should execute valid addContainerSessionKey request', function (done) {
       var tx = new Transaction();
 
-      tx.get(token, function (err) {
+      tx.update('interactingAccount', 2);
+
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
@@ -151,7 +158,9 @@ describe('Transaction model', function () {
     it('should execute valid addContainerSessionKeyShare request', function (done) {
       var tx = new Transaction();
 
-      tx.get(token, function (err) {
+      tx.update('interactingAccount', 2);
+
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
@@ -171,7 +180,9 @@ describe('Transaction model', function () {
     it('should execute addContainerRecord', function (done) {
       var tx = new Transaction();
 
-      tx.get(token, function (err) {
+      tx.update('interactingAccount', 2);
+
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
@@ -190,14 +201,13 @@ describe('Transaction model', function () {
   });
 
   describe('#commit()', function () {
-    it('should refuse to commit unknown transaction', function (done) {
+    it('should refuse to commit transactions not belonging to current account', function (done) {
       var tx = new Transaction();
-
-      tx.get(666, function (err) {
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
-        tx.commit(function (err) {
-          assert.equal(err, 'Transaction does not exist');
+        tx.abort(function (err) {
+          assert.equal(err, 'Transaction does not belong to account');
           done();
         });
       });
@@ -206,7 +216,9 @@ describe('Transaction model', function () {
     it('should commit known transaction', function (done) {
       var tx = new Transaction();
 
-      tx.get(token, function (err) {
+      tx.update('interactingAccount', 2);
+
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         tx.commit(function (err) {
@@ -217,37 +229,28 @@ describe('Transaction model', function () {
     });
   });
 
-  describe('#delete()', function () {
-    it('should refuse to delete unknown transactions', function (done) {
+  describe('#abort()', function () {
+    it('should refuse to abort transactions not belonging to current account', function (done) {
       var tx = new Transaction();
-      tx.get(666, function (err) {
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
-        tx.delete(function (err) {
-          assert.equal(err, 'Transaction does not exist');
-          done();
-        });
-      });
-    });
-
-    it('should refuse to delete transactions not belonging to current account', function (done) {
-      var tx = new Transaction();
-      tx.get(666, function (err) {
-        assert.equal(err, null);
-
-        tx.delete(function (err) {
+        tx.abort(function (err) {
           assert.equal(err, 'Transaction does not belong to account');
           done();
         });
       });
     });
 
-    it('should delete a transaction if it belongs to account', function (done) {
+    it('should abort a transaction if it belongs to account', function (done) {
       var tx = new Transaction();
-      tx.get(666, function (err) {
+
+      tx.update('interactingAccount', 2);
+
+      tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
-        tx.delete(function (err) {
+        tx.abort(function (err) {
           assert.equal(err, null);
           done();
         });

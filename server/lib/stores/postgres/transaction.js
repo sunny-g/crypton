@@ -67,7 +67,7 @@ datastore.getTransaction = function (token, callback) {
   });
 };
 
-datastore.abortTransaction = function (trandactionId, callback) {
+datastore.abortTransaction = function (transactionId, callback) {
   connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
@@ -87,7 +87,7 @@ datastore.abortTransaction = function (trandactionId, callback) {
   });
 };
 
-datastore.updateTransaction = function (token, account, data, callback) {
+datastore.updateTransaction = function (transaction, data, callback) {
   var types = Object.keys(datastore.transaction);
   var type = data.type;
   var valid = ~types.indexOf(type);
@@ -98,16 +98,9 @@ datastore.updateTransaction = function (token, account, data, callback) {
   }
 
   connect(function (client, done) {
-    datastore.getTransaction(token, function (err, transaction) {
-      if (account != transaction.accountId) {
-        callback('Transaction does not belong to account');
-        return;
-      }
-
-      datastore.transaction[type](data, transaction, function (err) {
-        done();
-        callback(err);
-      });
+    datastore.transaction[type](data, transaction, function (err) {
+      done();
+      callback(err);
     });
   });
 };

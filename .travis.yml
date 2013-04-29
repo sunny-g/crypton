@@ -13,3 +13,5 @@ branches:
 
 before_script:
   - psql -c 'create database crypton_test;' -U postgres
+
+script: "cd server && make test"

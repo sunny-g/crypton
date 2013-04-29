@@ -58,9 +58,7 @@ app.post('/transaction/:token', verifySession, function (req, res) {
       return;
     }
 
-    // overwrite account id received from db
-    // to allow errorchecking in db.updateTransaction
-    tx.update('accountId', accountId);
+    tx.update('interactingAccount', accountId);
 
     tx.add(data, function (err) {
       if (err) {
@@ -85,14 +83,14 @@ app.post('/transaction/:token/commit', verifySession, function (req, res) {
 
   var tx = new Transaction();
 
-  // add token to the object manually to avoid db trip
-  tx.update('token', token);
-  tx.update('accountId', accountId);
+  tx.update('interactingAccount', accountId);
 
-  tx.commit(function (err) {
-    // TODO handle error
-    res.send({
-      success: true
+  tx.get(token, function (err) {
+    tx.commit(function (err) {
+      // TODO handle error
+      res.send({
+        success: true
+      });
     });
   });
 });
@@ -104,21 +102,21 @@ app.del('/transaction/:token', verifySession, function (req, res) {
 
   var tx = new Transaction();
 
-  // add token to the object manually to avoid db trip
-  tx.update('token', token);
-  tx.update('accountId', accountId);
+  tx.update('interactingAccount', accountId);
   
-  tx.delete(function () {
-    if (err) {
-      res.send({
-        success: false,
-        error: err
-      });
-      return;
-    }
+  tx.get(token, function (err) {
+    tx.abort(function (err) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
 
-    res.send({
-      success: true
+      res.send({
+        success: true
+      });
     });
   });
 });

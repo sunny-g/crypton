@@ -32,6 +32,6 @@
   },
   "optionalDependencies": {},
   "scripts": {
-    "test": "NODE_ENV=test mocha"
+    "test": "make test"
   }
 }

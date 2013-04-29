@@ -87,7 +87,14 @@ app.post('/transaction/:token/commit', verifySession, function (req, res) {
 
   tx.get(token, function (err) {
     tx.commit(function (err) {
-      // TODO handle error
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
+
       res.send({
         success: true
       });

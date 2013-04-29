@@ -67,13 +67,23 @@ datastore.getTransaction = function (token, callback) {
   });
 };
 
-datastore.deleteTransaction = function (token, account, callback) {
-  callback('Not implemented');
-  return;
-
+datastore.abortTransaction = function (trandactionId, callback) {
   connect(function (client, done) {
-    done();
-    callback();
+    var query = {
+      /*jslint multistr: true*/
+      text: 'update transaction \
+          set abort_timestamp = current_timestamp \
+          where transaction_id=$1;',
+      /*jslint multistr: false*/
+      values: [
+        transactionId
+      ]
+    };
+
+    client.query(query, function (err, results) {
+      done();
+      callback(err, results);
+    });
   });
 };
 

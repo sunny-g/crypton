@@ -35,8 +35,6 @@ Container.prototype.get = function (containerNameHmac, callback) {
       return;
     }
 
-console.log(records[0]);
-
     that.update('records', records);
     callback(null);
   });

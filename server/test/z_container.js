@@ -44,10 +44,15 @@ describe('Container model', function () {
   });
 
   describe('#get()', function () {
+    before(function (done) {
+      while (!process.finishedTransaction);
+      done();
+    });
+
     it('should err on invalid owner', function (done) {
       var container = new Container();
       container.update('accountId', 2);
-      container.get('exists', function (err) {
+      container.get('grail', function (err) {
         assert.equal(err, 'Container does not exist');
         done();
       });
@@ -67,7 +72,7 @@ describe('Container model', function () {
       container.update('accountId', 2);
       container.get('exists', function (err) {
         assert.equal(err, null);
-        assert.equal(typeof container.records, 'array');
+        assert.equal(Object.prototype.toString.call(container.records), '[object Array]');
         done();
       });
     });

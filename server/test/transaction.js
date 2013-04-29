@@ -28,7 +28,7 @@ describe('Transaction model', function () {
   var transactionId;
   describe('#create()', function () {
     it('should add a transactionId to the object', function (done) {
-      var accountId = 2; // account from account lib tests
+      var accountId = 1; // account from account lib tests
       var tx = new Transaction();
       tx.create(accountId, function (err) {
         assert.equal(err, null);
@@ -80,7 +80,7 @@ describe('Transaction model', function () {
     it('should refuse a non-standard operation', function (done) {
       var tx = new Transaction();
 
-      tx.update('interactingAccount', 2);
+      tx.update('interactingAccount', 1);
 
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
@@ -104,7 +104,7 @@ describe('Transaction model', function () {
 
         var chunk = {
           type: 'addContainer',
-          containerNameHmac: 'derp'
+          containerNameHmac: 'exists'
         };
 
         tx.add(chunk, function (err) {
@@ -117,14 +117,14 @@ describe('Transaction model', function () {
     it('should execute valid addContainer request', function (done) {
       var tx = new Transaction();
 
-      tx.update('interactingAccount', 2);
+      tx.update('interactingAccount', 1);
 
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
           type: 'addContainer',
-          containerNameHmac: 'derp'
+          containerNameHmac: 'exists'
         };
 
         tx.add(chunk, function (err) {
@@ -137,14 +137,14 @@ describe('Transaction model', function () {
     it('should execute valid addContainerSessionKey request', function (done) {
       var tx = new Transaction();
 
-      tx.update('interactingAccount', 2);
+      tx.update('interactingAccount', 1);
 
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
           type: 'addContainerSessionKey',
-          containerNameHmac: 'derp',
+          containerNameHmac: 'exists',
           signature: 'herp'
         };
 
@@ -158,14 +158,14 @@ describe('Transaction model', function () {
     it('should execute valid addContainerSessionKeyShare request', function (done) {
       var tx = new Transaction();
 
-      tx.update('interactingAccount', 2);
+      tx.update('interactingAccount', 1);
 
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
           type: 'addContainerSessionKeyShare',
-          containerNameHmac: 'derp',
+          containerNameHmac: 'exists',
           sessionKeyCiphertext: { sessionKey: 'ciphertext' },
           hmacKeyCiphertext: { hmacKey: 'ciphertext' }
         };
@@ -180,14 +180,14 @@ describe('Transaction model', function () {
     it('should execute addContainerRecord', function (done) {
       var tx = new Transaction();
 
-      tx.update('interactingAccount', 2);
+      tx.update('interactingAccount', 1);
 
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         var chunk = {
           type: 'addContainerRecord',
-          containerNameHmac: 'derp',
+          containerNameHmac: 'exists',
           latestRecordId: 123,
           payloadCiphertext: { payload: 'ciphertext' }
         };
@@ -216,14 +216,18 @@ describe('Transaction model', function () {
     it('should commit known transaction', function (done) {
       var tx = new Transaction();
 
-      tx.update('interactingAccount', 2);
+      tx.update('interactingAccount', 1);
 
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
         tx.commit(function (err) {
           assert.equal(err, null);
-          done();
+
+          setTimeout(function () {
+            process.finishedTransaction = true;
+            done();
+          }, 1000);
         });
       });
     });
@@ -245,14 +249,19 @@ describe('Transaction model', function () {
     it('should abort a transaction if it belongs to account', function (done) {
       var tx = new Transaction();
 
-      tx.update('interactingAccount', 2);
+      tx.update('interactingAccount', 1);
 
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
+        assert.equal(tx.abortTimestamp, null);
 
         tx.abort(function (err) {
           assert.equal(err, null);
-          done();
+
+          tx.get(transactionId, function (err) {
+            assert(tx.abortTimestamp != null);
+            done();
+          });
         });
       });
     });

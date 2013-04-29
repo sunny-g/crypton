@@ -2,6 +2,8 @@
 
 A framework for creating zero-knowledge web applications
 
+[![Build Status](https://travis-ci.org/SpiderOak/crypton.png?branch=master)](https://travis-ci.org/SpiderOak/crypton)
+
 ## What is Zero Knowledge?
 
 Zero Knowledge applications offer meaningful privacy assurance to end users

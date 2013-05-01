@@ -16,4 +16,4 @@ before_script:
 
 script:
   - "cd server && make test"
-  - "cd client && make test"
+  - "cd ../client && make test"

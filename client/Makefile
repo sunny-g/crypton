@@ -12,11 +12,10 @@ dist/crypton.js: $(SRC)
 test: test-unit
 
 test-unit: node_modules dist/crypton.js
-	@./node_modules/.bin/mocha-phantomjs test/index.html
+	@./node_modules/.bin/karma start --browsers Firefox,PhantomJS --single-run
 
 node_modules:
-	mkdir -p node_modules
-	npm install mocha-phantomjs
+	npm install karma
 
 clean:
 	-rm -rf dist

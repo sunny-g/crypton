@@ -15,6 +15,9 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+var assert = chai.assert;
+
 describe('core functionality', function () {
   describe('account generation', function () {
     var err;

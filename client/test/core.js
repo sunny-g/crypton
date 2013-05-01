@@ -18,12 +18,46 @@
 
 var assert = chai.assert;
 
-describe('core functionality', function () {
+describe('Core', function () {
   before(function () {
     sjcl.random.setDefaultParanoia(0);
   });
 
-  describe('account generation', function () {
+  describe('default properties', function () {
+    it('should have the correct version', function () {
+      assert.equal(crypton.version, '0.0.1');
+    });
+
+    it('should have the correct host', function () {
+      assert.equal(crypton.host, 'localhost');
+    });
+
+    it('should have the correct port', function () {
+      assert.equal(crypton.port, '2013');
+    });
+
+    it('should have the correct default cipher mode', function () {
+      assert.equal(crypton.cipherOptions.mode, 'gcm');
+    });
+  });
+
+  describe('url()', function () {
+    it('should return the correct url', function () {
+      assert.equal(crypton.url(), 'http://localhost:2013');
+    });
+  });
+
+  describe('randomBytes()', function () {
+    it('should return a random array', function () {
+      var random = crypton.randomBytes();
+      //assert(random.length > 0);
+      //dump(random);
+      // TODO testing speed presents a race condition with entropy generator
+      // how can we manually seed this?
+    });
+  });
+
+  describe('generateAccount()', function () {
     var err;
     var user;
     var step;

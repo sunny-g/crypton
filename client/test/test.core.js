@@ -19,6 +19,10 @@
 var assert = chai.assert;
 
 describe('core functionality', function () {
+  before(function () {
+    sjcl.random.setDefaultParanoia(0);
+  });
+
   describe('account generation', function () {
     var err;
     var user;

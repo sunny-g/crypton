@@ -60,8 +60,6 @@ describe('Core', function () {
   describe('generateAccount()', function () {
     var err;
     var user;
-    var step;
-    var steps = 0;
 
     before(function (done) {
       crypton.generateAccount('user', 'pass', function () {
@@ -77,13 +75,27 @@ describe('Core', function () {
       assert(typeof crypton.generateAccount == 'function');
     });
     
-    it('should emit step callbacks', function (done) {
-      done();
-    });
+    it('should generate the correct data', function (done) {
+      assert(err == null);
+      assert(user !== undefined);
 
-    it('should generate the correct data', function () {
-      assert(err == null, 'error is null');
-      assert(user != undefined, 'user object is returned');
+      var fields = [
+        'username',
+        'challengeKeySalt',
+        'challengeKey',
+        'keypairSalt',
+        'keypairCiphertext',
+        'containerNameHmacKeyCiphertext',
+        'hmacKeyCiphertext',
+        'pubKey',
+        'symkeyCiphertext'
+      ];
+
+      for (var i in fields) {
+        assert(typeof user[fields[i]] == 'string');
+      }
+
+      done();
     });
   });
 
@@ -91,5 +103,7 @@ describe('Core', function () {
     it('should exist', function () {
       assert(typeof crypton.authorize == 'function');
     });
+
+    // TODO should we just test this functionality in the integration tests?:q
   });
 });

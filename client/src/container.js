@@ -43,7 +43,7 @@
     callback(null, this.keys[key]);
   };
 
-  Container.prototype.save = function (callback) {
+  Container.prototype.save = function (callback, options) {
     this.getDiff(function (err, diff) {
       var now = +new Date();
       this.versions[now] = JSON.parse(JSON.stringify(this.keys));
@@ -62,6 +62,11 @@
         containerNameHmac: this.getPublicName(),
         payloadCiphertext: payloadCiphertext
       };
+
+      if (options && options.save == false) {
+        callback(null, chunk);
+        return;
+      }
 
       // TODO handle errs
       var tx = new crypton.Transaction(this.session, function (err) {

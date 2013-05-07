@@ -20,12 +20,13 @@ var app = process.app;
 var db = app.datastore;
 var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
+var Container = require('../lib/container');
 
 app.get('/container/:containerNameHmac', verifySession, function (req, res) {
   var accountId = req.session.accountId;
   var containerNameHmac = req.params.containerNameHmac;
 
-  var Container = new Container();
+  var container = new Container();
   container.update('accountId', accountId);
   container.get(containerNameHmac, function (err) {
     if (err) {
@@ -48,7 +49,7 @@ app.get('/container/:containerNameHmac/:recordVersionIdentifier', verifySession,
   var containerName = req.params.containerNameHmac;
   var versionIdentifier = req.params.recordVersionIdentifier;
 
-  var Container = new Container();
+  var container = new Container();
   container.update('accountId', accountId);
   container.get(containerNameHmac, function (err) {
     if (err) {

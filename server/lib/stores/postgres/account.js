@@ -82,12 +82,12 @@ exports.saveAccount = function saveAccount(account, callback) {
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
           account.keypairCiphertext,
-          JSON.stringify(account.keypairSalt),
-          JSON.stringify(account.pubKey),
-          JSON.stringify(account.symKeyCiphertext),
-          JSON.stringify(account.containerNameHmacKeyCiphertext),
-          JSON.stringify(account.hmacKeyCiphertext),
-          JSON.stringify(account.challengeKeySalt),
+          account.keypairSalt,
+          account.pubKey,
+          account.symKeyCiphertext,
+          account.containerNameHmacKeyCiphertext,
+          account.hmacKeyCiphertext,
+          account.challengeKeySalt,
           account.challengeKeyHash
         ]
       };
@@ -155,7 +155,7 @@ exports.getAccount = function getAccount(username, callback) {
         keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
-        symkeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
+        symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
         challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
         challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),

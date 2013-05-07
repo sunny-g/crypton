@@ -88,7 +88,7 @@ describe('Core', function () {
         'containerNameHmacKeyCiphertext',
         'hmacKeyCiphertext',
         'pubKey',
-        'symkeyCiphertext'
+        'symKeyCiphertext'
       ];
 
       for (var i in fields) {

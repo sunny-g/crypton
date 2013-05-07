@@ -47,7 +47,7 @@
     var point = sjcl.ecc.curves['c' + this.pubKey.curve].fromBits(this.pubKey.point);
     this.pubKey = new sjcl.ecc.elGamal.publicKey(this.pubKey.curve, point.curve, point);
 
-    var symKey = this.secretKey.unkem(this.symkeyCiphertext);
+    var symKey = this.secretKey.unkem(this.symKeyCiphertext);
     this.symkey = symKey;
 
     // decrypt hmac keys
@@ -67,7 +67,7 @@
       pubKey: this.pubKey,
       challengeKeySalt: this.challengeKeySalt,
       keypairSalt: this.keypairSalt,
-      symkeyCiphertext: this.symkeyCiphertext,
+      symKeyCiphertext: this.symKeyCiphertext,
       username: this.username
     };
   };

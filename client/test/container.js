@@ -226,25 +226,23 @@ describe('Container', function () {
     });
   });
 
-  describe('getHistory()', function () {
-    // TODO should we mock out superagent or just
-    // test this in the integration tests?
-  });
-
   describe('parseHistory()', function () {
-    it('should callback with the correct keys and versions', function (done) {
-      done();
-    });
+    // TODO this should go in the integration tests
+    // because it requires a valid session
   });
 
   describe('decryptRecord()', function () {
-    it('should return the correct time and delta', function (done) {
-      done();
-    });
+    // TODO this should go in the integration tests
+    // because it requires a valid session
+  });
+
+  describe('getHistory()', function () {
+    // TODO this should go in the integration tests
+    // because it requires a valid session
   });
 
   describe('sync()', function () {
-    // TODO should we mock out superagent or just
-    // test this in the integration tests?
+    // TODO this should go in the integration tests
+    // because it requires a valid session
   });
 });

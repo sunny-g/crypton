@@ -122,14 +122,14 @@ describe('Account model', function () {
 
       var user = {
         username: 'pizza',
-        keypairSalt: [1,2,3],
+        keypairSalt: '[1,2,3]',
         keypairCiphertext: { keypair: 'ciphertext' },
         pubKey: { pub: 'key' },
         challengeKeyHash: 'string',
-        challengeKeySalt: [1,2,3],
+        challengeKeySalt: '[1,2,3]',
         symKeyCiphertext: { sym: 'key' },
-        containerNameHmacKeyCiphertext: [1,2,3],
-        hmacKeyCiphertext: [1,2,3]
+        containerNameHmacKeyCiphertext: '[1,2,3]',
+        hmacKeyCiphertext: '[1,2,3]'
       };
 
       account.update(user);

@@ -27,12 +27,12 @@ describe('Postgres driver', function () {
     var newAccount = {
       username: 'testuser',
       keypairCiphertext: { "keypair": "ciphertext" },
-      keypairSalt: [ 1, 2, 3 ],
+      keypairSalt: '[1,2,3]',
       pubKey: { "pubkey": "ciphertext" },
-      symKeyCiphertext: [ 1, 2, 3 ],
+      symKeyCiphertext: '[1,2,3]',
       containerNameHmacKeyCiphertext: { "containerNameHmacKey": "ciphertext" },
       hmacKeyCiphertext: { "hmacKey": "ciphertext" },
-      challengeKeySalt: [ 1, 2, 3 ],
+      challengeKeySalt: '[1,2,3]',
       challengeKeyHash: 'bcrypt hash'
     };
 
@@ -43,7 +43,7 @@ describe('Postgres driver', function () {
       keypairSalt: [ 1, 2, 3 ],
       keypairCiphertext: { keypair: 'ciphertext' },
       pubKey: { pubkey: 'ciphertext' },
-      symkeyCiphertext: [ 1, 2, 3 ],
+      symKeyCiphertext: [ 1, 2, 3 ],
       challengeKeySalt: [ 1, 2, 3 ],
       challengeKeyHash: 'bcrypt hash',
       containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },

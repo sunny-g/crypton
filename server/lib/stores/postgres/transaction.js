@@ -45,11 +45,11 @@ datastore.createTransaction = function (accountId, callback) {
   });
 };
 
-datastore.getTransaction = function (token, callback) {
+datastore.getTransaction = function (id, callback) {
   connect(function (client, done) {
     var query = {
       text: 'select * from transaction where transaction_id = $1',
-      values: [ token ]
+      values: [ id ]
     };
 
     client.query(query, function (err, result) {
@@ -105,9 +105,9 @@ datastore.updateTransaction = function (transaction, data, callback) {
   });
 };
 
-datastore.requestTransactionCommit = function (token, account, callback) {
+datastore.requestTransactionCommit = function (id, account, callback) {
   connect(function (client, done) {
-    datastore.getTransaction(token, function (err, transaction) {
+    datastore.getTransaction(id, function (err, transaction) {
       if (!transaction.transactionId) {
         callback('Transaction does not exist');
         return;

@@ -26,7 +26,7 @@ app.post('/transaction/create', verifySession, function (req, res) {
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
-  tx.create(accountId, function () {
+  tx.create(accountId, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -37,7 +37,7 @@ app.post('/transaction/create', verifySession, function (req, res) {
 
     res.send({
       success: true,
-      token: tx.token
+      id: tx.transactionId
     });
   });
 });
@@ -45,7 +45,7 @@ app.post('/transaction/create', verifySession, function (req, res) {
 // update a transaction
 app.post('/transaction/:token', verifySession, function (req, res) {
   var data = req.body;
-  var token = req.params.token;
+  var transactionId = req.params.id;
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
@@ -78,14 +78,14 @@ app.post('/transaction/:token', verifySession, function (req, res) {
 
 // commit a transaction
 app.post('/transaction/:token/commit', verifySession, function (req, res) {
-  var token = req.params.token;
+  var transactionId = req.params.id;
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
 
   tx.update('interactingAccount', accountId);
 
-  tx.get(token, function (err) {
+  tx.get(transactionId, function (err) {
     tx.commit(function (err) {
       if (err) {
         res.send({
@@ -103,15 +103,15 @@ app.post('/transaction/:token/commit', verifySession, function (req, res) {
 });
 
 // abort a transaction w/o committing
-app.del('/transaction/:token', verifySession, function (req, res) {
-  var token = req.params.token;
+app.del('/transaction/:id', verifySession, function (req, res) {
+  var transactionId = req.params.id;
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
 
   tx.update('interactingAccount', accountId);
   
-  tx.get(token, function (err) {
+  tx.get(transactionId, function (err) {
     tx.abort(function (err) {
       if (err) {
         res.send({

@@ -33,14 +33,14 @@
       'deleteMessage'
     ];
 
-    this.create(function (err, token) {
+    this.create(function (err, id) {
       if (err) {
         console.log(err);
         callback(err);
         return;
       }
 
-      this.token = token;
+      this.id = id;
 
       callback(null, this);
     }.bind(this));
@@ -56,7 +56,7 @@
         return;
       }
 
-      callback(null, res.body.token);
+      callback(null, res.body.id);
     });
   };
 
@@ -85,7 +85,7 @@
 
   Transaction.prototype.saveChunk = function (chunk, callback) {
     this.verify();
-    var url = crypton.url() + '/transaction/' + this.token;
+    var url = crypton.url() + '/transaction/' + this.id;
     superagent.post(url)
       .set('session-identifier', this.session.id)
       .send(chunk)
@@ -102,7 +102,7 @@
   // push chunks to the server
   Transaction.prototype.commit = function (callback) {
     this.verify();
-    var url = crypton.url() + '/transaction/' + this.token + '/commit';
+    var url = crypton.url() + '/transaction/' + this.id + '/commit';
     superagent.post(url)
       .set('session-identifier', this.session.id)
       .end(function (res) {
@@ -117,7 +117,7 @@
 
   Transaction.prototype.cancel = function (callback) {
     this.verify();
-    var url = crypton.url() + '/transaction/' + this.token;
+    var url = crypton.url() + '/transaction/' + this.id;
     superagent.del(url).end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -129,7 +129,7 @@
   };
 
   Transaction.prototype.verify = function () {
-    if (!this.token) {
+    if (!this.id) {
       throw new Error('Invalid transaction');
     }
   };

@@ -41,7 +41,7 @@ describe('Transactions', function () {
     });
   });
 
-  descibe('save()', function () {
+  describe('save()', function () {
     // TODO how should we test this outside of integration tests?
   });
 

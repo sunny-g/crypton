@@ -23,6 +23,7 @@
     return delta;
   };
 
+  // TODO should we switch the old of these arguments?
   Diff.apply = function (delta, old) {
     var current = JSON.parse(JSON.stringify(old));
     jsondiffpatch.patch(current, delta);

@@ -38,7 +38,7 @@ run the tests.
 There are files describing the high-level specification in the `client/doc/`
 and `server/doc/` directories, but currently, the best way to get a complete
 picture of the Crypton system is by understanding the database schema, in
-`server/lib/stores/postgresql/setup.sql`, which has lots of explanatory
+`server/lib/stores/postgres/sql/setup.sql`, which has lots of explanatory
 comments.
 
 ## Getting Help

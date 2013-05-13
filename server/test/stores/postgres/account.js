@@ -22,71 +22,71 @@ var assert = require('assert');
 var crypton = {};
 crypton.account = require('../../../lib/stores/postgres/account');
 
-describe('postgres/account', function () {
-  var newAccount = {
-    username: 'testuser',
-    keypairCiphertext: '{ "keypair": "ciphertext" }',
-    keypairSalt: '[ 1, 2, 3 ]',
-    pubKey: '{ "pubkey": "ciphertext" }',
-    symkeyCiphertext: '[ 1, 2, 3 ]',
-    containerNameHmacKeyCiphertext: '{ "containerNameHmacKey": "ciphertext" }',
-    hmacKeyCiphertext: '{ "hmacKey": "ciphertext" }',
-    challengeKeySalt: '[ 1, 2, 3 ]',
-    challengeKeyHash: 'bcrypt hash'
-  };
+describe('Postgres driver', function () {
+  describe('Account', function () {
+    var newAccount = {
+      username: 'testuser',
+      keypairCiphertext: { "keypair": "ciphertext" },
+      keypairSalt: '[1,2,3]',
+      pubKey: { "pubkey": "ciphertext" },
+      symKeyCiphertext: '[1,2,3]',
+      containerNameHmacKeyCiphertext: { "containerNameHmacKey": "ciphertext" },
+      hmacKeyCiphertext: { "hmacKey": "ciphertext" },
+      challengeKeySalt: '[1,2,3]',
+      challengeKeyHash: 'bcrypt hash'
+    };
 
-  var expectedAccount = {
-    username: 'testuser',
-    accountId: 2,
-    keyringId: 3,
-    keypairSalt: [ 1, 2, 3 ],
-    keypairCiphertext: { keypair: 'ciphertext' },
-    pubKey: { pubkey: 'ciphertext' },
-    symkeyCiphertext: [ 1, 2, 3 ],
-    challengeKeySalt: [ 1, 2, 3 ],
-    challengeKeyHash: 'bcrypt hash',
-    containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
-    hmacKeyCiphertext: { hmacKey: 'ciphertext' }
-  };
+    var expectedAccount = {
+      username: 'testuser',
+      accountId: 4,
+      keyringId: 5,
+      keypairSalt: [ 1, 2, 3 ],
+      keypairCiphertext: { keypair: 'ciphertext' },
+      pubKey: { pubkey: 'ciphertext' },
+      symKeyCiphertext: [ 1, 2, 3 ],
+      challengeKeySalt: [ 1, 2, 3 ],
+      challengeKeyHash: 'bcrypt hash',
+      containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
+      hmacKeyCiphertext: { hmacKey: 'ciphertext' }
+    }
 
+    describe('saveAccount', function () {
+      it('inserts rows for account and keyring', function (done) {
+        crypton.account.saveAccount(newAccount, function (err) {
+          if (err) {
+            throw err;
+          }
 
-  describe('saveAccount', function () {
-    it('inserts rows for account and keyring', function (done) {
-      crypton.account.saveAccount(newAccount, function (err) {
-        if (err) {
-          done(err);
-          return;
-        }
+          crypton.account.getAccount(newAccount.username, function (err, account) {
+            assert.equal(err, null);
+            assert.deepEqual(account, expectedAccount);
+            done();
+          });
+        });
+      });
 
-        crypton.account.getAccount(newAccount.username, function (err, account) {
-          assert.equal(err, null);
-          assert.deepEqual(expectedAccount, account);
+      it('returns an error if username is taken', function (done) {
+        crypton.account.saveAccount(newAccount, function (err) {
+          assert.equal(err, 'Username already taken.');
           done();
         });
       });
     });
 
-    it('returns an error if username is taken', function (done) {
-      crypton.account.saveAccount(newAccount, function (err) {
-        assert.equal(err, 'Username already taken.');
-        done();
+    describe('getAccount', function () {
+      it('returns account info and keyring', function (done) {
+        crypton.account.getAccount(newAccount.username, function (err, account) {
+          assert.equal(err, null);
+          assert.deepEqual(account, expectedAccount);
+          done();
+        });
       });
-    });
-  });
 
-  describe('getAccount', function () {
-    it('returns account info and keyring', function (done) {
-      crypton.account.getAccount(newAccount.username, function (err, account) {
-        assert.equal(err, null);
-        assert.deepEqual(account, expectedAccount);
-        done();
-      });
-    });
-
-    it('returns an error if account not found', function (done) {
-      crypton.account.getAccount('derp', function (err) {
-        assert.equal(err, 'Account not found.');
-        done();
+      it('returns an error if account not found', function (done) {
+        crypton.account.getAccount('derp', function (err) {
+          assert.equal(err, 'Account not found.');
+          done();
+        });
       });
     });
   });

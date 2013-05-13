@@ -23,6 +23,25 @@ var connect = require('./').connect;
 /* Save a new account
  * Add keyring info to it */
 exports.saveAccount = function saveAccount(account, callback) {
+  var requiredFields = [
+    'username',
+    'keypairCiphertext',
+    'keypairSalt',
+    'pubKey',
+    'symKeyCiphertext',
+    'containerNameHmacKeyCiphertext',
+    'hmacKeyCiphertext',
+    'challengeKeySalt',
+    'challengeKeyHash'
+  ];
+
+  for (var i in requiredFields) {
+    if (!account[requiredFields[i]]) {
+      callback('Missing field: ' + requiredFields[i]);
+      return;
+    }
+  }
+
   connect(function (client, done) {
     client.query('begin');
 
@@ -65,7 +84,7 @@ exports.saveAccount = function saveAccount(account, callback) {
           account.keypairCiphertext,
           account.keypairSalt,
           account.pubKey,
-          account.symkeyCiphertext,
+          account.symKeyCiphertext,
           account.containerNameHmacKeyCiphertext,
           account.hmacKeyCiphertext,
           account.challengeKeySalt,
@@ -136,7 +155,7 @@ exports.getAccount = function getAccount(username, callback) {
         keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
-        symkeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
+        symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
         challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
         challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),

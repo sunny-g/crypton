@@ -61,7 +61,6 @@ if (process.env.NODE_ENV === 'test') {
   app.use('/dist', express.static(__dirname + '/../client/dist'));
 }
 
-
 app.options('/*', function (req, res) {
   res.send('');
 });

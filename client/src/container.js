@@ -43,35 +43,40 @@
     callback(null, this.keys[key]);
   };
 
-  Container.prototype.save = function (callback) {
+  Container.prototype.save = function (callback, options) {
+    var that = this;
     this.getDiff(function (err, diff) {
-      var now = +new Date();
-      this.versions[now] = JSON.parse(JSON.stringify(this.keys));
-      this.version = now;
-
-      // don't do anything if the container hasn't changed
       if (!diff) {
-        callback();
+        callback('Container has not changed');
         return;
       }
 
-      var payloadCiphertext = sjcl.encrypt(this.hmacKey, JSON.stringify(diff), crypton.cipherOptions);
+      var now = +new Date();
+      that.versions[now] = JSON.parse(JSON.stringify(that.keys));
+      that.version = now;
+
+      var payloadCiphertext = sjcl.encrypt(that.hmacKey, JSON.stringify(diff), crypton.cipherOptions);
 
       var chunk = {
         type: 'addContainerRecord',
-        containerNameHmac: this.getPublicName(),
+        containerNameHmac: that.getPublicName(),
         payloadCiphertext: payloadCiphertext
       };
 
+      if (options && options.save == false) {
+        callback(null, chunk);
+        return;
+      }
+
       // TODO handle errs
-      var tx = new crypton.Transaction(this.session, function (err) {
+      var tx = new crypton.Transaction(that.session, function (err) {
         tx.save(chunk, function (err) {
           tx.commit(function (err) {
             callback();
           });
         });
       });
-    }.bind(this));
+    });
   };
 
   Container.prototype.getDiff = function (callback) {

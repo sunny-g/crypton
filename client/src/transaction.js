@@ -18,9 +18,7 @@
 (function () {
   var Transaction = crypton.Transaction = function (session, callback) {
     this.session = session;
-    this.chunks = [];
 
-    // temporary
     this.types = [
       'addAccount',
       'setBaseKeyring',
@@ -33,14 +31,19 @@
       'deleteMessage'
     ];
 
-    this.create(function (err, token) {
+    if (!this.session) {
+      callback && callback(null, this);
+      return;
+    }
+
+    this.create(function (err, id) {
       if (err) {
         console.log(err);
         callback(err);
         return;
       }
 
-      this.token = token;
+      this.id = id;
 
       callback(null, this);
     }.bind(this));
@@ -56,11 +59,10 @@
         return;
       }
 
-      callback(null, res.body.token);
+      callback(null, res.body.id);
     });
   };
 
-  // create diffs of container and add to chunks array
   Transaction.prototype.save = function () {
     this.verify();
     var args = Array.prototype.slice.call(arguments);
@@ -85,7 +87,9 @@
 
   Transaction.prototype.saveChunk = function (chunk, callback) {
     this.verify();
-    var url = crypton.url() + '/transaction/' + this.token;
+    this.verifyChunk(chunk);
+    var url = crypton.url() + '/transaction/' + this.id;
+
     superagent.post(url)
       .set('session-identifier', this.session.id)
       .send(chunk)
@@ -99,10 +103,9 @@
       });
   };
 
-  // push chunks to the server
   Transaction.prototype.commit = function (callback) {
     this.verify();
-    var url = crypton.url() + '/transaction/' + this.token + '/commit';
+    var url = crypton.url() + '/transaction/' + this.id + '/commit';
     superagent.post(url)
       .set('session-identifier', this.session.id)
       .end(function (res) {
@@ -115,9 +118,9 @@
       });
   };
 
-  Transaction.prototype.cancel = function (callback) {
+  Transaction.prototype.abort = function (callback) {
     this.verify();
-    var url = crypton.url() + '/transaction/' + this.token;
+    var url = crypton.url() + '/transaction/' + this.id;
     superagent.del(url).end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -129,8 +132,14 @@
   };
 
   Transaction.prototype.verify = function () {
-    if (!this.token) {
+    if (!this.id) {
       throw new Error('Invalid transaction');
+    }
+  };
+
+  Transaction.prototype.verifyChunk = function (chunk) {
+    if (!chunk || !~this.types.indexOf(chunk.type)) {
+      throw new Error('Invalid transaction chunk type');
     }
   };
 })();

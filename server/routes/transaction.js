@@ -19,12 +19,14 @@
 var app = process.app;
 var db = app.datastore;
 var verifySession = require('../lib/middleware').verifySession;
+var Transaction = require('../lib/transaction');
 
 // start a transaction, get a transaction token
 app.post('/transaction/create', verifySession, function (req, res) {
   var accountId = req.session.accountId;
 
-  db.createTransaction(accountId, function (err, token) {
+  var tx = new Transaction();
+  tx.create(accountId, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -35,18 +37,19 @@ app.post('/transaction/create', verifySession, function (req, res) {
 
     res.send({
       success: true,
-      token: token
+      id: tx.transactionId
     });
   });
 });
 
-// start a transaction, get a transaction token
+// update a transaction
 app.post('/transaction/:token', verifySession, function (req, res) {
   var data = req.body;
-  var token = req.params.token;
-  var account = req.session.accountId;
+  var transactionId = req.params.id;
+  var accountId = req.session.accountId;
 
-  db.updateTransaction(token, account, data, function (err) {
+  var tx = new Transaction();
+  tx.get(token, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -55,41 +58,72 @@ app.post('/transaction/:token', verifySession, function (req, res) {
       return;
     }
 
-    res.send({
-      success: true
+    tx.update('interactingAccount', accountId);
+
+    tx.add(data, function (err) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
+
+      res.send({
+        success: true
+      });
     });
   });
 });
 
 // commit a transaction
 app.post('/transaction/:token/commit', verifySession, function (req, res) {
-  var token = req.params.token;
-  var account = req.session.accountId;
+  var transactionId = req.params.id;
+  var accountId = req.session.accountId;
 
-  db.requestTransactionCommit(token, account, function (err) {
-    // TODO handle error
-    res.send({
-      success: true
+  var tx = new Transaction();
+
+  tx.update('interactingAccount', accountId);
+
+  tx.get(transactionId, function (err) {
+    tx.commit(function (err) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
+
+      res.send({
+        success: true
+      });
     });
   });
 });
 
 // abort a transaction w/o committing
-app.del('/transaction/:token', verifySession, function (req, res) {
-  var token = req.params.token;
+app.del('/transaction/:id', verifySession, function (req, res) {
+  var transactionId = req.params.id;
+  var accountId = req.session.accountId;
 
-  // TODO make sure transaction belongs to session
-  db.deleteTransaction(token, function (err, token) {
-    if (err) {
+  var tx = new Transaction();
+
+  tx.update('interactingAccount', accountId);
+  
+  tx.get(transactionId, function (err) {
+    tx.abort(function (err) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
+
       res.send({
-        success: false,
-        error: err
+        success: true
       });
-      return;
-    }
-
-    res.send({
-      success: true
     });
   });
 });

@@ -1,7 +1,7 @@
 test: test-unit
 
 test-unit: clean node_modules
-	@NODE_ENV=test ./node_modules/.bin/mocha
+	@NODE_ENV=test ./node_modules/.bin/mocha -R spec
 
 clean:
 	$(MAKE) -C .. clean

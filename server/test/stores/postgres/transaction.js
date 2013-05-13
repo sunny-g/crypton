@@ -16,6 +16,10 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-"use strict";
-/*jslint expr: true*/
+var assert = require('assert');
 
+describe('Postgres driver', function () {
+  describe('Transaction', function () {
+
+  });
+});

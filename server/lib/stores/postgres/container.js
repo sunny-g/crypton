@@ -19,7 +19,7 @@
 var datastore = require('./');
 var connect = datastore.connect;
 
-exports.getContainerRecords = function (containerNameHmac, accountId, callback) {
+exports.getContainerRecords = function (containerNameHmac, callback) {
   connect(function (client, done) {
     var query = {
       // TODO limit to to_account_id

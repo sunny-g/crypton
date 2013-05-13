@@ -45,11 +45,11 @@ datastore.createTransaction = function (accountId, callback) {
   });
 };
 
-datastore.getTransaction = function (token, callback) {
+datastore.getTransaction = function (id, callback) {
   connect(function (client, done) {
     var query = {
       text: 'select * from transaction where transaction_id = $1',
-      values: [ token ]
+      values: [ id ]
     };
 
     client.query(query, function (err, result) {
@@ -67,14 +67,27 @@ datastore.getTransaction = function (token, callback) {
   });
 };
 
-datastore.deleteTransaction = function (token, callback) {
+datastore.abortTransaction = function (transactionId, callback) {
   connect(function (client, done) {
-    done();
-    callback();
+    var query = {
+      /*jslint multistr: true*/
+      text: 'update transaction \
+          set abort_timestamp = current_timestamp \
+          where transaction_id=$1;',
+      /*jslint multistr: false*/
+      values: [
+        transactionId
+      ]
+    };
+
+    client.query(query, function (err, results) {
+      done();
+      callback(err, results);
+    });
   });
 };
 
-datastore.updateTransaction = function (token, account, data, callback) {
+datastore.updateTransaction = function (transaction, data, callback) {
   var types = Object.keys(datastore.transaction);
   var type = data.type;
   var valid = ~types.indexOf(type);
@@ -85,38 +98,29 @@ datastore.updateTransaction = function (token, account, data, callback) {
   }
 
   connect(function (client, done) {
-    datastore.getTransaction(token, function (err, transaction) {
-      if (account != transaction.accountId) {
-        res.send({
-          success: false,
-          error: 'Transaction does not belong to account'
-        });
-      }
-
-      datastore.transaction[type](data, transaction, function (err) {
-        done();
-        callback(err);
-      });
+    datastore.transaction[type](data, transaction, function (err) {
+      done();
+      callback(err);
     });
   });
 };
 
-datastore.requestTransactionCommit = function (token, account, callback) {
+datastore.requestTransactionCommit = function (id, account, callback) {
   connect(function (client, done) {
-    datastore.getTransaction(token, function (err, transaction) {
+    datastore.getTransaction(id, function (err, transaction) {
+      if (!transaction.transactionId) {
+        callback('Transaction does not exist');
+        return;
+      }
+
       if (account != transaction.accountId) {
-        res.send({
-          success: false,
-          error: 'Transaction does not belong to account'
-        });
+        callback('Transaction does not belong to account');
+        return;
       }
 
       commit.request(transaction.transactionId, function (err) {
         done();
-
-        // TODO handle err
-
-        callback();
+        callback(err);
       });
     });
   });

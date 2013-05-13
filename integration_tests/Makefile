@@ -1,14 +1,10 @@
 test: test-integration
 
-test-integration: ../node_modules node_modules setup-test-environment crypton-client
+test-integration: node_modules setup-test-environment crypton-client
 	@NODE_ENV=test ./node_modules/.bin/mocha
 
 node_modules:
-	$(MAKE) -C ../server node_modules
-	ln -s ../server/node_modules node_modules
-
-../node_modules:
-	cd .. && npm install underscore q express node-phantom phantomjs uglify-js
+	npm install
 
 setup-test-environment:
 	./bin/setup_test_environment.sh

@@ -6,7 +6,7 @@ test-integration: node_modules setup-test-environment serve-client run-server
 
 node_modules:
 	$(MAKE) -C ../server node_modules
-	ln -s ../server/node_modules node_modules
+	npm install
 
 setup-test-environment:
 	./bin/setup_test_environment.sh

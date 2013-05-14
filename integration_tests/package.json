@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "zombie": "1.x",
+    "mocha": "1.9.x",
+    "http-server": "0.x"
+  }
+}

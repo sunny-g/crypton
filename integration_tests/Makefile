@@ -1,6 +1,6 @@
 test: test-integration
 
-test-integration: node_modules setup-test-environment build-client run-server
+test-integration: node_modules clean-test-db setup-test-environment build-client run-server
 	@NODE_ENV=test ./node_modules/.bin/mocha-phantomjs test/index.html || true
 	@killall node
 

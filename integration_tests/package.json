@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "mocha": "1.9.x",
-    "chai": "1.6.x"
+    "chai": "1.6.x",
+    "mocha-phantomjs": "2.0.x"
   }
 }

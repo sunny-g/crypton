@@ -55,7 +55,15 @@ describe('Session functionality', function () {
     it('should load an existing container', function (done) {
       this.session.load('myContainer', function (err, container) {
         assert.equal(err, null);
-        var expectedKeys = ['keys','session','versions','version','name','sessionKey','hmacKey'];
+        var expectedKeys = [
+          'keys',
+          'session',
+          'versions',
+          'version',
+          'name',
+          'sessionKey',
+          'hmacKey'
+        ];
         assert.deepEqual(Object.keys(container), expectedKeys);
         done();
       });

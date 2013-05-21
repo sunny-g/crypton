@@ -73,9 +73,7 @@ Transaction.prototype.update = function () {
 Transaction.prototype.add = function (data, callback) {
   var that = this;
   this.assertOwnership(callback, function () {
-    db.updateTransaction(that, data, function (err) {
-      callback(err && 'Invalid chunk data');
-    });
+    db.updateTransaction(that, data, callback);
   });
 };
 

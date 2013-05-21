@@ -17,5 +17,168 @@
 */
 
 describe('Transaction functionality', function () {
+  var session;
+  var tx;
 
+  before(function (done) {
+    crypton.authorize('notSoSmart', '', function (err, rawSession) {
+      session = rawSession;
+      done();
+    });
+  });
+
+  describe('create()', function () {
+    it('should create a transaction', function (done) {
+      tx = new crypton.Transaction(session, function (err) {
+        assert.equal(err, null);
+        assert.equal(tx.id, 5);
+        done();
+      });
+    });
+  });
+
+  describe('saveChunk()', function () {
+    it('should refuse valid transaction type but invalid data', function (done) {
+      var chunk = {
+        type: 'addContainer'
+      };
+
+      tx.saveChunk(chunk, function (err) {
+        assert.equal(err, 'Invalid chunk data');
+        done();
+      });
+    });
+
+    it('should accept chunk withvalid data', function (done) {
+      var chunk = {
+        type: 'addContainer',
+        containerNameHmac: 'foo'
+      };
+
+      tx.saveChunk(chunk, function (err) {
+        assert.equal(err, null);
+        done();
+      });
+    });
+  });
+
+  describe('save()', function () {
+    it('should accept a single valid chunk argument with a callback', function (done) {
+      var chunk = {
+        type: 'addContainer',
+        containerNameHmac: 'bar'
+      };
+
+      tx.save(chunk, function (err) {
+        assert.equal(err, null);
+        done();
+      });
+    });
+
+    it('should accept multiple valid chunk arguments with a callback', function (done) {
+      var chunk = {
+        type: 'addContainer',
+        containerNameHmac: 'baz'
+      };
+
+      var chunk2 = {
+        type: 'addContainer',
+        containerNameHmac: 'booey'
+      };
+
+      tx.save(chunk, chunk2, function (err) {
+        assert.equal(err, null);
+        done();
+      });
+    });
+
+    it('should accept a single valid chunk argument without callback', function (done) {
+      var chunk = {
+        type: 'addContainer',
+        containerNameHmac: 'barfoo'
+      };
+
+      var err = null;
+      try {
+        tx.save(chunk);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, null);
+      done();
+    });
+
+    it('should accept multiple valid chunk arguments without a callback', function (done) {
+      var chunk = {
+        type: 'addContainer',
+        containerNameHmac: 'bazbar'
+      };
+
+      var chunk2 = {
+        type: 'addContainer',
+        containerNameHmac: 'booeyfoo'
+      };
+
+      var err = null;
+      try {
+        tx.save(chunk, chunk2);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, null);
+      done();
+    });
+
+    it('should refuse a single invalid chunk argument with a callback', function (done) {
+      var chunk = {
+        type: 'addContainer'
+      };
+
+      tx.save(chunk, function (err) {
+        assert.equal(err, 'Invalid chunk data');
+        done();
+      });
+    });
+
+    it('should refuse multiple invalid chunk arguments with a callback', function (done) {
+      var chunk = {
+        type: 'addContainer'
+      };
+
+      var chunk2 = {
+        type: 'addContainer'
+      };
+
+      tx.save(chunk, chunk2, function (err) {
+        assert.equal(err, 'Invalid chunk data');
+        done();
+      });
+    });
+  });
+
+  describe('commit()', function () {
+    it('should issue a commit request for exising transaction', function (done) {
+      tx.commit(function (err) {
+        assert.equal(err, null);
+        done();
+      });
+    });
+
+    it('should refuse a commit request for invalid transaction', function (done) {
+      var tx2 = new crypton.Transaction(session);
+      tx2.id = 'flabbergast';
+      tx2.commit(function (err) {
+        assert.equal(err, 'Transaction does not belong to account');
+        done();
+      });
+    });
+  });
+
+  describe('abort()', function () {
+    it('should do something', function (done) {
+      done();
+    });
+  });
 });

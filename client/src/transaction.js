@@ -45,7 +45,7 @@
 
       this.id = id;
 
-      callback(null, this);
+      callback && callback(null, this);
     }.bind(this));
   };
 
@@ -72,14 +72,14 @@
       callback = function () {};
     }
 
-    async.each(args, function (chunk, callback) {
+    async.each(args, function (chunk, cb) {
       // TODO check the type of the object
       if (typeof chunk == 'function') {
-        callback();
+        cb();
         return;
       }
 
-      this.saveChunk(chunk, callback);
+      this.saveChunk(chunk, cb);
     }.bind(this), function (err) {
       callback(err);
     });

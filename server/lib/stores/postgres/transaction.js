@@ -146,7 +146,13 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
 
       if (err) {
         console.log(err);
-        callback('Database error');
+
+        if (~err.message.indexOf('violates unique constraint')) {
+          callback('Container already exists');
+          return;
+        }
+
+        callback('Invalid chunk data');
         return;
       }
 
@@ -174,7 +180,7 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
 
       if (err) {
         console.log(err);
-        callback('Database error');
+        callback('Invalid chunk data');
         return;
       }
 
@@ -205,7 +211,7 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
 
       if (err) {
         console.log(err);
-        callback('Database error');
+        callback('Invalid chunk data');
         return;
       }
 
@@ -240,7 +246,7 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
 
       if (err) {
         console.log(err);
-        callback('Database error');
+        callback('Invalid chunk data');
         return;
       }
 

@@ -21,7 +21,7 @@ var db = app.datastore;
 var verifySession = require('../lib/middleware').verifySession;
 var Transaction = require('../lib/transaction');
 
-// start a transaction, get a transaction token
+// start a transaction, get a transaction
 app.post('/transaction/create', verifySession, function (req, res) {
   var accountId = req.session.accountId;
 
@@ -43,13 +43,13 @@ app.post('/transaction/create', verifySession, function (req, res) {
 });
 
 // update a transaction
-app.post('/transaction/:token', verifySession, function (req, res) {
+app.post('/transaction/:id', verifySession, function (req, res) {
   var data = req.body;
   var transactionId = req.params.id;
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
-  tx.get(token, function (err) {
+  tx.get(transactionId, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -77,7 +77,7 @@ app.post('/transaction/:token', verifySession, function (req, res) {
 });
 
 // commit a transaction
-app.post('/transaction/:token/commit', verifySession, function (req, res) {
+app.post('/transaction/:id/commit', verifySession, function (req, res) {
   var transactionId = req.params.id;
   var accountId = req.session.accountId;
 

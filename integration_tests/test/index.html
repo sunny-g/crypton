@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../../client/dist/crypton.js"></script>
+    <script>
+      assert = chai.assert;
+      mocha.ui('bdd'); 
+      mocha.reporter('spec'); 
+    </script>
+    <script src="core.js"></script>
+    <script src="transaction.js"></script>
+    <script src="container.js"></script>
+    <script src="session.js"></script>
+    <script>
+      mochaPhantomJS.run();
+    </script>
+  </body>
+</html>

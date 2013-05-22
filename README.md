@@ -26,7 +26,7 @@ production and commercial uses.
 
 ## Get Started
 
-To get started with Crypton development, you will need node.js v0.8.x with npm,
+To get started with Crypton development, you will need node.js v0.10.x with npm,
 and uglify-js. You will also need a postgresql server running on localhost (or
 edit the config file in the `server/` directory).
 

@@ -18,6 +18,8 @@
 
 'use strict';
 
+var fs = require('fs');
+var https = require('https');
 var connect = require('connect');
 var express = require('express');
 var util = require('./lib/util');
@@ -64,5 +66,19 @@ if (process.env.NODE_ENV === 'test') {
 app.options('/*', function (req, res) {
   res.send('');
 });
+
+app.start = function start () {
+  var privateKey = fs.readFileSync(__dirname + '/' + app.config.privateKey).toString();
+  var certificate = fs.readFileSync(__dirname + '/' + app.config.certificate).toString();
+
+  var options = {
+    key: privateKey,
+    cert: certificate
+  };
+
+  https.createServer(options, app).listen(app.port, function () {
+    console.log('Crpton server started on port ' + app.port);
+  });
+};
 
 require('./routes');

@@ -59,8 +59,7 @@ app.use(connect.session({
 }));
 
 if (process.env.NODE_ENV === 'test') {
-  app.use('/examples', express.static(__dirname + '/../client/examples'));
-  app.use('/dist', express.static(__dirname + '/../client/dist'));
+  app.use(express.static(__dirname + '/../client'));
 }
 
 app.options('/*', function (req, res) {
@@ -77,7 +76,7 @@ app.start = function start () {
   };
 
   https.createServer(options, app).listen(app.port, function () {
-    console.log('Crpton server started on port ' + app.port);
+    console.log('Crypton server started on port ' + app.port);
   });
 };
 

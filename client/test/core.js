@@ -33,7 +33,7 @@ describe('Core', function () {
     });
 
     it('should have the correct port', function () {
-      assert.equal(crypton.port, '2013');
+      assert.equal(crypton.port, '443');
     });
 
     it('should have the correct default cipher mode', function () {
@@ -43,7 +43,7 @@ describe('Core', function () {
 
   describe('url()', function () {
     it('should return the correct url', function () {
-      assert.equal(crypton.url(), 'http://localhost:2013');
+      assert.equal(crypton.url(), 'https://localhost:443');
     });
   });
 

@@ -15,7 +15,7 @@ clean-test-db:
 	-sudo -u postgres dropdb crypton_test
 
 build-client:
-	$(MAKE) -C ../client
+	$(MAKE) -C ../client dist/crypton.js
 
 run-server:
 	$(MAKE) -C ../server node_modules

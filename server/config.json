@@ -11,5 +11,7 @@
   "id_translator": {
     "key_file": "/etc/crypton/id_translation_keys.bin"
   },
-  "cookieSecretFile": "/etc/crypton/cookie_secret.bin"
+  "cookieSecretFile": "/etc/crypton/cookie_secret.bin",
+  "privateKey": "/etc/crypton/privateKey.pem",
+  "certificate": "/etc/crypton/certificate.pem"
 }

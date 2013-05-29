@@ -20,18 +20,19 @@
 'use strict';
 
 var program = require('commander');
+var app = require('./app');
+
 program
   .version('0.0.1')
   .option('-c, --config [file]',
     'Specify a custom configuration file [default config]')
-  .option('-p, --port [port]', 'Specify a port number [2013]', 2013)
+  .option('-p, --port [port]', 'Specify a port number [443]', 443)
   .option('-v, --verbose', 'Enable verbose logging')
   .parse(process.argv);
-process.configFile = program.config;
 
-var app = require('./app');
-var start = function start() { app.listen(program.port); };
+process.configFile = program.config;
+app.port = program.port;
 
 if (require.main === module) {
-  start();
+  app.start();
 }

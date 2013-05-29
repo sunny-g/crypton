@@ -2,7 +2,7 @@ test: test-integration
 
 test-integration: node_modules clean-test-db setup-test-environment build-client run-server
 	@NODE_ENV=test ./node_modules/.bin/mocha-phantomjs test/index.html || true
-	@killall node
+	@sudo killall node
 
 node_modules:
 	$(MAKE) -C ../server node_modules
@@ -19,6 +19,6 @@ build-client:
 
 run-server:
 	$(MAKE) -C ../server node_modules
-	NODE_ENV=test node ../server/server.js &
+	sudo NODE_ENV=test node ../server/server.js &
 
 .PHONY: test test-integration setup-test-environment clean-test-db build-client run-server

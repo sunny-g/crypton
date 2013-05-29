@@ -18,6 +18,8 @@
 
 'use strict';
 
+var fs = require('fs');
+var https = require('https');
 var connect = require('connect');
 var express = require('express');
 var util = require('./lib/util');
@@ -57,12 +59,25 @@ app.use(connect.session({
 }));
 
 if (process.env.NODE_ENV === 'test') {
-  app.use('/examples', express.static(__dirname + '/../client/examples'));
-  app.use('/dist', express.static(__dirname + '/../client/dist'));
+  app.use(express.static(__dirname + '/../client'));
 }
 
 app.options('/*', function (req, res) {
   res.send('');
 });
+
+app.start = function start () {
+  var privateKey = fs.readFileSync(__dirname + '/' + app.config.privateKey).toString();
+  var certificate = fs.readFileSync(__dirname + '/' + app.config.certificate).toString();
+
+  var options = {
+    key: privateKey,
+    cert: certificate
+  };
+
+  https.createServer(options, app).listen(app.port, function () {
+    console.log('Crypton server started on port ' + app.port);
+  });
+};
 
 require('./routes');

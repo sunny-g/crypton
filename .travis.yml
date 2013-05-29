@@ -13,10 +13,6 @@ before_script:
   - psql -c 'create database crypton_test;' -U postgres
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
-  - sudo ln -s /usr/local/bin/node /usr/bin/node
-  - sudo ln -s /usr/local/lib/node /usr/lib/node
-  - sudo ln -s /usr/local/bin/npm /usr/bin/npm
-  - sudo ln -s /usr/local/bin/node-waf /usr/bin/node-waf
 
 script:
-  - sudo make
+  - make

@@ -19,6 +19,6 @@ build-client:
 
 run-server:
 	$(MAKE) -C ../server node_modules
-	sudo NODE_ENV=test node ../server/server.js &
+	NODE_ENV=test node ../server/server.js &
 
 .PHONY: test test-integration setup-test-environment clean-test-db build-client run-server

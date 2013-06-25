@@ -36,6 +36,7 @@
       return;
     }
 
+    var that = this;
     var url = crypton.url() + '/peer/' + this.username;
     superagent.get(url)
       .set('session-identifier', this.session.id)
@@ -45,7 +46,11 @@
         return;
       }
 
-      callback(null, res.body.peer);
+      var peer = req.body.peer;
+      that.id = peer.id;
+      that.username = peer.username;
+      that.pubkey = peer.pubkey;
+      callback(null, peer);
     });
   };
 
@@ -68,7 +73,6 @@
       headers: headerCiphertext,
       body: bodyCiphertext,
       toAccount: this.id,
-      fromAccount: this.session.account.id
     };
 
     var url = crypton.url() + '/peer';

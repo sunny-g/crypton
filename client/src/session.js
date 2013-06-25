@@ -121,22 +121,23 @@
     });
   };
 
-  Session.prototype.getPeer = function (peerId, callback) {
-    if (this.peers[peerId]) {
-      callback(null, this.peers[peerId]);
+  Session.prototype.getPeer = function (username, callback) {
+    if (this.peers[username]) {
+      callback(null, this.peers[username]);
       return;
     }
 
     var peer = new crypton.Peer();
-    peer.id = peerId;
+    peer.username = username;
     peer.session = this;
+
     peer.fetch(function (err, peer) {
       if (err) {
         callback(err);
         return;
       }
 
-      this.peers[peerId] = peer;
+      this.peers[username] = peer;
       callback(err, peer);
     });
   };

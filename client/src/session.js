@@ -18,6 +18,7 @@
 (function () {
   var Session = crypton.Session = function (id) {
     this.id = id;
+    this.peers = [];
     this.containers = [];
   };
 
@@ -117,6 +118,26 @@
     container.name = containerName;
     container.sync(function (err) {
       callback(err, container);
+    });
+  };
+
+  Session.prototype.getPeer = function (peerId, callback) {
+    if (this.peers[peerId]) {
+      callback(null, this.peers[peerId]);
+      return;
+    }
+
+    var peer = new crypton.Peer();
+    peer.id = peerId;
+    peer.session = this;
+    peer.fetch(function (err, peer) {
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      this.peers[peerId] = peer;
+      callback(err, peer);
     });
   };
 })();

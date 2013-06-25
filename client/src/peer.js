@@ -16,8 +16,73 @@
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
 (function () {
-  var Peer = crypton.Peer = function () {
-    
-  }
+  var Peer = crypton.Peer = function (options) {
+    options = options || {};
+
+    this.id = options.id;
+    this.session = options.session;
+    this.username = options.username;
+    this.pubkey = options.pubkey;
+  };
+
+  Peer.prototype.fetch = function (callback) {
+    if (!this.username) {
+      callback('Must supply peer username');
+      return;
+    }
+
+    if (!this.session) {
+      callback('Must supply session to peer object');
+      return;
+    }
+
+    var url = crypton.url() + '/peer/' + this.username;
+    superagent.get(url)
+      .set('session-identifier', this.session.id)
+      .end(function (res) {
+      if (!res.body || res.body.success !== true) {
+        callback(res.body.error);
+        return;
+      }
+
+      callback(null, res.body.peer);
+    });
+  };
+
+  Peer.prototype.encrypt = function (message) {
+    // should this be async to return an error if there is no pubkey?
+    var ciphertext = sjcl.encrypt(this.pubkey, JSON.stringify(message), crypton.cipherOptions);
+    return ciphertext;
+  };
+
+  Peer.prototype.sendMessage = function (headers, body) {
+    if (!this.session) {
+      callback('Must supply session to peer object');
+      return;
+    }
+
+    var headerCiphertext = this.encrypt(headers);
+    var bodyCiphertext = this.encrypt(body);
+
+    var message = {
+      headers: headerCiphertext,
+      body: bodyCiphertext,
+      toAccount: this.id,
+      fromAccount: this.session.account.id
+    };
+
+    var url = crypton.url() + '/peer';
+    superagent.post(url)
+      .send(message)
+      .set('session-identifier', this.session.id)
+      .end(function (res) {
+      if (!res.body || res.body.success !== true) {
+        callback(res.body.error);
+        return;
+      }
+
+      callback(null, res.body.peer);
+    });
+  };
 })();
 

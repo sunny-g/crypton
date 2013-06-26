@@ -20,6 +20,7 @@ var app = process.app;
 var db = app.datastore;
 var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
+var Account = require('../lib/account');
 
 app.get('/peer/:username', verifySession, function (req, res) {
   var account = new Account();
@@ -48,5 +49,9 @@ app.get('/peer/:username', verifySession, function (req, res) {
 });
 
 app.post('/peer', verifySession, function (req, res) {
-
+  console.log(res.body);
+  res.send({
+    success: true,
+    peer: 'derp'
+  });
 });

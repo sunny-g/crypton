@@ -46,11 +46,15 @@
         return;
       }
 
-      var peer = req.body.peer;
+      var peer = res.body.peer;
       that.id = peer.id;
       that.username = peer.username;
       that.pubKey = peer.pubKey;
-      callback(null, peer);
+      // this may be necessary
+      var point = sjcl.ecc.curves['c' + peer.pubKey.curve].fromBits(peer.pubKey.point);
+      that.pubKey = new sjcl.ecc.elGamal.publicKey(peer.pubKey.curve, point.curve, point);
+
+      callback(null, that);
     });
   };
 
@@ -60,7 +64,7 @@
     return ciphertext;
   };
 
-  Peer.prototype.sendMessage = function (headers, body) {
+  Peer.prototype.sendMessage = function (headers, body, callback) {
     if (!this.session) {
       callback('Must supply session to peer object');
       return;
@@ -85,7 +89,7 @@
         return;
       }
 
-      callback(null, res.body.peer);
+      callback(null, res.body.mid);
     });
   };
 })();

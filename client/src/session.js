@@ -127,6 +127,7 @@
       return;
     }
 
+    var that = this;
     var peer = new crypton.Peer();
     peer.username = username;
     peer.session = this;
@@ -137,7 +138,7 @@
         return;
       }
 
-      this.peers[username] = peer;
+      that.peers[username] = peer;
       callback(err, peer);
     });
   };

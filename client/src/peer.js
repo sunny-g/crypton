@@ -22,7 +22,7 @@
     this.id = options.id;
     this.session = options.session;
     this.username = options.username;
-    this.pubkey = options.pubkey;
+    this.pubKey = options.pubKey;
   };
 
   Peer.prototype.fetch = function (callback) {
@@ -49,14 +49,14 @@
       var peer = req.body.peer;
       that.id = peer.id;
       that.username = peer.username;
-      that.pubkey = peer.pubkey;
+      that.pubKey = peer.pubKey;
       callback(null, peer);
     });
   };
 
   Peer.prototype.encrypt = function (message) {
     // should this be async to return an error if there is no pubkey?
-    var ciphertext = sjcl.encrypt(this.pubkey, JSON.stringify(message), crypton.cipherOptions);
+    var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(message), crypton.cipherOptions);
     return ciphertext;
   };
 

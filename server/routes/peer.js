@@ -37,7 +37,7 @@ app.get('/peer/:username', verifySession, function (req, res) {
     var peer = {
       id: account.id,
       username: account.username,
-      pubkey: account.pubkey
+      pubKey: account.pubKey
     };
 
     res.send({

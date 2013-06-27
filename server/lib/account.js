@@ -111,3 +111,29 @@ Account.prototype.serialize = function () {
 Account.prototype.save = function (callback) {
   db.saveAccount(this.serialize(), callback);
 };
+
+Account.prototype.sendMessage = function (from, headers, body, callback) {
+  if (!this.accountId) {
+    callback('Recipient account object must have accountId');
+    return;
+  }
+
+  // we should be also make sure there are headers and body arguments
+  // and maybe be smart about making one/both of them optional
+  // but this works for now
+
+  db.saveMessage({
+    fromAccount: from,
+    toAccount: this.accountId,
+    headers: headers,
+    body: body
+  }, function (err, messageId) {
+    if (err) {
+      callback('Database error');
+      return;
+    }
+
+    callback(null, messageId);
+  });
+};
+

@@ -36,7 +36,7 @@ app.get('/peer/:username', verifySession, function (req, res) {
     }
 
     var peer = {
-      id: account.id,
+      accountId: account.accountId,
       username: account.username,
       pubKey: account.pubKey
     };
@@ -49,9 +49,25 @@ app.get('/peer/:username', verifySession, function (req, res) {
 });
 
 app.post('/peer', verifySession, function (req, res) {
-  console.log(res.body);
-  res.send({
-    success: true,
-    peer: 'derp'
+  var from = req.session.accountId;
+  var headers = req.body.headers;
+  var body = req.body.body;
+
+  var account = new Account();
+  account.accountId = req.body.toAccount;
+
+  account.sendMessage(from, headers, body, function (err, messageId) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      messageId: messageId
+    });
   });
 });

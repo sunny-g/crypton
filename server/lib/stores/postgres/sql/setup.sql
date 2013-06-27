@@ -362,13 +362,14 @@ create table message (
     ttl interval,
     from_account_id int8 not null references account (account_id),
     to_account_id int8 not null references account (account_id),
-    keys_ciphertext bytea not null,
-    keys_signature bytea not null,
+    keys_ciphertext bytea,/* not null, */
+    keys_signature bytea,/* not null, */
     header_ciphertext bytea not null,
     payload_ciphertext bytea not null,
     deletion_time timestamp
     constraint deleted_after_created 
         check (deletion_time is null or deletion_time >= creation_time)
+/*
     constraint header_ciphertext_len_modulo
         check (octet_length(header_ciphertext) % 16 = 0)
     constraint header_ciphertext_len
@@ -377,6 +378,7 @@ create table message (
         check (octet_length(payload_ciphertext) % 16 = 0)
     constraint payload_ciphertext_len
         check (octet_length(payload_ciphertext) BETWEEN 16 and 1048576)
+*/
 );
 
 COMMENT ON TABLE message IS 'realtime messages between accounts';

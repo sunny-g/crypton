@@ -19,7 +19,7 @@
   var Peer = crypton.Peer = function (options) {
     options = options || {};
 
-    this.id = options.id;
+    this.accountId = options.id;
     this.session = options.session;
     this.username = options.username;
     this.pubKey = options.pubKey;
@@ -47,7 +47,7 @@
       }
 
       var peer = res.body.peer;
-      that.id = peer.id;
+      that.accountId = peer.accountId;
       that.username = peer.username;
       that.pubKey = peer.pubKey;
       // this may be necessary
@@ -76,7 +76,7 @@
     var message = {
       headers: headerCiphertext,
       body: bodyCiphertext,
-      toAccount: this.id,
+      toAccount: this.accountId,
     };
 
     var url = crypton.url() + '/peer';
@@ -89,7 +89,7 @@
         return;
       }
 
-      callback(null, res.body.mid);
+      callback(null, res.body.messageId);
     });
   };
 })();

@@ -164,3 +164,34 @@ exports.getAccount = function getAccount(username, callback) {
     });
   });
 };
+
+exports.saveMessage = function (options, callback) {
+  connect(function (client, done) {
+    var messageQuery = {
+      text:
+        "insert into message " +
+        "(to_account_id, from_account_id, " +
+        "header_ciphertext, payload_ciphertext) " +
+        "values ($1, $2, $3, $4) " +
+        "returning message_id",
+      values: [
+        options.toAccount,
+        options.fromAccount,
+        options.headers,
+        options.body
+      ]
+    };
+
+    client.query(messageQuery, function (err, result) {
+      done();
+
+      if (err) {
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
+        return;
+      }
+
+      callback(null, result.rows[0].message_id);
+    });
+  });
+};

@@ -119,23 +119,31 @@ function start () {
       $('#sendMessage').submit(sendMessage);
     });
   });
+
+  session.on('message', function (data) {
+    addToScreen(peer.username, data.body.body);
+  });
 }
 
 function sendMessage (e) {
   e.preventDefault();
-console.log(peer);
   var message = $(this).find('input').val();
   $('#chatInput').val('');
-  console.log(message);
+
   peer.sendMessage({
     app: 'chat',
     type: 'message'
   }, {
     body: message
   }, function (err, mid) {
-    console.log(arguments);
+    if (err) {
+      alert(err);
+      return;
+    }
+
+    addToScreen(session.account.username, message);
   });
-  addToScreen(session.account.username, message);
+
 }
 
 function addToScreen (username, message) {

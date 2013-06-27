@@ -41,20 +41,25 @@ var allowCrossDomain = function (req, res, next) {
   next();
 };
 
+app.secret = util.readFileSync(
+  // TODO: 'binary' encoding is deprecated
+  // TODO: also do we need to do this at all?
+  app.config.cookieSecretFile, 'binary',
+  app.config.defaultKeySize
+);
+app.secret = 'foo';
+
+app.sessionStore = new express.session.MemoryStore();
 app.use(express.logger('dev'));
 app.use(connect.cookieParser());
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
 app.use(connect.session({
-  secret: util.readFileSync(
-    // TODO: 'binary' encoding is deprecated
-    app.config.cookieSecretFile, 'binary',
-    app.config.defaultKeySize
-  ),
-  store: connect.MemoryStore,
+  secret: app.secret,
+  store: app.sessionStore,
   key: 'crypton.sid',
   cookie: {
-    secure: false // TODO true when we add SSL
+    secure: true
   }
 }));
 
@@ -75,7 +80,8 @@ app.start = function start () {
     cert: certificate
   };
 
-  https.createServer(options, app).listen(app.port, function () {
+  app.server = https.createServer(options, app).listen(app.port, function () {
+    require('./sockets');
     console.log('Crypton server started on port ' + app.port);
   });
 };

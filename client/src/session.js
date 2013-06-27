@@ -19,6 +19,7 @@
   var Session = crypton.Session = function (id) {
     this.id = id;
     this.peers = [];
+    this.events = [];
     this.containers = [];
   };
 
@@ -141,6 +142,14 @@
       that.peers[username] = peer;
       callback(err, peer);
     });
+  };
+
+  Session.prototype.on = function (event, callback) {
+    this.events[event] = callback;
+  };
+
+  Session.prototype.emit = function (event, data) {
+    this.events[event] && this.events[event](data);
   };
 })();
 

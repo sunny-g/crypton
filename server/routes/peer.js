@@ -50,11 +50,12 @@ app.get('/peer/:username', verifySession, function (req, res) {
 
 app.post('/peer', verifySession, function (req, res) {
   var from = req.session.accountId;
+  var to = req.body.toAccount;
   var headers = req.body.headers;
   var body = req.body.body;
 
   var account = new Account();
-  account.accountId = req.body.toAccount;
+  account.accountId = to;
 
   account.sendMessage(from, headers, body, function (err, messageId) {
     if (err) {
@@ -69,5 +70,13 @@ app.post('/peer', verifySession, function (req, res) {
       success: true,
       messageId: messageId
     });
+
+    if (app.clients[to]) {
+      app.clients[to].emit('message', {
+        from: from,
+        headers: headers,
+        body: body
+      });
+    }
   });
 });

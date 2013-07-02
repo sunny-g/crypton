@@ -13,7 +13,7 @@ commit;
  */
 begin;
 
-create temp table txtmp_add_container as 
+create temp table txtmp_add_container on commit drop as
     select tac.id,
            tac.name_hmac,
            nextval('version_identifier') as container_id,
@@ -33,7 +33,7 @@ create temp table txtmp_add_container as
  * that adds new columns: container_session_key_id
  *                        container_id,
  */
-create temp table txtmp_add_container_session_key as
+create temp table txtmp_add_container_session_key on commit drop as
     select tacsk.id,
            nextval('version_identifier') as container_session_key_id,
            /* there are two possibilities for the container_id when adding a
@@ -56,7 +56,7 @@ create temp table txtmp_add_container_session_key as
      where transaction_id={{transactionId}};
 
 /* calculate new columns: container_session_key_id */
-create temp table txtmp_add_container_session_key_share as
+create temp table txtmp_add_container_session_key_share on commit drop as
     select tacsks.id,
            nextval('version_identifier') as container_session_key_share_id,
            /* once again, two possibilities */
@@ -76,7 +76,7 @@ create temp table txtmp_add_container_session_key_share as
 /* calculate new columns: 
  *  container_record_id, container_id, container_session_key_id */
 
-create temp table txtmp_add_container_record as
+create temp table txtmp_add_container_record on commit drop as
     select tar.id,
            nextval('version_identifier') as container_record_id,
            coalesce(

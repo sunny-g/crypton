@@ -165,6 +165,53 @@ exports.getAccount = function getAccount(username, callback) {
   });
 };
 
+exports.getAccountById = function getAccountById(id, callback) {
+  connect(function (client, done) {
+    var accountQuery = {
+      text:
+        "select account.account_id, " +
+        "account.username, base_keyring_id, " +
+        "challenge_key_hash, challenge_key_salt, " +
+        "keypair, keypair_salt, " +
+        "pubkey, symkey, " +
+        "container_name_hmac_key, hmac_key " +
+        "from account left join base_keyring using (base_keyring_id) " +
+        "where account.account_id=$1",
+      values: [
+        id
+      ]
+    };
+
+    client.query(accountQuery, function (err, result) {
+      done();
+
+      if (err) {
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
+        return;
+      }
+      if (!result.rows.length) {
+        callback('Account not found.');
+        return;
+      }
+
+      callback(null, {
+        username: result.rows[0].username,
+        accountId: result.rows[0].account_id,
+        keyringId: result.rows[0].base_keyring_id,
+        keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
+        keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
+        pubKey: JSON.parse(result.rows[0].pubkey.toString()),
+        symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
+        challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
+        challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
+        containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
+        hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
+      });
+    });
+  });
+};
+
 exports.saveMessage = function (options, callback) {
   connect(function (client, done) {
     var messageQuery = {

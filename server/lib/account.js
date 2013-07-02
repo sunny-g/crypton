@@ -36,6 +36,20 @@ Account.prototype.get = function (username, callback) {
   });
 };
 
+Account.prototype.getById = function (id, callback) {
+  var that = this;
+
+  db.getAccountById(id || this.id, function (err, account) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.update(account);
+    callback(null);
+  });
+};
+
 Account.prototype.generateChallenge = function (callback) {
   if (!this.challengeKey) {
     callback('Must supply challengeKey');
@@ -118,13 +132,15 @@ Account.prototype.sendMessage = function (from, headers, body, callback) {
     return;
   }
 
+  var to = this.accountId;
+
   // we should be also make sure there are headers and body arguments
   // and maybe be smart about making one/both of them optional
   // but this works for now
 
   db.saveMessage({
     fromAccount: from,
-    toAccount: this.accountId,
+    toAccount: to,
     headers: headers,
     body: body
   }, function (err, messageId) {
@@ -132,6 +148,21 @@ Account.prototype.sendMessage = function (from, headers, body, callback) {
       callback('Database error');
       return;
     }
+
+    // there is definitely a better way to get the username to the receipient
+    var sender = new Account();
+    sender.getById(from, function (err) {
+      if (app.clients[to]) {
+        app.clients[to].emit('message', {
+          from: {
+            id: from,
+            username: sender.username
+          },
+          headers: headers,
+          body: body
+        });
+      }
+    });
 
     callback(null, messageId);
   });

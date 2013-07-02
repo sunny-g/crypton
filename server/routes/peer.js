@@ -70,13 +70,5 @@ app.post('/peer', verifySession, function (req, res) {
       success: true,
       messageId: messageId
     });
-
-    if (app.clients[to]) {
-      app.clients[to].emit('message', {
-        from: from,
-        headers: headers,
-        body: body
-      });
-    }
   });
 });

@@ -21,6 +21,7 @@
     this.peers = [];
     this.events = [];
     this.containers = [];
+    this.inbox = new crypton.Inbox(this);
   };
 
   Session.prototype.serialize = function (callback) {

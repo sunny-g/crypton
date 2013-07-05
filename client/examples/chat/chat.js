@@ -135,7 +135,6 @@ function loadConversations () {
   setStatus('Load conversations...');
   db.add('conversations', function () {
     db.get('conversations', function (err, conversations) {
-      console.log(arguments);
       window.conversations = conversations;
       setStatus('');
       displayConversations();

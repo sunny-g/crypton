@@ -28,7 +28,7 @@
     var url = crypton.url() + '/inbox';
     callback = callback || function () {};
 
-    superagent.post(url)
+    superagent.get(url)
       .set('session-identifier', this.session.id)
       .end(function (res) {
       if (!res.body || res.body.success !== true) {

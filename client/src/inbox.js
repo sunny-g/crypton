@@ -16,27 +16,51 @@
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
 (function() {
-  var Inbox = crypton.Inbox = function Inbox () {};
+  var Inbox = crypton.Inbox = function Inbox (session) {
+    this.session = session;
+    this.messages = [];
 
-  Inbox.prototype.poll = function () {
+    this.poll();
   };
 
-  Inbox.prototype.messagesByPeer = function (peer) {
+  Inbox.prototype.poll = function (callback) {
+    var that = this;
+    var url = crypton.url() + '/inbox';
+    callback = callback || function () {};
+
+    superagent.post(url)
+      .set('session-identifier', this.session.id)
+      .end(function (res) {
+      if (!res.body || res.body.success !== true) {
+        callback(res.body.error);
+        return;
+      }
+
+      // should we merge or overwrite here?
+      that.messages = res.body.messages;
+
+      callback(null, res.body.messages);
+    });
   };
 
   Inbox.prototype.list = function () {
+    // TODO should we poll here?
+    return this.messages();
   };
 
-  Inbox.prototype.filter = function () {
+  Inbox.prototype.filter = function (criteria, callback) {
   };
 
-  Inbox.prototype.get = function () {
+  Inbox.prototype.get = function (id, callback) {
+    // id = array or number
   };
 
-  Inbox.prototype.delete = function () {
+  Inbox.prototype.delete = function (callback) {
+    // start + commit tx
   };
 
   Inbox.prototype.clear = function () {
+    // start + commit tx
   };
 
 
@@ -47,14 +71,18 @@
     // timestamp
     // size
     // ttl
+    // headers
+    // body
+    // raw?
   };
 
-  Message.prototype.getHeaders = function () {
+  Message.prototype.getHeaders = function (callback) {
   };
 
-  Message.prototype.getBody = function () {
+  Message.prototype.getBody = function (callback) {
   };
 
-  Message.prototype.delete = function () {
+  Message.prototype.delete = function (callback) {
+    // start + commit tx
   };
 })();

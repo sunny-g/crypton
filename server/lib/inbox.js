@@ -16,34 +16,15 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var app = process.app;
-var middleware = require('../lib/middleware');
-var verifySession = middleware.verifySession;
-var Inbox = require('../lib/inbox');
+var app = require('../app');
+var db = app.datastore;
 
-app.get('/inbox', verifySession, function (req, res) {
-  var id = req.session.accountId;
-  var inbox = new Inbox(id);
+var Inbox = module.exports = function Inbox (id) {
+  this.accountId = id;
+};
 
-  inbox.getAllMessages(function (err, messages) {
-    if (err) {
-      res.send({
-        success: false,
-        error: err
-      });
-      return;
-    }
-
-    res.send({
-      success: true,
-      messages: messages
-    });
+Inbox.prototype.getAllMessages = function (callback) {
+  db.getAllMessages(this.accountId, function (err, messages) {
+    callback(err, messages);
   });
-});
-
-app.get('/inbox/:messageIdentifier', verifySession, function (req, res) {
-});
-
-// TODO should this be deleted in lieu of a transaction?
-app.del('/inbox/:messageIdentifier', verifySession, function (req, res) {
-});
+};

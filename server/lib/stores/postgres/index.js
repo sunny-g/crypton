@@ -26,6 +26,7 @@ function extend(modName) {
 }
 
 extend('./util');
+extend('./inbox');
 extend('./account');
 extend('./container');
 extend('./transaction');

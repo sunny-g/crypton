@@ -16,34 +16,39 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var app = process.app;
-var middleware = require('../lib/middleware');
-var verifySession = middleware.verifySession;
-var Inbox = require('../lib/inbox');
+var datastore = require('./');
+var connect = datastore.connect;
 
-app.get('/inbox', verifySession, function (req, res) {
-  var id = req.session.accountId;
-  var inbox = new Inbox(id);
+datastore.getAllMessages = function (accountId, callback) {
+  connect(function (client, done) {
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select * from message where \
+        to_account_id = $1 and \
+        deletion_time is null \
+        order by creation_time',
+       /*jslint multistr: false*/
+      values: [
+        accountId
+      ]
+    };
 
-  inbox.getAllMessages(function (err, messages) {
-    if (err) {
-      res.send({
-        success: false,
-        error: err
+    client.query(query, function (err, result) {
+      done();
+
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      // massage
+      var records = [];
+      result.rows.forEach(function (row) {
+        row = datastore.util.camelizeObject(row);
+        records.push(row);
       });
-      return;
-    }
 
-    res.send({
-      success: true,
-      messages: messages
+      callback(null, records);
     });
   });
-});
-
-app.get('/inbox/:messageIdentifier', verifySession, function (req, res) {
-});
-
-// TODO should this be deleted in lieu of a transaction?
-app.del('/inbox/:messageIdentifier', verifySession, function (req, res) {
-});
+}

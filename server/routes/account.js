@@ -82,6 +82,7 @@ app.post('/account/:username', function (req, res) {
 * Authorize with server
 */
 app.post('/account/:username/answer', function (req, res) {
+  var challengeKeyResponse = req.body.challengeKey;
   var account = new Account();
 
   account.get(req.params.username, function (err) {
@@ -94,7 +95,11 @@ app.post('/account/:username/answer', function (req, res) {
       return;
     }
 
-    account.verifyChallenge(req.body.challengeKey, function (err) {
+    if (typeof challengeKeyResponse != 'string') {
+      challengeKeyResponse = JSON.stringify(challengeKeyResponse);
+    }
+
+    account.verifyChallenge(challengeKeyResponse, function (err) {
       if (err) {
         res.send({
           success: false,

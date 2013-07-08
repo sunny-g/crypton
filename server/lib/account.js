@@ -80,10 +80,6 @@ Account.prototype.hashChallengeKey = function (callback) {
 };
 
 Account.prototype.verifyChallenge = function (challengeKeyResponse, callback) {
-  if (typeof challengeKeyResponse != 'string') {
-    challengeKeyResponse = JSON.stringify(challengeKeyResponse);
-  }
-
   var challengeKeyResponseEncoded = new Buffer(challengeKeyResponse).toString('hex');
 
   bcrypt.compare(challengeKeyResponseEncoded, this.challengeKeyHash, function (err, success) {

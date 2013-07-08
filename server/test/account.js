@@ -78,7 +78,7 @@ describe('Account model', function () {
       var account = new Account();
       account.challengeKey = [];
       account.hashChallengeKey(function (err) {
-        var response = [];
+        var response = '[1234]';
         account.verifyChallenge(response, function (err) {
           assert.equal(err, 'Incorrect password');
           done();

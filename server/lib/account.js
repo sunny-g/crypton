@@ -57,9 +57,10 @@ Account.prototype.hashChallengeKey = function (callback) {
   }
 
   var that = this;
+  var rounds = 16; // TODO make this configurable
   var challengeKeyEncoded = new Buffer(this.challengeKey).toString('hex');
 
-  bcrypt.genSalt(12, function (err, salt) {
+  bcrypt.genSalt(rounds, function (err, salt) {
     if (err) {
       callback(err);
       return;

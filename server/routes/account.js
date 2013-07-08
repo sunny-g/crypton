@@ -30,7 +30,7 @@ app.post('/account', function (req, res) {
   var account = new Account();
   account.update(req.body);
 
-  account.generateChallenge(function (err) {
+  account.hashChallengeKey(function (err) {
     if (err) {
       res.send({
         success: false,

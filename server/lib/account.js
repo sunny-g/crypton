@@ -50,7 +50,7 @@ Account.prototype.getById = function (id, callback) {
   });
 };
 
-Account.prototype.generateChallenge = function (callback) {
+Account.prototype.hashChallengeKey = function (callback) {
   if (!this.challengeKey) {
     callback('Must supply challengeKey');
     return;

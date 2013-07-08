@@ -107,7 +107,7 @@ Account.prototype.update = function () {
   }
 };
 
-Account.prototype.serialize = function () {
+Account.prototype.toJSON = function () {
   var fields = {};
 
   for (var i in this) {
@@ -120,7 +120,7 @@ Account.prototype.serialize = function () {
 };
 
 Account.prototype.save = function (callback) {
-  db.saveAccount(this.serialize(), callback);
+  db.saveAccount(this.toJSON(), callback);
 };
 
 Account.prototype.sendMessage = function (from, headers, body, callback) {

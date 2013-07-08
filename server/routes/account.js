@@ -113,7 +113,7 @@ app.post('/account/:username/answer', function (req, res) {
 
       res.send({
         success: true,
-        account: account.serialize(),
+        account: account.toJSON(),
         sessionIdentifier: req.sessionID
       });
     });

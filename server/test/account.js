@@ -23,7 +23,7 @@ describe('Account model', function () {
   it('should create a blank account object', function () {
     var account = new Account();
     assert(account instanceof Account);
-    assert(JSON.stringify(account.serialize()) == JSON.stringify({}));
+    assert(JSON.stringify(account.toJSON()) == JSON.stringify({}));
   });
 
   describe('update()', function () {
@@ -101,17 +101,17 @@ describe('Account model', function () {
     });
   });
 
-  describe('serialize()', function () {
+  describe('toJSON()', function () {
     it('should do return an object', function () {
       var account = new Account();
-      var ret = account.serialize();
+      var ret = account.toJSON();
       assert.equal(typeof ret, 'object');
     });
 
     it('should do return account properties', function () {
       var account = new Account();
       account.update('foo', 'bar');
-      var ret = account.serialize();
+      var ret = account.toJSON();
       assert.equal(ret.foo, 'bar');
     });
   });

@@ -57,7 +57,7 @@ Account.prototype.hashChallengeKey = function (callback) {
   }
 
   var that = this;
-  var challengeKeyDigest = new Buffer(this.challengeKey).toString('hex');
+  var challengeKeyEncoded = new Buffer(this.challengeKey).toString('hex');
 
   bcrypt.genSalt(12, function (err, salt) {
     if (err) {
@@ -65,7 +65,7 @@ Account.prototype.hashChallengeKey = function (callback) {
       return;
     }
 
-    bcrypt.hash(challengeKeyDigest, salt, function (err, hash) {
+    bcrypt.hash(challengeKeyEncoded, salt, function (err, hash) {
       if (err) {
         callback(err);
         return;
@@ -83,9 +83,9 @@ Account.prototype.verifyChallenge = function (challengeKey, callback) {
     challengeKey = JSON.stringify(challengeKey);
   }
 
-  var challengeKeyDigest = new Buffer(challengeKey).toString('hex');
+  var challengeKeyEncoded = new Buffer(challengeKey).toString('hex');
 
-  bcrypt.compare(challengeKeyDigest, this.challengeKeyHash, function (err, success) {
+  bcrypt.compare(challengeKeyEncoded, this.challengeKeyHash, function (err, success) {
     if (err || !success) {
       callback('Incorrect password');
       return;

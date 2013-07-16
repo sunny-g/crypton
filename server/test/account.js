@@ -41,18 +41,19 @@ describe('Account model', function () {
   describe('hashChallengeKey()', function () {
     it('should generate a challengeKeyHash', function (done) {
       var account = new Account();
-      account.challengeKey = [];
-      account.hashChallengeKey(function (err) {
+      var challengeKey = [];
+
+      account.hashChallengeKey(challengeKey, function (err) {
         if (err) throw err;
         assert.equal(typeof account.challengeKeyHash, 'string');
         done();
       });
     });
 
-    it('should delete the challengeKey', function (done) {
+    it('should not put raw challengeKey into the Account object', function (done) {
       var account = new Account();
-      account.challengeKey = [];
-      account.hashChallengeKey(function (err) {
+      var challengeKey = [];
+      account.hashChallengeKey(challengeKey, function (err) {
         assert.equal(typeof account.challengeKey, 'undefined');
         done();
       });
@@ -60,7 +61,9 @@ describe('Account model', function () {
 
     it('should fail if there is no challengeKey', function (done) {
       var account = new Account();
-      account.hashChallengeKey(function (err) {
+      var challengeKey = null;
+
+      account.hashChallengeKey(challengeKey, function (err) {
         assert.equal(err, 'Must supply challengeKey');
         done();
       });
@@ -70,8 +73,9 @@ describe('Account model', function () {
   describe('verifyChallenge()', function () {
     it('should callback with err on wrong password', function (done) {
       var account = new Account();
-      account.challengeKey = [];
-      account.hashChallengeKey(function (err) {
+      var challengeKey = [];
+
+      account.hashChallengeKey(challengeKey, function (err) {
         var response = '[1234]';
         account.verifyChallenge(response, function (err) {
           assert.equal(err, 'Incorrect password');
@@ -83,11 +87,11 @@ describe('Account model', function () {
     it('should callback without error on correct input', function (done) {
       var account = new Account();
       // pbkdf2 of 'bananas' and random salt
-      var key = '[-1284768048,-920447856,-475398093,1331192739,-1763268843,1822534881,-85602294,1946893769]';
-      account.challengeKey = key;
-      account.hashChallengeKey(function (err) {
+      var challengeKey = '[-1284768048,-920447856,-475398093,1331192739,-1763268843,1822534881,-85602294,1946893769]';
+
+      account.hashChallengeKey(challengeKey, function (err) {
         // key would now be generated in browser with saved salt
-        account.verifyChallenge(key, function (err) {
+        account.verifyChallenge(challengeKey, function (err) {
           if (err) throw err;
           done();
         });

@@ -28,9 +28,10 @@ var Account = require('../lib/account');
  */
 app.post('/account', function (req, res) {
   var account = new Account();
+  var challengeKey = req.body.challengeKey;
   account.update(req.body);
 
-  account.hashChallengeKey(function (err) {
+  account.hashChallengeKey(challengeKey, function (err) {
     if (err) {
       res.send({
         success: false,

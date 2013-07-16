@@ -50,15 +50,15 @@ Account.prototype.getById = function (id, callback) {
   });
 };
 
-Account.prototype.hashChallengeKey = function (callback) {
-  if (!this.challengeKey) {
+Account.prototype.hashChallengeKey = function (challengeKey, callback) {
+  if (!challengeKey) {
     callback('Must supply challengeKey');
     return;
   }
 
   var that = this;
   var rounds = 12; // TODO make this configurable
-  var challengeKeyEncoded = new Buffer(this.challengeKey).toString('hex');
+  var challengeKeyEncoded = new Buffer(challengeKey).toString('hex');
 
   bcrypt.genSalt(rounds, function (err, salt) {
     if (err) {
@@ -73,7 +73,6 @@ Account.prototype.hashChallengeKey = function (callback) {
       }
 
       that.challengeKeyHash = hash;
-      delete that.challengeKey;
       callback(null);
     });
   });

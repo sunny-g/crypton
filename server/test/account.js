@@ -46,6 +46,7 @@ describe('Account model', function () {
       account.hashChallengeKey(challengeKey, function (err) {
         if (err) throw err;
         assert.equal(typeof account.challengeKeyHash, 'string');
+        assert.equal(account.challengeKeyHash.length, 60); // bcrypt output length
         done();
       });
     });

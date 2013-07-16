@@ -20,12 +20,6 @@ var assert = require('assert');
 var Account = require('../lib/account');
 
 describe('Account model', function () {
-  it('should create a blank account object', function () {
-    var account = new Account();
-    assert(account instanceof Account);
-    assert(JSON.stringify(account.toJSON()) == JSON.stringify({}));
-  });
-
   describe('update()', function () {
     it('should update the account by key/value', function () {
       var account = new Account();

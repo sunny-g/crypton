@@ -16,6 +16,7 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var app = process.app;
 var datastore = require('./');
 var connect = datastore.connect;
 var fs = require('fs');
@@ -35,7 +36,7 @@ datastore.createTransaction = function (accountId, callback) {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Database error');
         return;
       }
@@ -56,7 +57,7 @@ datastore.getTransaction = function (id, callback) {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Database error');
         return;
       }
@@ -145,7 +146,7 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
 
         if (~err.message.indexOf('violates unique constraint')) {
           callback('Container already exists');
@@ -179,7 +180,7 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Invalid chunk data');
         return;
       }
@@ -210,7 +211,7 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Invalid chunk data');
         return;
       }
@@ -245,7 +246,7 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Invalid chunk data');
         return;
       }
@@ -292,13 +293,13 @@ commit.troll = function () {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('fatal', err);
         process.exit(1);
         return;
       }
 
       if (result.rows.length) {
-        console.log(result.rows.length + ' transactions to commit');
+        app.log(result.rows.length + ' transactions to commit');
         // TODO queue
         for (var i in result.rows) {
           commit.finish(result.rows[i].transaction_id);
@@ -318,7 +319,7 @@ commit.finish = function (transactionId) {
     client.query(tq, function (err, result) {
       if (err) {
         client.query('rollback');
-        console.log(err);
+        app.log('warn', err);
       }
 
       done();

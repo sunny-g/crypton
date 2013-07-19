@@ -67,7 +67,13 @@ app.use(connect.session({
 }));
 
 app.use(express.logger(function (info, req, res) {
-  var line = res.statusCode.toString().red + ' ' + req.method + ' ' + req.url;
+  var color = 'green';
+
+  if (res.statusCode == 404) {
+    color = 'red';
+  }
+
+  var line = res.statusCode.toString()[color] + ' ' + req.method + ' ' + req.url;
   app.log('info', line); 
 }));
 

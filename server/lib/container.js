@@ -22,6 +22,8 @@ var db = app.datastore;
 var Container = module.exports = function Container () {};
 
 Container.prototype.get = function (containerNameHmac, callback) {
+  app.log('debug', 'getting container');
+
   var that = this;
 
   db.getContainerRecords(containerNameHmac, function (err, records) {
@@ -31,6 +33,7 @@ Container.prototype.get = function (containerNameHmac, callback) {
     }
 
     if (!records.length) {
+      app.log('debug', 'container does not exist');
       callback('Container does not exist');
       return;
     }

@@ -25,9 +25,9 @@ var express = require('express');
 var util = require('./lib/util');
 
 var app = process.app = module.exports = express();
+app.log = require('./lib/log');
 app.config = require('./lib/config');
 app.datastore = require('./lib/storage');
-app.log = require('./lib/log');
 /*jslint camelcase: false*/
 app.id_translator = require('id_translator')
     .load_id_translator(app.config.id_translator.key_file);
@@ -42,7 +42,7 @@ var allowCrossDomain = function (req, res, next) {
   next();
 };
 
-app.log('info', 'configuring server...');
+app.log('info', 'configuring server');
 
 app.secret = util.readFileSync(
   // TODO: 'binary' encoding is deprecated
@@ -102,7 +102,7 @@ app.start = function start () {
   });
 };
 
-app.log('info', 'loading routes...');
+app.log('info', 'loading routes');
 require('./routes');
 
 process.on('uncaughtException', function (err) {

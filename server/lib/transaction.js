@@ -22,6 +22,8 @@ var db = app.datastore;
 var Transaction = module.exports = function Transaction () {};
 
 Transaction.prototype.create = function (accountId, callback) {
+  app.log('debug', 'creating transaction');
+
   var that = this;
   this.update('accountId', accountId);
 
@@ -37,6 +39,8 @@ Transaction.prototype.create = function (accountId, callback) {
 };
 
 Transaction.prototype.get = function (id, callback) {
+  app.log('debug', 'getting transaction for id: ' + id);
+
   var that = this;
 
   db.getTransaction(id, function (err, transaction) {
@@ -46,6 +50,7 @@ Transaction.prototype.get = function (id, callback) {
     }
 
     if (!transaction.transactionId) {
+      app.log('warn', 'transaction does not exist');
       callback('Transaction does not exist');
       return;
     }
@@ -71,13 +76,18 @@ Transaction.prototype.update = function () {
 };
 
 Transaction.prototype.add = function (data, callback) {
+  app.log('debug', 'adding data to transaction');
+
   var that = this;
+
   this.assertOwnership(callback, function () {
     db.updateTransaction(that, data, callback);
   });
 };
 
 Transaction.prototype.abort = function (callback) {
+  app.log('debug', 'aborting transaction');
+
   var that = this;
   this.assertOwnership(callback, function () {
     db.abortTransaction(that.transactionId, callback);
@@ -85,6 +95,8 @@ Transaction.prototype.abort = function (callback) {
 };
 
 Transaction.prototype.commit = function (callback) {
+  app.log('debug', 'requesting transaction commit');
+
   var that = this;
   this.assertOwnership(callback, function () {
     db.requestTransactionCommit(that.transactionId, that.accountId, callback);
@@ -92,7 +104,10 @@ Transaction.prototype.commit = function (callback) {
 };
 
 Transaction.prototype.assertOwnership = function (callback, next) {
+  app.log('debug', 'asserting transaction ownership');
+
   if (this.interactingAccount != this.accountId) {
+    app.log('warn', 'transaction does not belong to account');
     callback('Transaction does not belong to account');
   } else {
     next();

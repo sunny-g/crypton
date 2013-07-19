@@ -29,7 +29,7 @@ app.config = require('./lib/config');
 app.datastore = require('./lib/storage');
 app.log = require('./lib/log');
 /*jslint camelcase: false*/
-app.id_translator = require("id_translator")
+app.id_translator = require('id_translator')
     .load_id_translator(app.config.id_translator.key_file);
 /*jslint camelcase: true*/
 

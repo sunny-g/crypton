@@ -27,6 +27,7 @@ var util = require('./lib/util');
 var app = process.app = module.exports = express();
 app.config = require('./lib/config');
 app.datastore = require('./lib/storage');
+app.log = require('./lib/log');
 /*jslint camelcase: false*/
 app.id_translator = require("id_translator")
     .load_id_translator(app.config.id_translator.key_file);
@@ -41,6 +42,8 @@ var allowCrossDomain = function (req, res, next) {
   next();
 };
 
+app.log('info', 'configuring server...');
+
 app.secret = util.readFileSync(
   // TODO: 'binary' encoding is deprecated
   // TODO: also do we need to do this at all?
@@ -50,10 +53,10 @@ app.secret = util.readFileSync(
 app.secret = 'foo';
 
 app.sessionStore = new express.session.MemoryStore();
-app.use(express.logger('dev'));
 app.use(connect.cookieParser());
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
+
 app.use(connect.session({
   secret: app.secret,
   store: app.sessionStore,
@@ -61,6 +64,11 @@ app.use(connect.session({
   cookie: {
     secure: true
   }
+}));
+
+app.use(express.logger(function (info, req, res) {
+  var line = res.statusCode.toString().red + ' ' + req.method + ' ' + req.url;
+  app.log('info', line); 
 }));
 
 if (process.env.NODE_ENV === 'test') {
@@ -72,6 +80,8 @@ app.options('/*', function (req, res) {
 });
 
 app.start = function start () {
+  app.log('info', 'starting HTTPS server');
+
   var privateKey = fs.readFileSync(__dirname + '/' + app.config.privateKey).toString();
   var certificate = fs.readFileSync(__dirname + '/' + app.config.certificate).toString();
 
@@ -81,9 +91,10 @@ app.start = function start () {
   };
 
   app.server = https.createServer(options, app).listen(app.port, function () {
+    app.log('HTTPS server listening on port ' + app.port);
     require('./sockets');
-    console.log('Crypton server started on port ' + app.port);
   });
 };
 
+app.log('info', 'loading routes...');
 require('./routes');

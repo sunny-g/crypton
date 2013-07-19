@@ -16,13 +16,17 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var app = process.app;
+
 var middleware = module.exports = {};
 
 middleware.verifySession = function (req, res, next) {
   var id = req.headers['session-identifier'];
+  app.log('debug', 'verifying session ' + id);
 
   req.sessionStore.get(id, function (err, session) {
     if (err || !session || !session.accountId) {
+      app.log('debug', 'session ' + id + ' invalid');
       res.send({
         success: false,
         error: 'Invalid session'

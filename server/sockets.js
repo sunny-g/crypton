@@ -3,6 +3,8 @@ var io = require('socket.io');
 var cookie = require('cookie');
 var connect = require('connect');
 
+app.log('info', 'starting socket.io');
+
 app.io = io.listen(app.server);
 app.clients = {};
 

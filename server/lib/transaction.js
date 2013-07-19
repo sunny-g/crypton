@@ -39,7 +39,7 @@ Transaction.prototype.create = function (accountId, callback) {
 };
 
 Transaction.prototype.get = function (id, callback) {
-  app.log('debug', 'getting transaction for id: ' + id);
+  app.log('debug', 'getting transaction with id: ' + id);
 
   var that = this;
 

@@ -2,14 +2,14 @@
   "author": "SpiderOak (https://spideroak.com/)",
   "name": "crypton",
   "description": "A zero-knowledge application framework",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "homepage": "http://crypton.io",
   "repository": {
     "type": "git",
     "url": "git://github.com/SpiderOak/crypton-server.git"
   },
   "engines": {
-    "node": "~0.8.1"
+    "node": "0.10.x"
   },
   "bin": {
     "crypton": "bin/cli.js"

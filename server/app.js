@@ -77,10 +77,6 @@ app.use(express.logger(function (info, req, res) {
   app.log('info', line); 
 }));
 
-if (process.env.NODE_ENV === 'test') {
-  app.use(express.static(__dirname + '/../client'));
-}
-
 if (app.config.appPath) {
   var appPath = path.resolve(process.cwd(), app.config.appPath);
   app.use(express.static(appPath));

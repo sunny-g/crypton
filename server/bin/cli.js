@@ -20,7 +20,6 @@
 'use strict';
 
 var program = require('commander');
-var app = require('../app');
 
 program
   .version('0.0.1')
@@ -31,5 +30,6 @@ program
 process.configFile = program.config;
 
 if (require.main === module) {
+  var app = require('../app');
   app.start();
 }

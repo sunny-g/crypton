@@ -19,6 +19,7 @@
 'use strict';
 
 var fs = require('fs');
+var path = require('path');
 var https = require('https');
 var connect = require('connect');
 var express = require('express');
@@ -78,6 +79,11 @@ app.use(express.logger(function (info, req, res) {
 
 if (process.env.NODE_ENV === 'test') {
   app.use(express.static(__dirname + '/../client'));
+}
+
+if (app.config.appPath) {
+  var appPath = path.resolve(process.cwd(), app.config.appPath);
+  app.use(express.static(appPath));
 }
 
 app.options('/*', function (req, res) {

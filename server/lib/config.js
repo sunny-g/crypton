@@ -29,7 +29,8 @@ if (process.configFile) {
 } else if (env === 'test') {
   configFile = __dirname + '/../config.test.json';
 } else {
-  configFile = __dirname + '/../config.json';
+  app.log('fatal', 'Must provide configuration file');
+  process.exit(1);
 }
 
 try {

@@ -50,7 +50,6 @@ app.secret = util.readFileSync(
   app.config.cookieSecretFile, 'binary',
   app.config.defaultKeySize
 );
-app.secret = 'foo';
 
 app.sessionStore = new express.session.MemoryStore();
 app.use(connect.cookieParser());
@@ -96,6 +95,7 @@ app.start = function start () {
     cert: certificate
   };
 
+  app.port = app.config.port || 443;
   app.server = https.createServer(options, app).listen(app.port, function () {
     app.log('HTTPS server listening on port ' + app.port);
     require('./sockets');

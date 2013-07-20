@@ -90,12 +90,16 @@ app.options('/*', function (req, res) {
 app.start = function start () {
   app.log('info', 'starting HTTPS server');
 
-  var privateKey = fs.readFileSync(__dirname + '/config/' + app.config.privateKey).toString();
-  var certificate = fs.readFileSync(__dirname + '/config/' + app.config.certificate).toString();
+  var privateKeyPath = path.resolve(process.cwd(), app.config.privateKey);
+  var certificatePath = path.resolve(process.cwd(), app.config.certificate);
+  var privateKeyExists = fs.existsSync(privateKeyPath);
+  var certificateExists = fs.existsSync(certificatePath);
+  var privateKeyRealPath = privateKeyExists ? privateKeyPath : __dirname + '/config/privateKeyExample.pem';
+  var certificateRealPath = certificateExists ? certificatePath : __dirname + '/config/certificateExample.pem';
 
   var options = {
-    key: privateKey,
-    cert: certificate
+    key: fs.readFileSync(privateKeyRealPath).toString(),
+    cert: fs.readFileSync(certificateRealPath).toString()
   };
 
   app.port = app.config.port || 443;

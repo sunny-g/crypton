@@ -87,8 +87,8 @@ app.options('/*', function (req, res) {
 app.start = function start () {
   app.log('info', 'starting HTTPS server');
 
-  var privateKey = fs.readFileSync(__dirname + '/' + app.config.privateKey).toString();
-  var certificate = fs.readFileSync(__dirname + '/' + app.config.certificate).toString();
+  var privateKey = fs.readFileSync(__dirname + '/config/' + app.config.privateKey).toString();
+  var certificate = fs.readFileSync(__dirname + '/config/' + app.config.certificate).toString();
 
   var options = {
     key: privateKey,
@@ -98,7 +98,7 @@ app.start = function start () {
   app.port = app.config.port || 443;
   app.server = https.createServer(options, app).listen(app.port, function () {
     app.log('HTTPS server listening on port ' + app.port);
-    require('./sockets');
+    require('./lib/sockets');
   });
 };
 

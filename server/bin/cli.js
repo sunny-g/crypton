@@ -20,7 +20,7 @@
 'use strict';
 
 var program = require('commander');
-var app = require('./app');
+var app = require('../app');
 
 program
   .version('0.0.1')

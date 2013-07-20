@@ -19,17 +19,30 @@
 
 'use strict';
 
+var fs = require('fs');
 var program = require('commander');
 
 program
   .version('0.0.1')
-  .option('-c, --config [file]',
-    'Specify a custom configuration file [default config]')
+  .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
+  .option('-b, --background', 'Daemonize the Crypton server [false]')
   .parse(process.argv);
 
 process.configFile = program.config;
 
 if (require.main === module) {
   var app = require('../app');
+
+  if (program.background) {
+    var logPath = app.config.logFile || '/tmp/crypton.log';
+    var logFile = fs.openSync(logPath, 'a');
+    app.log('info', 'daemonizing process');
+    app.log('info', 'log file is at ' + logPath.blue);
+    require('daemon')({
+      stdout: logFile,
+      stderr: logFile
+    });
+  }
+
   app.start();
 }

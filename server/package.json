@@ -12,7 +12,7 @@
     "node": "~0.8.1"
   },
   "bin": {
-    "crypton": "server.js"
+    "crypton": "bin/cli.js"
   },
   "dependencies": {
     "id_translator": "https://github.com/alanfairless/id_translator/tarball/master",

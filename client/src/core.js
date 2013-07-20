@@ -19,14 +19,13 @@ var crypton = {};
 
 (function () {
   crypton.version = '0.0.1';
-  crypton.host = 'localhost';
-  crypton.port = '443';
+  crypton.host = window.location.hostname;
   crypton.cipherOptions = {
     mode: 'gcm'
   };
 
   crypton.url = function () {
-    return 'https://' + crypton.host + ':' + crypton.port;
+    return 'https://' + crypton.host;
   };
 
   function randomBytes (nbytes) {

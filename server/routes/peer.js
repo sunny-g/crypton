@@ -23,6 +23,8 @@ var verifySession = middleware.verifySession;
 var Account = require('../lib/account');
 
 app.get('/peer/:username', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /peer/:username');
+
   var account = new Account();
 
   account.get(req.params.username, function (err) {
@@ -49,6 +51,8 @@ app.get('/peer/:username', verifySession, function (req, res) {
 });
 
 app.post('/peer', verifySession, function (req, res) {
+  app.log('debug', 'handling POST /peer');
+
   var from = req.session.accountId;
   var to = req.body.toAccount;
   var headers = req.body.headers;

@@ -22,6 +22,8 @@ var verifySession = middleware.verifySession;
 var Inbox = require('../lib/inbox');
 
 app.get('/inbox', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /inbox');
+
   var id = req.session.accountId;
   var inbox = new Inbox(id);
 
@@ -42,8 +44,10 @@ app.get('/inbox', verifySession, function (req, res) {
 });
 
 app.get('/inbox/:messageIdentifier', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /inbox/:messageIdentifier');
 });
 
 // TODO should this be deleted in lieu of a transaction?
 app.del('/inbox/:messageIdentifier', verifySession, function (req, res) {
+  app.log('debug', 'handling DEL /container/:containerNameHmac');
 });

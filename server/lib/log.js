@@ -16,32 +16,41 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var app = process.app;
+var colors = require('colors');
 
-var middleware = module.exports = {};
+var maxLevel;
+var env = process.env.NODE_ENV;
+var possibleLevels = [
+  'error',
+  'warn',
+  'info',
+  'debug',
+  'trace'
+];
 
-middleware.verifySession = function (req, res, next) {
-  var id = req.headers['session-identifier'];
-  app.log('debug', 'verifying session ' + id);
+switch (env) {
+  case 'test':
+    maxLevel = 'trace';
+    break;
+  case 'production':
+    maxLevel = 'info';
+    break;
+  default:
+    maxLevel = 'debug';
+    break;
+}
 
-  req.sessionStore.get(id, function (err, session) {
-    if (err || !session || !session.accountId) {
-      app.log('debug', 'session ' + id + ' invalid');
-      res.send({
-        success: false,
-        error: 'Invalid session'
-      });
-      return;
-    }
+var maxIndex = possibleLevels.indexOf(maxLevel);
 
-    // TODO this may be a leak but it's the only
-    // way to get around CORS without implementing our
-    // own sessionStore
-    Object.keys(session).forEach(function (i) {
-      if (i == 'cookie') return;
-      req.session[i] = session[i];
-    });
+module.exports = function log (level, message) {
+  if (!message) {
+    message = level;
+    level = 'info';
+  }
 
-    next();
-  });
-};
+  var levelIndex = possibleLevels.indexOf(level);
+  if (!~levelIndex || levelIndex <= maxIndex) {
+    var initial = '[' + level + ']';
+    console.log(initial.blue + ' ' + message);
+  }
+}

@@ -23,6 +23,8 @@ var bcrypt = require('bcrypt');
 var Account = module.exports = function Account () {};
 
 Account.prototype.get = function (username, callback) {
+  app.log('debug', 'getting account for username: ' + username);
+
   var that = this;
 
   db.getAccount(username, function (err, account) {
@@ -37,6 +39,8 @@ Account.prototype.get = function (username, callback) {
 };
 
 Account.prototype.getById = function (id, callback) {
+  app.log('debug', 'getting account for id: ' + id);
+
   var that = this;
 
   db.getAccountById(id || this.id, function (err, account) {
@@ -51,7 +55,10 @@ Account.prototype.getById = function (id, callback) {
 };
 
 Account.prototype.hashChallengeKey = function (challengeKey, callback) {
+  app.log('debug', 'hashing challenge key');
+
   if (!challengeKey) {
+    app.log('warn', 'challenge key not supplied to hashChallengeKey');
     callback('Must supply challengeKey');
     return;
   }
@@ -60,14 +67,20 @@ Account.prototype.hashChallengeKey = function (challengeKey, callback) {
   var rounds = 12; // TODO make this configurable
   var challengeKeyEncoded = new Buffer(challengeKey).toString('hex');
 
+  app.log('trace', 'generating bcrypt salt');
+
   bcrypt.genSalt(rounds, function (err, salt) {
     if (err) {
+      app.log('warn', err);
       callback(err);
       return;
     }
 
+    app.log('trace', 'hashing encoded challenge key with generated salt');
+
     bcrypt.hash(challengeKeyEncoded, salt, function (err, hash) {
       if (err) {
+        app.log('warn', err);
         callback(err);
         return;
       }
@@ -79,7 +92,11 @@ Account.prototype.hashChallengeKey = function (challengeKey, callback) {
 };
 
 Account.prototype.verifyChallenge = function (challengeKeyResponse, callback) {
+  app.log('debug', 'verifying challenge');
+
   var challengeKeyResponseEncoded = new Buffer(challengeKeyResponse).toString('hex');
+
+  app.log('trace', 'comparing encoded challengeKeyResponse with challengeKeyHash');
 
   bcrypt.compare(challengeKeyResponseEncoded, this.challengeKeyHash, function (err, success) {
     if (err || !success) {
@@ -119,16 +136,21 @@ Account.prototype.toJSON = function () {
 };
 
 Account.prototype.save = function (callback) {
+  app.log('debug', 'saving account');
   db.saveAccount(this.toJSON(), callback);
 };
 
 Account.prototype.sendMessage = function (from, headers, body, callback) {
   if (!this.accountId) {
+    app.log('warn', 'accountId was not supplied');
     callback('Recipient account object must have accountId');
     return;
   }
 
   var to = this.accountId;
+
+  app.log('info', 'saving message for account id: ' + to);
+
 
   // we should be also make sure there are headers and body arguments
   // and maybe be smart about making one/both of them optional
@@ -149,6 +171,8 @@ Account.prototype.sendMessage = function (from, headers, body, callback) {
     var sender = new Account();
     sender.getById(from, function (err) {
       if (app.clients[to]) {
+        app.log('debug', 'sending message over websocket');
+
         app.clients[to].emit('message', {
           from: {
             id: from,

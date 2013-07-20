@@ -23,6 +23,8 @@ var Transaction = require('../lib/transaction');
 
 // start a transaction, get a transaction
 app.post('/transaction/create', verifySession, function (req, res) {
+  app.log('debug', 'handling POST /transaction/create');
+
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
@@ -44,6 +46,8 @@ app.post('/transaction/create', verifySession, function (req, res) {
 
 // update a transaction
 app.post('/transaction/:id', verifySession, function (req, res) {
+  app.log('debug', 'handling POST /transaction/:id');
+
   var data = req.body;
   var transactionId = req.params.id;
   var accountId = req.session.accountId;
@@ -78,6 +82,8 @@ app.post('/transaction/:id', verifySession, function (req, res) {
 
 // commit a transaction
 app.post('/transaction/:id/commit', verifySession, function (req, res) {
+  app.log('debug', 'handling POST /transaction/:id/commit');
+
   var transactionId = req.params.id;
   var accountId = req.session.accountId;
 
@@ -104,6 +110,8 @@ app.post('/transaction/:id/commit', verifySession, function (req, res) {
 
 // abort a transaction w/o committing
 app.del('/transaction/:id', verifySession, function (req, res) {
+  app.log('debug', 'handling DEL /transaction/:id');
+
   var transactionId = req.params.id;
   var accountId = req.session.accountId;
 

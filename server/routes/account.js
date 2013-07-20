@@ -27,6 +27,8 @@ var Account = require('../lib/account');
  * Save account to server
  */
 app.post('/account', function (req, res) {
+  app.log('debug', 'handling POST /account');
+
   var account = new Account();
   var challengeKey = req.body.challengeKey;
   account.update(req.body);
@@ -60,10 +62,13 @@ app.post('/account', function (req, res) {
 * Authorize with server
 */
 app.post('/account/:username', function (req, res) {
+  app.log('debug', 'handling POST /account/:username');
+
   var account = new Account();
 
   account.get(req.params.username, function (err) {
     if (err) {
+      app.log('debug', 'could not get account for ' + req.params.username);
       res.send({
         success: false,
         error: err
@@ -83,6 +88,8 @@ app.post('/account/:username', function (req, res) {
 * Authorize with server
 */
 app.post('/account/:username/answer', function (req, res) {
+  app.log('debug', 'handling POST /account/:username/answer');
+
   var challengeKeyResponse = req.body.challengeKey;
   var account = new Account();
 
@@ -97,11 +104,13 @@ app.post('/account/:username/answer', function (req, res) {
     }
 
     if (typeof challengeKeyResponse != 'string') {
+      app.log('debug', 'challengeKeyResponse was not string');
       challengeKeyResponse = JSON.stringify(challengeKeyResponse);
     }
 
     account.verifyChallenge(challengeKeyResponse, function (err) {
       if (err) {
+        app.log('debug', 'challenge verification failed: ' + err);
         res.send({
           success: false,
           error: err
@@ -110,6 +119,7 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
+      app.log('debug', 'challenge verification succcess');
       req.session.accountId = account.accountId;
 
       res.send({
@@ -127,6 +137,7 @@ app.post('/account/:username/answer', function (req, res) {
 app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {
+    app.log('debug', 'handling POST /account/:username/keyring');
     res.send({
       success: true
     });

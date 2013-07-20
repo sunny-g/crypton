@@ -22,19 +22,21 @@ var fs = require('fs');
 var path = require('path');
 
 var configFile;
+var env = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase();
+
 if (process.configFile) {
   configFile = path.resolve(process.env.PWD, process.configFile);
-} else if (process.env.NODE_ENV &&
-           process.env.NODE_ENV.toLowerCase() === 'test') {
+} else if (env === 'test') {
   configFile = __dirname + '/../config.test.json';
 } else {
   configFile = __dirname + '/../config.json';
 }
 
 try {
-  module.exports = JSON.parse(fs.readFileSync(configFile).toString());
+  var file = fs.readFileSync(configFile).toString();
+  module.exports = JSON.parse(file);
 } catch (e) {
-  console.log('Could not parse config file:');
-  console.log(e);
+  app.log('fatal', 'Could not parse config file:');
+  app.log('fatal', e.stack);
   process.exit(1);
 }

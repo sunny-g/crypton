@@ -40,7 +40,6 @@ try {
   var file = fs.readFileSync(configFile).toString();
   module.exports = JSON.parse(file);
 } catch (e) {
-  app.log('fatal', 'Could not parse config file:');
-  app.log('fatal', e.stack);
-  process.exit(1);
+  app.log('fatal', 'could not parse config file');
+  throw e;
 }

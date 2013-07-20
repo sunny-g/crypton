@@ -84,6 +84,7 @@ if (process.env.NODE_ENV === 'test') {
 if (app.config.appPath) {
   var appPath = path.resolve(process.cwd(), app.config.appPath);
   app.use(express.static(appPath));
+  app.use(express.static(__dirname + '/../client/dist'));
 }
 
 app.options('/*', function (req, res) {

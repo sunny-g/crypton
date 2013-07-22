@@ -101,13 +101,13 @@ describe('Account model', function () {
   });
 
   describe('toJSON()', function () {
-    it('should do return an object', function () {
+    it('should return an object', function () {
       var account = new Account();
       var ret = account.toJSON();
       assert.equal(typeof ret, 'object');
     });
 
-    it('should do return account properties', function () {
+    it('should return account properties', function () {
       var account = new Account();
       account.update('foo', 'bar');
       var ret = account.toJSON();

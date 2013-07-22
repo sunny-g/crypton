@@ -72,19 +72,6 @@ describe('Account model', function () {
   });
 
   describe('verifyChallenge()', function () {
-    it('should callback with err on wrong password', function (done) {
-      var account = new Account();
-      var challengeKey = [];
-
-      account.hashChallengeKey(challengeKey, function (err) {
-        var response = '[1234]';
-        account.verifyChallenge(response, function (err) {
-          assert.equal(err, 'Incorrect password');
-          done();
-        });
-      });
-    });
-
     it('should callback without error on correct input', function (done) {
       var account = new Account();
       // pbkdf2 of 'bananas' and random salt
@@ -94,6 +81,19 @@ describe('Account model', function () {
         // key would now be generated in browser with saved salt
         account.verifyChallenge(challengeKey, function (err) {
           if (err) throw err;
+          done();
+        });
+      });
+    });
+
+    it('should callback with err on wrong password', function (done) {
+      var account = new Account();
+      var challengeKey = [];
+
+      account.hashChallengeKey(challengeKey, function (err) {
+        var response = '[1234]';
+        account.verifyChallenge(response, function (err) {
+          assert.equal(err, 'Incorrect password');
           done();
         });
       });

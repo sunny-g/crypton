@@ -19,6 +19,7 @@
 'use strict';
 
 var fs = require('fs');
+var path = require('path');
 var https = require('https');
 var connect = require('connect');
 var express = require('express');
@@ -50,7 +51,6 @@ app.secret = util.readFileSync(
   app.config.cookieSecretFile, 'binary',
   app.config.defaultKeySize
 );
-app.secret = 'foo';
 
 app.sessionStore = new express.session.MemoryStore();
 app.use(connect.cookieParser());
@@ -77,8 +77,10 @@ app.use(express.logger(function (info, req, res) {
   app.log('info', line); 
 }));
 
-if (process.env.NODE_ENV === 'test') {
-  app.use(express.static(__dirname + '/../client'));
+if (app.config.appPath) {
+  var appPath = path.resolve(process.cwd(), app.config.appPath);
+  app.use(express.static(appPath));
+  app.use(express.static(__dirname + '/../client/dist'));
 }
 
 app.options('/*', function (req, res) {
@@ -88,17 +90,22 @@ app.options('/*', function (req, res) {
 app.start = function start () {
   app.log('info', 'starting HTTPS server');
 
-  var privateKey = fs.readFileSync(__dirname + '/' + app.config.privateKey).toString();
-  var certificate = fs.readFileSync(__dirname + '/' + app.config.certificate).toString();
+  var privateKeyPath = path.resolve(process.cwd(), app.config.privateKey);
+  var certificatePath = path.resolve(process.cwd(), app.config.certificate);
+  var privateKeyExists = fs.existsSync(privateKeyPath);
+  var certificateExists = fs.existsSync(certificatePath);
+  var privateKeyRealPath = privateKeyExists ? privateKeyPath : __dirname + '/config/privateKeyExample.pem';
+  var certificateRealPath = certificateExists ? certificatePath : __dirname + '/config/certificateExample.pem';
 
   var options = {
-    key: privateKey,
-    cert: certificate
+    key: fs.readFileSync(privateKeyRealPath).toString(),
+    cert: fs.readFileSync(certificateRealPath).toString()
   };
 
+  app.port = app.config.port || 443;
   app.server = https.createServer(options, app).listen(app.port, function () {
     app.log('HTTPS server listening on port ' + app.port);
-    require('./sockets');
+    require('./lib/sockets');
   });
 };
 

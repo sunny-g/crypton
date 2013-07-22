@@ -13,5 +13,6 @@
   },
   "cookieSecretFile": "/dev/urandom",
   "privateKey": "privateKeyExample.pem",
-  "certificate": "certificateExample.pem"
+  "certificate": "certificateExample.pem",
+  "appPath": "."
 }

@@ -19,6 +19,20 @@
 
 'use strict';
 
+/**!
+ * A simple CLI to start the server
+ *
+ * ````
+ * Usage: crypton [options]
+ *
+ * Options:
+ *
+ *   -h, --help           output usage information
+ *   -V, --version        output the version number
+ *   -c, --config [file]  Specify a custom configuration file [default config]
+ * ````
+ */
+
 var fs = require('fs');
 var program = require('commander');
 

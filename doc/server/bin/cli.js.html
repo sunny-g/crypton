@@ -21,9 +21,18 @@
 <span class="cm"> * along with Crypton Server.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
 
-<span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2">&#182;</a>
+</div>
+<div class="dox"><div class="summary"><p>A simple CLI to start the server</p></div><div class="body"><div class='highlight'><pre><code language=''>Usage: crypton [options]
 
-<span class="kd">var</span> <span class="nx">fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
+## Options
+
+  -h, --help           output usage information
+  -V, --version        output the version number
+  -c, --config [file]  Specify a custom configuration file [default config]
+</code></pre></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
 <span class="kd">var</span> <span class="nx">program</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;commander&#39;</span><span class="p">);</span>
 
 <span class="nx">program</span>

@@ -33,6 +33,7 @@ body {
   border-top-color: #aaa;
 }
 
+.docs pre,
 .dox .details {
   background: none;
   border-color: #eee;

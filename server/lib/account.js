@@ -20,8 +20,18 @@ var app = require('../app');
 var db = app.datastore;
 var bcrypt = require('bcrypt');
 
+
+/**!
+ * # Account
+ */
 var Account = module.exports = function Account () {};
 
+/**!
+ * Retrieve a user account from the database using the specified `username`.
+ * 
+ * @param {String} username
+ * @param {Function} callback
+ */
 Account.prototype.get = function (username, callback) {
   app.log('debug', 'getting account for username: ' + username);
 
@@ -38,6 +48,12 @@ Account.prototype.get = function (username, callback) {
   });
 };
 
+/**!
+ * Retrieve a user account from the database using the specified `id`.
+ * 
+ * @param {Number} id
+ * @param {Function} callback
+ */
 Account.prototype.getById = function (id, callback) {
   app.log('debug', 'getting account for id: ' + id);
 
@@ -54,6 +70,12 @@ Account.prototype.getById = function (id, callback) {
   });
 };
 
+/**!
+ * Hash an encoded version of the supplied `challengeKey` and store it in the parent account object.
+ * 
+ * @param {String} challengeKey
+ * @param {Function} callback
+ */
 Account.prototype.hashChallengeKey = function (challengeKey, callback) {
   app.log('debug', 'hashing challenge key');
 
@@ -91,6 +113,12 @@ Account.prototype.hashChallengeKey = function (challengeKey, callback) {
   });
 };
 
+/**!
+ * Compare `challengeKeyReponse` with stored `challengeKeyHash`.
+ * 
+ * @param {String} challengeKey
+ * @param {Function} callback
+ */
 Account.prototype.verifyChallenge = function (challengeKeyResponse, callback) {
   app.log('debug', 'verifying challenge');
 
@@ -108,6 +136,12 @@ Account.prototype.verifyChallenge = function (challengeKeyResponse, callback) {
   });
 };
 
+/**!
+ * Update one or a set of keys in the parent account object.
+ * 
+ * @param {Object} key
+ * @param {Object} value
+ */
 // TODO add field validation and callback
 Account.prototype.update = function () {
   // update({ key: 'value' });
@@ -123,6 +157,11 @@ Account.prototype.update = function () {
   }
 };
 
+/**!
+ * Dump non-function values of account object into an object.
+ * 
+ * @param {Object} account
+ */
 Account.prototype.toJSON = function () {
   var fields = {};
 
@@ -135,11 +174,24 @@ Account.prototype.toJSON = function () {
   return fields;
 };
 
+/**!
+ * Saves the current state of the account object to the database.
+ * 
+ * @param {Function} callback
+ */
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
   db.saveAccount(this.toJSON(), callback);
 };
 
+/**!
+ * Send a message from current account
+ * 
+ * @param {Number} from
+ * @param {Object} headers
+ * @param {Object} body
+ * @param {Function} callback
+ */
 Account.prototype.sendMessage = function (from, headers, body, callback) {
   if (!this.accountId) {
     app.log('warn', 'accountId was not supplied');

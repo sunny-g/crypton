@@ -40,26 +40,7 @@ describe('Account model', function () {
 
       account.save(function (err) {
         if (err) throw err;
-
-        var expectedProperties = [
-          'username',
-          'accountId',
-          'keyringId',
-          'keypairSalt',
-          'keypairCiphertext',
-          'pubKey',
-          'symKeyCiphertext',
-          'challengeKeySalt',
-          'challengeKeyHash',
-          'containerNameHmacKeyCiphertext',
-          'hmacKeyCiphertext'
-        ];
-
-        var perhapsAccount = new Account();
-        perhapsAccount.get(requestedAccount.username, function () {
-          assert.deepEqual(expectedProperties, Object.keys(perhapsAccount));
-          done();
-        });
+        done();
       });
     });
 
@@ -74,11 +55,25 @@ describe('Account model', function () {
   });
 
   describe('get()', function () {
-    it('should fill out account object', function (done) {
+    it('should retrieve account object from database', function (done) {
       var account = new Account();
+      var expectedProperties = [
+        'username',
+        'accountId',
+        'keyringId',
+        'keypairSalt',
+        'keypairCiphertext',
+        'pubKey',
+        'symKeyCiphertext',
+        'challengeKeySalt',
+        'challengeKeyHash',
+        'containerNameHmacKeyCiphertext',
+        'hmacKeyCiphertext'
+      ];
+
       account.get('pizza', function (err) {
         if (err) throw err;
-        assert.equal(account.username, 'pizza');
+        assert.deepEqual(expectedProperties, Object.keys(perhapsAccount));
         done();
       });
     });

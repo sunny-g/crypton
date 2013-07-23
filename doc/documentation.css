@@ -28,3 +28,12 @@ body {
   border: 0;
   padding: 3px;
 }
+
+.dox {
+  border-top-color: #aaa;
+}
+
+.dox .details {
+  background: none;
+  border-color: #eee;
+}

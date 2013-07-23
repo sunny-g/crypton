@@ -20,6 +20,78 @@ var assert = require('assert');
 var Account = require('../lib/account');
 
 describe('Account model', function () {
+  describe('save()', function () {
+    it('should save valid accounts', function (done) {
+      var account = new Account();
+
+      var requestedAccount = {
+        username: 'pizza',
+        keypairSalt: '[1,2,3]',
+        keypairCiphertext: { keypair: 'ciphertext' },
+        pubKey: { pub: 'key' },
+        challengeKeyHash: 'string',
+        challengeKeySalt: '[1,2,3]',
+        symKeyCiphertext: { sym: 'key' },
+        containerNameHmacKeyCiphertext: '[1,2,3]',
+        hmacKeyCiphertext: '[1,2,3]'
+      };
+
+      account.update(requestedAccount);
+
+      account.save(function (err) {
+        if (err) throw err;
+
+        var expectedProperties = [
+          'username',
+          'accountId',
+          'keyringId',
+          'keypairSalt',
+          'keypairCiphertext',
+          'pubKey',
+          'symKeyCiphertext',
+          'challengeKeySalt',
+          'challengeKeyHash',
+          'containerNameHmacKeyCiphertext',
+          'hmacKeyCiphertext'
+        ];
+
+        var perhapsAccount = new Account();
+        perhapsAccount.get(requestedAccount.username, function () {
+          assert.deepEqual(expectedProperties, Object.keys(perhapsAccount));
+          done();
+        });
+      });
+    });
+
+    it('should err out for empty accounts', function (done) {
+      var account = new Account();
+
+      account.save(function (err) {
+        assert(err !== null);
+        done();
+      });
+    });
+  });
+
+  describe('get()', function () {
+    it('should fill out account object', function (done) {
+      var account = new Account();
+      account.get('pizza', function (err) {
+        if (err) throw err;
+        assert.equal(account.username, 'pizza');
+        done();
+      });
+    });
+
+    it('should callback with error if given nonexistant username', function (done) {
+      var account = new Account();
+      account.get('pizzasaurus', function (err) {
+        assert.equal(err, 'Account not found.');
+        done();
+      });
+    });
+  });
+
   describe('update()', function () {
     it('should update the account by key/value', function () {
       var account = new Account();
@@ -112,78 +184,6 @@ describe('Account model', function () {
       account.update('foo', 'bar');
       var ret = account.toJSON();
       assert.equal(ret.foo, 'bar');
-    });
-  });
-
-  describe('save()', function () {
-    it('should save valid accounts', function (done) {
-      var account = new Account();
-
-      var requestedAccount = {
-        username: 'pizza',
-        keypairSalt: '[1,2,3]',
-        keypairCiphertext: { keypair: 'ciphertext' },
-        pubKey: { pub: 'key' },
-        challengeKeyHash: 'string',
-        challengeKeySalt: '[1,2,3]',
-        symKeyCiphertext: { sym: 'key' },
-        containerNameHmacKeyCiphertext: '[1,2,3]',
-        hmacKeyCiphertext: '[1,2,3]'
-      };
-
-      account.update(requestedAccount);
-
-      account.save(function (err) {
-        if (err) throw err;
-
-        var expectedProperties = [
-          'username',
-          'accountId',
-          'keyringId',
-          'keypairSalt',
-          'keypairCiphertext',
-          'pubKey',
-          'symKeyCiphertext',
-          'challengeKeySalt',
-          'challengeKeyHash',
-          'containerNameHmacKeyCiphertext',
-          'hmacKeyCiphertext'
-        ];
-
-        var perhapsAccount = new Account();
-        perhapsAccount.get(requestedAccount.username, function () {
-          assert.deepEqual(expectedProperties, Object.keys(perhapsAccount));
-          done();
-        });
-      });
-    });
-
-    it('should err out for empty accounts', function (done) {
-      var account = new Account();
-
-      account.save(function (err) {
-        assert(err !== null);
-        done();
-      });
-    });
-  });
-
-  describe('get()', function () {
-    it('should fill out account object', function (done) {
-      var account = new Account();
-      account.get('pizza', function (err) {
-        if (err) throw err;
-        assert.equal(account.username, 'pizza');
-        done();
-      });
-    });
-
-    it('should callback with error if given nonexistant username', function (done) {
-      var account = new Account();
-      account.get('pizzasaurus', function (err) {
-        assert.equal(err, 'Account not found.');
-        done();
-      });
     });
   });
 });

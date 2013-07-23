@@ -1,0 +1,100 @@
+<!DOCTYPE html><html><head><title>peer.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>peer.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Client, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Client.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">Peer</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Peer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">options</span> <span class="o">=</span> <span class="nx">options</span> <span class="o">||</span> <span class="p">{};</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">accountId</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">session</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">username</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">username</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="nx">Peer</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">fetch</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">username</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Must supply peer username&#39;</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Must supply session to peer object&#39;</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/peer/&#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">username</span><span class="p">;</span>
+    <span class="nx">superagent</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="kd">var</span> <span class="nx">peer</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">peer</span><span class="p">;</span>
+      <span class="nx">that</span><span class="p">.</span><span class="nx">accountId</span> <span class="o">=</span> <span class="nx">peer</span><span class="p">.</span><span class="nx">accountId</span><span class="p">;</span>
+      <span class="nx">that</span><span class="p">.</span><span class="nx">username</span> <span class="o">=</span> <span class="nx">peer</span><span class="p">.</span><span class="nx">username</span><span class="p">;</span>
+      <span class="nx">that</span><span class="p">.</span><span class="nx">pubKey</span> <span class="o">=</span> <span class="nx">peer</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">;</span>
+      <span class="c1">// this may be necessary</span>
+      <span class="kd">var</span> <span class="nx">point</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">curves</span><span class="p">[</span><span class="s1">&#39;c&#39;</span> <span class="o">+</span> <span class="nx">peer</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">curve</span><span class="p">].</span><span class="nx">fromBits</span><span class="p">(</span><span class="nx">peer</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">point</span><span class="p">);</span>
+      <span class="nx">that</span><span class="p">.</span><span class="nx">pubKey</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">elGamal</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">(</span><span class="nx">peer</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">point</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">point</span><span class="p">);</span>
+
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">that</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">};</span>
+
+  <span class="nx">Peer</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">encrypt</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// should this be async to return an error if there is no pubkey?</span>
+    <span class="kd">var</span> <span class="nx">ciphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">message</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nx">ciphertext</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="nx">Peer</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">sendMessage</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">headers</span><span class="p">,</span> <span class="nx">body</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Must supply session to peer object&#39;</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kd">var</span> <span class="nx">headerCiphertext</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">headers</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">bodyCiphertext</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">body</span><span class="p">);</span>
+
+    <span class="kd">var</span> <span class="nx">message</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">headers</span><span class="o">:</span> <span class="nx">headerCiphertext</span><span class="p">,</span>
+      <span class="nx">body</span><span class="o">:</span> <span class="nx">bodyCiphertext</span><span class="p">,</span>
+      <span class="nx">toAccount</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">accountId</span><span class="p">,</span>
+    <span class="p">};</span>
+
+    <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/peer&#39;</span><span class="p">;</span>
+    <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">messageId</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">};</span>
+<span class="p">})();</span>
+</pre></div></td></tr></tbody></table></div></body></html>

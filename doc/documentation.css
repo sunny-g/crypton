@@ -1,0 +1,30 @@
+body {
+  background: #fff;
+  color: #222; 
+}
+
+#sidebar_wrapper {
+  background: #eee;
+}
+
+#sidebar_switch {
+  display: none;
+}
+
+#sidebar-toggle {
+  background: #ddd;
+}
+
+#tree .file {
+  color: #555;
+}
+
+.docs.markdown {
+  background: #fff;
+}
+
+.docs p code {
+  background: #eee;
+  border: 0;
+  padding: 3px;
+}

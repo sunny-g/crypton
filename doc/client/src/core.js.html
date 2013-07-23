@@ -1,0 +1,130 @@
+<!DOCTYPE html><html><head><title>core.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>core.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Client, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Client.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+<span class="kd">var</span> <span class="nx">crypton</span> <span class="o">=</span> <span class="p">{};</span>
+
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">version</span> <span class="o">=</span> <span class="s1">&#39;0.0.1&#39;</span><span class="p">;</span>
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">host</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">hostname</span><span class="p">;</span>
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">mode</span><span class="o">:</span> <span class="s1">&#39;gcm&#39;</span>
+  <span class="p">};</span>
+
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">host</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="kd">function</span> <span class="nx">randomBytes</span> <span class="p">(</span><span class="nx">nbytes</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">random</span><span class="p">.</span><span class="nx">randomWords</span><span class="p">(</span><span class="nx">nbytes</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">randomBytes</span> <span class="o">=</span> <span class="nx">randomBytes</span><span class="p">;</span>
+
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">generateAccount</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">passphrase</span><span class="p">,</span> <span class="nx">callback</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">options</span> <span class="o">=</span> <span class="nx">options</span> <span class="o">||</span> <span class="p">{};</span>
+    <span class="kd">var</span> <span class="nx">keypairCurve</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">keypairCurve</span> <span class="o">||</span> <span class="mi">384</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">save</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">options</span><span class="p">.</span><span class="nx">save</span> <span class="o">!==</span> <span class="s1">&#39;undefined&#39;</span> <span class="o">?</span> <span class="nx">options</span><span class="p">.</span><span class="nx">save</span> <span class="o">:</span> <span class="kc">true</span><span class="p">;</span>
+
+    <span class="kd">var</span> <span class="nx">account</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Account</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">containerNameHmacKey</span> <span class="o">=</span> <span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">hmacKey</span> <span class="o">=</span> <span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">keypairSalt</span> <span class="o">=</span> <span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">keypair</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">elGamal</span><span class="p">.</span><span class="nx">generateKeys</span><span class="p">(</span><span class="nx">keypairCurve</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">symkey</span> <span class="o">=</span> <span class="nx">keypair</span><span class="p">.</span><span class="nx">pub</span><span class="p">.</span><span class="nx">kem</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">challengeKeySalt</span> <span class="o">=</span> <span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">keypairKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">pbkdf2</span><span class="p">(</span><span class="nx">passphrase</span><span class="p">,</span> <span class="nx">keypairSalt</span><span class="p">);</span>
+
+    <span class="nx">account</span><span class="p">.</span><span class="nx">username</span> <span class="o">=</span> <span class="nx">username</span><span class="p">;</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">challengeKeySalt</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">challengeKeySalt</span><span class="p">);</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">challengeKey</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">pbkdf2</span><span class="p">(</span><span class="nx">passphrase</span><span class="p">,</span> <span class="nx">challengeKeySalt</span><span class="p">));</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">keypairSalt</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">keypairSalt</span><span class="p">);</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">keypairCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">keypairKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">keypair</span><span class="p">.</span><span class="nx">sec</span><span class="p">.</span><span class="nx">serialize</span><span class="p">()),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">containerNameHmacKeyCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">symkey</span><span class="p">.</span><span class="nx">key</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">containerNameHmacKey</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">hmacKeyCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">symkey</span><span class="p">.</span><span class="nx">key</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">hmacKey</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">pubKey</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">keypair</span><span class="p">.</span><span class="nx">pub</span><span class="p">.</span><span class="nx">serialize</span><span class="p">());</span>
+    <span class="nx">account</span><span class="p">.</span><span class="nx">symKeyCiphertext</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">symkey</span><span class="p">.</span><span class="nx">tag</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">save</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">account</span><span class="p">.</span><span class="nx">save</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">account</span><span class="p">);</span>
+      <span class="p">});</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">account</span><span class="p">);</span>
+  <span class="p">};</span>
+
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">authorize</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">passphrase</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/account/&#39;</span> <span class="o">+</span> <span class="nx">username</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+          <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kd">var</span> <span class="nx">body</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">response</span> <span class="o">=</span> <span class="p">{};</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">challengeKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">pbkdf2</span><span class="p">(</span><span class="nx">passphrase</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">challengeKeySalt</span><span class="p">);</span>
+
+        <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/account/&#39;</span> <span class="o">+</span> <span class="nx">username</span> <span class="o">+</span> <span class="s1">&#39;/answer&#39;</span><span class="p">)</span>
+          <span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">response</span><span class="p">)</span>
+          <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+              <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+              <span class="k">return</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="kd">var</span> <span class="nx">sessionIdentifier</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">sessionIdentifier</span><span class="p">;</span>
+            <span class="kd">var</span> <span class="nx">session</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Session</span><span class="p">(</span><span class="nx">sessionIdentifier</span><span class="p">);</span>
+            <span class="nx">session</span><span class="p">.</span><span class="nx">account</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Account</span><span class="p">();</span>
+            <span class="nx">session</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">passphrase</span> <span class="o">=</span> <span class="nx">passphrase</span><span class="p">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">account</span><span class="p">)</span> <span class="p">{</span>
+              <span class="nx">session</span><span class="p">.</span><span class="nx">account</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">account</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+            <span class="p">}</span>
+
+            <span class="nx">session</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">unravel</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+              <span class="kd">var</span> <span class="nx">socket</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">io</span> <span class="o">=</span> <span class="nx">io</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">(),</span> <span class="p">{</span>
+                <span class="nx">secure</span><span class="o">:</span> <span class="kc">true</span>
+              <span class="p">});</span>
+
+              <span class="nx">socket</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c1">//var peer = session.peers[data.from];</span>
+                <span class="kd">var</span> <span class="nx">headers</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">session</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">secretKey</span><span class="p">,</span> <span class="nx">data</span><span class="p">.</span><span class="nx">headers</span><span class="p">,</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+                <span class="kd">var</span> <span class="nx">body</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">session</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">secretKey</span><span class="p">,</span> <span class="nx">data</span><span class="p">.</span><span class="nx">body</span><span class="p">,</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+
+                <span class="nx">session</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="p">{</span>
+                  <span class="nx">headers</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">headers</span><span class="p">),</span>
+                  <span class="nx">body</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">body</span><span class="p">),</span>
+                  <span class="nx">from</span><span class="o">:</span> <span class="nx">data</span><span class="p">.</span><span class="nx">from</span>
+                <span class="p">});</span>
+              <span class="p">});</span>
+
+              <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">session</span><span class="p">);</span>
+            <span class="p">});</span>
+          <span class="p">});</span>
+      <span class="p">}</span>
+    <span class="p">);</span>
+  <span class="p">};</span>
+
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">resurrect</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+  <span class="p">};</span>
+<span class="p">})();</span>
+</pre></div></td></tr></tbody></table></div></body></html>

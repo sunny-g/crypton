@@ -1,0 +1,333 @@
+<!DOCTYPE html><html><head><title>transaction.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../../../doc-style.css"><script src="../../../../doc-filelist.js"></script><script>var relativeDir = '../../../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>transaction.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Server, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Server.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Server.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">app</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">datastore</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">connect</span> <span class="o">=</span> <span class="nx">datastore</span><span class="p">.</span><span class="nx">connect</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">transactionQuery</span> <span class="o">=</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">__dirname</span> <span class="o">+</span> <span class="s1">&#39;/sql/transaction.sql&#39;</span><span class="p">).</span><span class="nx">toString</span><span class="p">();</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">createTransaction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">accountId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="cm">/*jslint multistr: true*/</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;insert into transaction (&quot;account_id&quot;) \</span>
+<span class="s1">        values ($1) returning transaction_id&#39;</span><span class="p">,</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span> <span class="nx">accountId</span> <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Database error&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">transaction_id</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">getTransaction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;select * from transaction where transaction_id = $1&#39;</span><span class="p">,</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span> <span class="nx">id</span> <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Database error&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="kd">var</span> <span class="nx">row</span> <span class="o">=</span> <span class="nx">datastore</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">camelizeObject</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">row</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">abortTransaction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">transactionId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="cm">/*jslint multistr: true*/</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;update transaction \</span>
+<span class="s1">          set abort_timestamp = current_timestamp \</span>
+<span class="s1">          where transaction_id=$1;&#39;</span><span class="p">,</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">transactionId</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">results</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">results</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">updateTransaction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">transaction</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">types</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">datastore</span><span class="p">.</span><span class="nx">transaction</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">type</span> <span class="o">=</span> <span class="nx">data</span><span class="p">.</span><span class="nx">type</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">valid</span> <span class="o">=</span> <span class="o">~</span><span class="nx">types</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">type</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">valid</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Invalid transaction type&#39;</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">datastore</span><span class="p">.</span><span class="nx">transaction</span><span class="p">[</span><span class="nx">type</span><span class="p">](</span><span class="nx">data</span><span class="p">,</span> <span class="nx">transaction</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">requestTransactionCommit</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">account</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">datastore</span><span class="p">.</span><span class="nx">getTransaction</span><span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">transaction</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Transaction does not exist&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">account</span> <span class="o">!=</span> <span class="nx">transaction</span><span class="p">.</span><span class="nx">accountId</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Transaction does not belong to account&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">commit</span><span class="p">.</span><span class="nx">request</span><span class="p">(</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">done</span><span class="p">();</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">transaction</span> <span class="o">=</span> <span class="p">{};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">addContainer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">transaction</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="cm">/*jslint multistr: true*/</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;insert into transaction_add_container \</span>
+<span class="s1">        (transaction_id, name_hmac) values ($1, $2)&#39;</span><span class="p">,</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">transaction</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">containerNameHmac</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">~</span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;violates unique constraint&#39;</span><span class="p">))</span> <span class="p">{</span>
+          <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Container already exists&#39;</span><span class="p">);</span>
+          <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Invalid chunk data&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">addContainerSessionKey</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">transaction</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="cm">/*jslint multistr: true*/</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;insert into transaction_add_container_session_key \</span>
+<span class="s1">        (transaction_id, name_hmac, signature) values ($1, $2, $3)&#39;</span><span class="p">,</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">transaction</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">containerNameHmac</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">signature</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Invalid chunk data&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">addContainerSessionKeyShare</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">transaction</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="cm">/*jslint multistr: true*/</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;insert into transaction_add_container_session_key_share \</span>
+<span class="s1">        (transaction_id, name_hmac, to_account_id, session_key_ciphertext, hmac_key_ciphertext) \</span>
+<span class="s1">        values ($1, $2, $3, $4, $5)&#39;</span><span class="p">,</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">transaction</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">containerNameHmac</span><span class="p">,</span>
+        <span class="nx">transaction</span><span class="p">.</span><span class="nx">accountId</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">sessionKeyCiphertext</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">hmacKeyCiphertext</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Invalid chunk data&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">datastore</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">addContainerRecord</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">transaction</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="cm">/*jslint multistr: true*/</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s2">&quot;\</span>
+<span class="s2">        insert into transaction_add_container_record \</span>
+<span class="s2">        (transaction_id, name_hmac, latest_record_id, \</span>
+<span class="s2">        /*hmac, payload_iv, */payload_ciphertext) \</span>
+<span class="s2">        values ($1, $2, $3, $4)&quot;</span><span class="p">,</span> <span class="c1">// decode($4, &#39;hex&#39;), \</span>
+        <span class="c1">//decode($5, &#39;hex&#39;), decode($6, &#39;hex&#39;))&quot;,</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">transaction</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">containerNameHmac</span><span class="p">,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">latestRecordId</span><span class="p">,</span>
+        <span class="c1">//data.hmac,</span>
+        <span class="c1">//data.payloadIv,</span>
+        <span class="nx">data</span><span class="p">.</span><span class="nx">payloadCiphertext</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Invalid chunk data&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="kd">var</span> <span class="nx">commit</span> <span class="o">=</span> <span class="p">{};</span>
+
+<span class="nx">commit</span><span class="p">.</span><span class="nx">request</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">transactionId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="cm">/*jslint multistr: true*/</span>
+      <span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;\</span>
+<span class="s1">        update transaction \</span>
+<span class="s1">          set commit_request_time = current_timestamp \</span>
+<span class="s1">          where transaction_id=$1;&#39;</span><span class="p">,</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">transactionId</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">results</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">results</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">commit</span><span class="p">.</span><span class="nx">troll</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="cm">/*jslint multistr: true*/</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;\</span>
+<span class="s1">      select * from transaction \</span>
+<span class="s1">      where commit_request_time is not null \</span>
+<span class="s1">      and commit_start_time is null \</span>
+<span class="s1">      order by commit_request_time asc&#39;</span><span class="p">;</span>
+      <span class="cm">/*jslint multistr: false*/</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;fatal&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s1">&#39; transactions to commit&#39;</span><span class="p">);</span>
+        <span class="c1">// TODO queue</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">commit</span><span class="p">.</span><span class="nx">finish</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">transaction_id</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+<span class="nx">setInterval</span><span class="p">(</span><span class="nx">commit</span><span class="p">.</span><span class="nx">troll</span><span class="p">,</span> <span class="mi">100</span><span class="p">);</span>
+
+<span class="nx">commit</span><span class="p">.</span><span class="nx">finish</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">transactionId</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">tq</span> <span class="o">=</span> <span class="nx">transactionQuery</span>
+      <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\{\{hostname\}\}/gi</span><span class="p">,</span> <span class="s1">&#39;hostname&#39;</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\{\{transactionId\}\}/gi</span><span class="p">,</span> <span class="nx">transactionId</span><span class="p">);</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">tq</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;rollback&#39;</span><span class="p">);</span>
+        <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="nx">err</span><span class="p">);</span>
+      <span class="p">}</span>
+
+      <span class="nx">done</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+</pre></div></td></tr></tbody></table></div></body></html>

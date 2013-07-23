@@ -152,13 +152,13 @@ describe('Account model', function () {
 
         var perhapsAccount = new Account();
         perhapsAccount.get(requestedAccount.username, function () {
-          console.log(expectedProperties, Object.keys(perhapsAccount));
+          assert.deepEqual(expectedProperties, Object.keys(perhapsAccount));
           done();
         });
       });
     });
 
-    it('should err out for invalid accounts', function (done) {
+    it('should err out for empty accounts', function (done) {
       var account = new Account();
 
       account.save(function (err) {

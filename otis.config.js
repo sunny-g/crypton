@@ -1,7 +1,7 @@
 module.exports = {
   inDir: './',
   outDir: 'doc',
-  css: 'documentation.css',
+  css: 'doc/documentation.css',
   tplEngine: 'jade',
   tplExtension: 'jade',
   markdownEngine: 'showdown',

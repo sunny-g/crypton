@@ -119,7 +119,7 @@ describe('Account model', function () {
     it('should save valid accounts', function (done) {
       var account = new Account();
 
-      var user = {
+      var requestedAccount = {
         username: 'pizza',
         keypairSalt: '[1,2,3]',
         keypairCiphertext: { keypair: 'ciphertext' },
@@ -131,11 +131,30 @@ describe('Account model', function () {
         hmacKeyCiphertext: '[1,2,3]'
       };
 
-      account.update(user);
+      account.update(requestedAccount);
 
       account.save(function (err) {
         if (err) throw err;
-        done();
+
+        var expectedProperties = [
+          'username',
+          'accountId',
+          'keyringId',
+          'keypairSalt',
+          'keypairCiphertext',
+          'pubKey',
+          'symKeyCiphertext',
+          'challengeKeySalt',
+          'challengeKeyHash',
+          'containerNameHmacKeyCiphertext',
+          'hmacKeyCiphertext'
+        ];
+
+        var perhapsAccount = new Account();
+        perhapsAccount.get(requestedAccount.username, function () {
+          console.log(expectedProperties, Object.keys(perhapsAccount));
+          done();
+        });
       });
     });
 

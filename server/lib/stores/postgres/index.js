@@ -18,6 +18,11 @@
 
 'use strict';
 
+
+/**!
+ * ### extend(modName)
+ * One-off function to bring in a module and expose it under local exports
+ */
 function extend(modName) {
   var mod = require(modName);
   for (var i in mod) {

@@ -20,6 +20,9 @@ var app = process.app || require('../app');
 
 app.log('info', 'loading datastore');
 
+/**!
+ * Attempt to load the configured database driver
+ */
 try {
   module.exports = require('./stores/' + app.config.database.type);
 } catch (e) {

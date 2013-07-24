@@ -29,9 +29,11 @@
 <span class="kd">var</span> <span class="nx">configFile</span><span class="p">;</span>
 <span class="kd">var</span> <span class="nx">env</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">NODE_ENV</span> <span class="o">&amp;&amp;</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">NODE_ENV</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">();</span>
 
-<span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="s1">&#39;loading config&#39;</span><span class="p">);</span>
-
-<span class="k">if</span> <span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">configFile</span><span class="p">)</span> <span class="p">{</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="s1">&#39;loading config&#39;</span><span class="p">);</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2">&#182;</a>
+</div>
+<div class="dox"><div class="summary"><p>Attempt to load a provided <code>config.json</code> file, falling back to the example file</p></div><div class="body"></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">configFile</span><span class="p">)</span> <span class="p">{</span>
   <span class="nx">configFile</span> <span class="o">=</span> <span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">PWD</span><span class="p">,</span> <span class="nx">process</span><span class="p">.</span><span class="nx">configFile</span><span class="p">);</span>
 <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">env</span> <span class="o">===</span> <span class="s1">&#39;test&#39;</span><span class="p">)</span> <span class="p">{</span>
   <span class="nx">configFile</span> <span class="o">=</span> <span class="nx">__dirname</span> <span class="o">+</span> <span class="s1">&#39;/../config/config.test.json&#39;</span><span class="p">;</span>

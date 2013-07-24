@@ -1,6 +1,12 @@
 body {
   background: #fff;
   color: #222; 
+  font-family: 'HelvetivaNeue', Helvetica, Arial, sans-serif;
+}
+
+a,
+a:visited {
+  color: blue;
 }
 
 #sidebar_wrapper {
@@ -33,8 +39,10 @@ body {
   border-top-color: #aaa;
 }
 
-.docs pre,
+.dox pre,
+.dox .highlight,
 .dox .details {
   background: none;
   border-color: #eee;
+  color: #222;
 }

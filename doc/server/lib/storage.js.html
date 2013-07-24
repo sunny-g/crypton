@@ -22,9 +22,11 @@
 
 <span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">app</span> <span class="o">||</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../app&#39;</span><span class="p">);</span>
 
-<span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="s1">&#39;loading datastore&#39;</span><span class="p">);</span>
-
-<span class="k">try</span> <span class="p">{</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="s1">&#39;loading datastore&#39;</span><span class="p">);</span></pre></div></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-2" id="section-2">&#182;</a>
+</div>
+<div class="dox"><div class="summary"><p>Attempt to load the configured database driver</p></div><div class="body"></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="k">try</span> <span class="p">{</span>
   <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./stores/&#39;</span> <span class="o">+</span> <span class="nx">app</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">database</span><span class="p">.</span><span class="nx">type</span><span class="p">);</span>
 <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
   <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;fatal&#39;</span><span class="p">,</span> <span class="s1">&#39;Could not load datastore from config:&#39;</span><span class="p">);</span>

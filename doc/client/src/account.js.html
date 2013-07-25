@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><title>account.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>account.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<!DOCTYPE html><html><head><title>account.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h1"><a href="#account--">Account()</a></div><div class="heading h3"><a href="#save-callback-">save(callback)</a></div><div class="heading h3"><a href="#unravel-callback-">unravel(callback)</a></div><div class="heading h3"><a href="#serialize--">serialize()</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>account.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
 <div class="pilwrap">
   <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
 </div>
@@ -19,61 +19,93 @@
 <span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
 <span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
-<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="nx">Account</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Account</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">Account</span> <span class="p">()</span> <span class="p">{};</span>
 
-  <span class="nx">Account</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">save</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/account&#39;</span><span class="p">)</span>
-      <span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">serialize</span><span class="p">())</span>
-      <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
-          <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
-        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-          <span class="nx">callback</span><span class="p">();</span>
-        <span class="p">}</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="account--">
+  <h1>
+    <a href="#account--" class="pilcrow">&#182;</a>
+    Account()
+  </h1>
+</div>
+</div><div class="body"><div class='highlight'><pre><code language=''>var account = new crypton.Account();
+</code></pre></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">Account</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Account</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">Account</span> <span class="p">()</span> <span class="p">{};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="save-callback-">
+  <h3>
+    <a href="#save-callback-" class="pilcrow">&#182;</a>
+    save(callback)
+  </h3>
+</div>
+
+
+<p>Send the current account to the server to be saved</p></div><div class="body"><p>Calls back without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Account</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">save</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/account&#39;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">serialize</span><span class="p">())</span>
+    <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">();</span>
       <span class="p">}</span>
-    <span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">);</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="unravel-callback-">
+  <h3>
+    <a href="#unravel-callback-" class="pilcrow">&#182;</a>
+    unravel(callback)
+  </h3>
+</div>
+
+
+<p>Decrypt raw account object from server after successful authentication</p></div><div class="body"><p>Calls back without error if successful</p>
+
+<p><strong>Throws</strong> if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Account</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">unravel</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// regenerate keypair key from password</span>
+  <span class="kd">var</span> <span class="nx">keypairKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">pbkdf2</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">passphrase</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypairSalt</span><span class="p">);</span>
+
+  <span class="c1">// decrypt secret key</span>
+  <span class="kd">var</span> <span class="nx">secret</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">keypairKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">keypairCiphertext</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">));</span>
+  <span class="kd">var</span> <span class="nx">exponent</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">bn</span><span class="p">.</span><span class="nx">fromBits</span><span class="p">(</span><span class="nx">secret</span><span class="p">.</span><span class="nx">exponent</span><span class="p">);</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">secretKey</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">elGamal</span><span class="p">.</span><span class="nx">secretKey</span><span class="p">(</span><span class="nx">secret</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">curves</span><span class="p">[</span><span class="s1">&#39;c&#39;</span> <span class="o">+</span> <span class="nx">secret</span><span class="p">.</span><span class="nx">curve</span><span class="p">],</span> <span class="nx">exponent</span><span class="p">);</span>
+
+  <span class="c1">// reconstruct public key and personal symkey</span>
+  <span class="kd">var</span> <span class="nx">point</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">curves</span><span class="p">[</span><span class="s1">&#39;c&#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">curve</span><span class="p">].</span><span class="nx">fromBits</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">point</span><span class="p">);</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">elGamal</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">point</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">point</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">symKey</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">secretKey</span><span class="p">.</span><span class="nx">unkem</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">symKeyCiphertext</span><span class="p">);</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">symkey</span> <span class="o">=</span> <span class="nx">symKey</span><span class="p">;</span>
+
+  <span class="c1">// decrypt hmac keys</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">containerNameHmacKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">symKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">containerNameHmacKeyCiphertext</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">hmacKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">symKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hmacKeyCiphertext</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+
+  <span class="nx">callback</span><span class="p">();</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="serialize--">
+  <h3>
+    <a href="#serialize--" class="pilcrow">&#182;</a>
+    serialize()
+  </h3>
+</div>
+
+
+<p>Pakcage and return a JSON representation of the current account</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Return</div><div class="dox_tag_detail"><span class="dox_type">Object</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="c1">// TODO rename to toJSON</span>
+<span class="nx">Account</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">serialize</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="nx">challengeKey</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">challengeKey</span><span class="p">,</span>
+    <span class="nx">containerNameHmacKeyCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">containerNameHmacKeyCiphertext</span><span class="p">,</span>
+    <span class="nx">hmacKey</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">hmacKey</span><span class="p">,</span>
+    <span class="nx">hmacKeyCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">hmacKeyCiphertext</span><span class="p">,</span>
+    <span class="nx">keypairCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypairCiphertext</span><span class="p">,</span>
+    <span class="nx">pubKey</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">,</span>
+    <span class="nx">challengeKeySalt</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">challengeKeySalt</span><span class="p">,</span>
+    <span class="nx">keypairSalt</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypairSalt</span><span class="p">,</span>
+    <span class="nx">symKeyCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">symKeyCiphertext</span><span class="p">,</span>
+    <span class="nx">username</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">username</span>
   <span class="p">};</span>
+<span class="p">};</span>
 
-  <span class="nx">Account</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">refresh</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="p">};</span>
-
-  <span class="nx">Account</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">unravel</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// regenerate keypair key from password</span>
-    <span class="kd">var</span> <span class="nx">keypairKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">pbkdf2</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">passphrase</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypairSalt</span><span class="p">);</span>
-
-    <span class="c1">// decrypt secret key</span>
-    <span class="kd">var</span> <span class="nx">secret</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">keypairKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">keypairCiphertext</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">));</span>
-    <span class="kd">var</span> <span class="nx">exponent</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">bn</span><span class="p">.</span><span class="nx">fromBits</span><span class="p">(</span><span class="nx">secret</span><span class="p">.</span><span class="nx">exponent</span><span class="p">);</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">secretKey</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">elGamal</span><span class="p">.</span><span class="nx">secretKey</span><span class="p">(</span><span class="nx">secret</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">curves</span><span class="p">[</span><span class="s1">&#39;c&#39;</span> <span class="o">+</span> <span class="nx">secret</span><span class="p">.</span><span class="nx">curve</span><span class="p">],</span> <span class="nx">exponent</span><span class="p">);</span>
-
-    <span class="c1">// reconstruct public key and personal symkey</span>
-    <span class="kd">var</span> <span class="nx">point</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">curves</span><span class="p">[</span><span class="s1">&#39;c&#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">curve</span><span class="p">].</span><span class="nx">fromBits</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">point</span><span class="p">);</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">ecc</span><span class="p">.</span><span class="nx">elGamal</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">point</span><span class="p">.</span><span class="nx">curve</span><span class="p">,</span> <span class="nx">point</span><span class="p">);</span>
-
-    <span class="kd">var</span> <span class="nx">symKey</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">secretKey</span><span class="p">.</span><span class="nx">unkem</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">symKeyCiphertext</span><span class="p">);</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">symkey</span> <span class="o">=</span> <span class="nx">symKey</span><span class="p">;</span>
-
-    <span class="c1">// decrypt hmac keys</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">containerNameHmacKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">symKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">containerNameHmacKeyCiphertext</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">hmacKey</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span><span class="nx">symKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hmacKeyCiphertext</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
-
-    <span class="nx">callback</span><span class="p">();</span>
-  <span class="p">};</span>
-
-  <span class="nx">Account</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">serialize</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="p">{</span>
-      <span class="nx">challengeKey</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">challengeKey</span><span class="p">,</span>
-      <span class="nx">containerNameHmacKeyCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">containerNameHmacKeyCiphertext</span><span class="p">,</span>
-      <span class="nx">hmacKey</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">hmacKey</span><span class="p">,</span>
-      <span class="nx">hmacKeyCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">hmacKeyCiphertext</span><span class="p">,</span>
-      <span class="nx">keypairCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypairCiphertext</span><span class="p">,</span>
-      <span class="nx">pubKey</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">,</span>
-      <span class="nx">challengeKeySalt</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">challengeKeySalt</span><span class="p">,</span>
-      <span class="nx">keypairSalt</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">keypairSalt</span><span class="p">,</span>
-      <span class="nx">symKeyCiphertext</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">symKeyCiphertext</span><span class="p">,</span>
-      <span class="nx">username</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">username</span>
-    <span class="p">};</span>
-  <span class="p">};</span>
 <span class="p">})();</span>
 </pre></div></td></tr></tbody></table></div></body></html>

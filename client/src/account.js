@@ -15,61 +15,95 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 (function() {
-  var Account = crypton.Account = function Account () {};
 
-  Account.prototype.save = function (callback) {
-    superagent.post(crypton.url() + '/account')
-      .send(this.serialize())
-      .end(function (res) {
-        if (res.body.success !== true) {
-          callback(res.body.error);
-        } else {
-          callback();
-        }
+/**!
+ * # Account()
+ *
+ * ````
+ * var account = new crypton.Account();
+ * ````
+ */
+var Account = crypton.Account = function Account () {};
+
+/**!
+ * ### save(callback)
+ * Send the current account to the server to be saved
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Function} callback
+ */
+Account.prototype.save = function (callback) {
+  superagent.post(crypton.url() + '/account')
+    .send(this.serialize())
+    .end(function (res) {
+      if (res.body.success !== true) {
+        callback(res.body.error);
+      } else {
+        callback();
       }
-    );
+    }
+  );
+};
+
+/**!
+ * ### unravel(callback)
+ * Decrypt raw account object from server after successful authentication
+ *
+ * Calls back without error if successful
+ *
+ * __Throws__ if unsuccessful
+ * 
+ * @param {Function} callback
+ */
+Account.prototype.unravel = function (callback) {
+  // regenerate keypair key from password
+  var keypairKey = sjcl.misc.pbkdf2(this.passphrase, this.keypairSalt);
+
+  // decrypt secret key
+  var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext), crypton.cipherOptions));
+  var exponent = sjcl.bn.fromBits(secret.exponent);
+  this.secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
+
+  // reconstruct public key and personal symkey
+  var point = sjcl.ecc.curves['c' + this.pubKey.curve].fromBits(this.pubKey.point);
+  this.pubKey = new sjcl.ecc.elGamal.publicKey(this.pubKey.curve, point.curve, point);
+
+  var symKey = this.secretKey.unkem(this.symKeyCiphertext);
+  this.symkey = symKey;
+
+  // decrypt hmac keys
+  this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext), crypton.cipherOptions);
+  this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext), crypton.cipherOptions);
+
+  callback();
+};
+
+/**!
+ * ### serialize()
+ * Pakcage and return a JSON representation of the current account
+ * 
+ * @return {Object}
+ */
+// TODO rename to toJSON
+Account.prototype.serialize = function () {
+  return {
+    challengeKey: this.challengeKey,
+    containerNameHmacKeyCiphertext: this.containerNameHmacKeyCiphertext,
+    hmacKey: this.hmacKey,
+    hmacKeyCiphertext: this.hmacKeyCiphertext,
+    keypairCiphertext: this.keypairCiphertext,
+    pubKey: this.pubKey,
+    challengeKeySalt: this.challengeKeySalt,
+    keypairSalt: this.keypairSalt,
+    symKeyCiphertext: this.symKeyCiphertext,
+    username: this.username
   };
+};
 
-  Account.prototype.refresh = function () {
-  };
-
-  Account.prototype.unravel = function (callback) {
-    // regenerate keypair key from password
-    var keypairKey = sjcl.misc.pbkdf2(this.passphrase, this.keypairSalt);
-
-    // decrypt secret key
-    var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext), crypton.cipherOptions));
-    var exponent = sjcl.bn.fromBits(secret.exponent);
-    this.secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
-
-    // reconstruct public key and personal symkey
-    var point = sjcl.ecc.curves['c' + this.pubKey.curve].fromBits(this.pubKey.point);
-    this.pubKey = new sjcl.ecc.elGamal.publicKey(this.pubKey.curve, point.curve, point);
-
-    var symKey = this.secretKey.unkem(this.symKeyCiphertext);
-    this.symkey = symKey;
-
-    // decrypt hmac keys
-    this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext), crypton.cipherOptions);
-    this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext), crypton.cipherOptions);
-
-    callback();
-  };
-
-  Account.prototype.serialize = function () {
-    return {
-      challengeKey: this.challengeKey,
-      containerNameHmacKeyCiphertext: this.containerNameHmacKeyCiphertext,
-      hmacKey: this.hmacKey,
-      hmacKeyCiphertext: this.hmacKeyCiphertext,
-      keypairCiphertext: this.keypairCiphertext,
-      pubKey: this.pubKey,
-      challengeKeySalt: this.challengeKeySalt,
-      keypairSalt: this.keypairSalt,
-      symKeyCiphertext: this.symKeyCiphertext,
-      username: this.username
-    };
-  };
 })();
 

@@ -23,9 +23,12 @@ var db = app.datastore;
 var middleware = require('../lib/middleware');
 var Account = require('../lib/account');
 
-/*
- * Save account to server
- */
+/**!
+ * ### POST /account
+ * Translate posted body to an account object,
+ * hashe and delete `account.challengeKey`,
+ * then save the resulting account object to the server
+*/
 app.post('/account', function (req, res) {
   app.log('debug', 'handling POST /account');
 
@@ -58,9 +61,13 @@ app.post('/account', function (req, res) {
   });
 });
 
-/*
-* Authorize with server
+/**!
+ * ### POST /account/:username
+ * Retrieve account belonging to `username`,
+ * send challengeKeySalt so client can generate
+ * a challengeKeyReponse
 */
+// TODO this could just be a GET?
 app.post('/account/:username', function (req, res) {
   app.log('debug', 'handling POST /account/:username');
 
@@ -84,8 +91,12 @@ app.post('/account/:username', function (req, res) {
   });
 });
 
-/*
-* Authorize with server
+/**!
+ * ### POST /account/:username/answer
+ * Retrieve account belonging to `username`,
+ * verify that posted challengeKeyReponse matches
+ * stored challengeKeyHash.
+ * If successful, start a session.
 */
 app.post('/account/:username/answer', function (req, res) {
   app.log('debug', 'handling POST /account/:username/answer');
@@ -131,9 +142,12 @@ app.post('/account/:username/answer', function (req, res) {
   });
 });
 
-/*
-* Change the password for account
+/**!
+ * ### POST /account/:username/keyring
+ * Placeholder route for posting regenerated
+ * keyring data after a password change
 */
+// TODO implement this!
 app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {

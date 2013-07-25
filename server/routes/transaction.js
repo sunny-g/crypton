@@ -21,7 +21,11 @@ var db = app.datastore;
 var verifySession = require('../lib/middleware').verifySession;
 var Transaction = require('../lib/transaction');
 
-// start a transaction, get a transaction
+/**!
+ * ### POST /transaction/create
+ * Create a transaction for current session's `accountId`
+ * and return created transaction's `transactionId`
+*/
 app.post('/transaction/create', verifySession, function (req, res) {
   app.log('debug', 'handling POST /transaction/create');
 
@@ -44,12 +48,15 @@ app.post('/transaction/create', verifySession, function (req, res) {
   });
 });
 
-// update a transaction
-app.post('/transaction/:id', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /transaction/:id');
+/**!
+ * ### POST /transaction/:transactionId
+ * Add posted body as a chunk to `transactionId`
+*/
+app.post('/transaction/:transactionId', verifySession, function (req, res) {
+  app.log('debug', 'handling POST /transaction/:transactionId');
 
   var data = req.body;
-  var transactionId = req.params.id;
+  var transactionId = req.params.transactionId;
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
@@ -80,11 +87,14 @@ app.post('/transaction/:id', verifySession, function (req, res) {
   });
 });
 
-// commit a transaction
-app.post('/transaction/:id/commit', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /transaction/:id/commit');
+/**!
+ * ### POST /transaction/:transactionId/commit
+ * Request commit for given `transactionId`
+*/
+app.post('/transaction/:transactionId/commit', verifySession, function (req, res) {
+  app.log('debug', 'handling POST /transaction/:transactionId/commit');
 
-  var transactionId = req.params.id;
+  var transactionId = req.params.transactionId;
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
@@ -108,7 +118,10 @@ app.post('/transaction/:id/commit', verifySession, function (req, res) {
   });
 });
 
-// abort a transaction w/o committing
+/**!
+ * ### DEL /transaction/:transactionId
+ * Abort given `transactionId`
+*/
 app.del('/transaction/:id', verifySession, function (req, res) {
   app.log('debug', 'handling DEL /transaction/:id');
 

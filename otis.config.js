@@ -11,5 +11,5 @@ module.exports = {
   index: 'README.md.html',
   ignoreHidden: true,
   sidebarState: true,
-  exclude: 'otis.config.js,doc,server/node_modules,client/node_modules,server/test,client/test,client/src/vendor,integration_tests'
+  exclude: 'otis.config.js,doc,server/node_modules,client/node_modules,server/test,client/test,client/dist,client/src/vendor,integration_tests'
 };

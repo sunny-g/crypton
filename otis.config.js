@@ -14,12 +14,12 @@ module.exports = {
   exclude: [
     'otis.config.js',
     'doc',
-    'server/node_modules,
+    'server/node_modules',
     'client/node_modules',
     'server/test',
     'client/test',
     'client/dist',
     'client/src/vendor',
     'integration_tests'
-  ]
+  ].join(',')
 };

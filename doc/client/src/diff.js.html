@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><title>diff.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>diff.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<!DOCTYPE html><html><head><title>diff.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h3"><a href="#create-old--current-">create(old, current)</a></div><div class="heading h3"><a href="#apply-delta--old-">apply(delta, old)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>diff.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
 <div class="pilwrap">
   <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
 </div>
@@ -20,18 +20,34 @@
 <span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
 <span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="nx">Diff</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">diff</span> <span class="o">=</span> <span class="p">{};</span>
 
-  <span class="nx">Diff</span><span class="p">.</span><span class="nx">create</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">old</span><span class="p">,</span> <span class="nx">current</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">delta</span> <span class="o">=</span> <span class="nx">jsondiffpatch</span><span class="p">.</span><span class="nx">diff</span><span class="p">(</span><span class="nx">old</span><span class="p">,</span> <span class="nx">current</span><span class="p">);</span>
-    <span class="k">return</span> <span class="nx">delta</span><span class="p">;</span>
-  <span class="p">};</span>
+<span class="kd">var</span> <span class="nx">Diff</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">diff</span> <span class="o">=</span> <span class="p">{};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="create-old--current-">
+  <h3>
+    <a href="#create-old--current-" class="pilcrow">&#182;</a>
+    create(old, current)
+  </h3>
+</div>
 
-  <span class="c1">// TODO should we switch the old of these arguments?</span>
-  <span class="nx">Diff</span><span class="p">.</span><span class="nx">apply</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">delta</span><span class="p">,</span> <span class="nx">old</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">current</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">old</span><span class="p">));</span>
-    <span class="nx">jsondiffpatch</span><span class="p">.</span><span class="nx">patch</span><span class="p">(</span><span class="nx">current</span><span class="p">,</span> <span class="nx">delta</span><span class="p">);</span>
-    <span class="k">return</span> <span class="nx">current</span><span class="p">;</span>
-  <span class="p">};</span>
+
+<p>Generate an object representing the difference between two inputs</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">old</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">current</span><span class="dox_type">Object</span></div><div class="dox_tag_title">Return</div><div class="dox_tag_detail"><span class="dox_type">Object</span><span class="description">delta</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Diff</span><span class="p">.</span><span class="nx">create</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">old</span><span class="p">,</span> <span class="nx">current</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">delta</span> <span class="o">=</span> <span class="nx">jsondiffpatch</span><span class="p">.</span><span class="nx">diff</span><span class="p">(</span><span class="nx">old</span><span class="p">,</span> <span class="nx">current</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nx">delta</span><span class="p">;</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="apply-delta--old-">
+  <h3>
+    <a href="#apply-delta--old-" class="pilcrow">&#182;</a>
+    apply(delta, old)
+  </h3>
+</div>
+
+
+<p>Apply <code>delta</code> to <code>old</code> object to build <code>current</code> object</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">delta</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">old</span><span class="dox_type">Object</span></div><div class="dox_tag_title">Return</div><div class="dox_tag_detail"><span class="dox_type">Object</span><span class="description">current</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="c1">// TODO should we switch the order of these arguments?</span>
+<span class="nx">Diff</span><span class="p">.</span><span class="nx">apply</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">delta</span><span class="p">,</span> <span class="nx">old</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">current</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">old</span><span class="p">));</span>
+  <span class="nx">jsondiffpatch</span><span class="p">.</span><span class="nx">patch</span><span class="p">(</span><span class="nx">current</span><span class="p">,</span> <span class="nx">delta</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nx">current</span><span class="p">;</span>
+<span class="p">};</span>
+
 <span class="p">})();</span>
 </pre></div></td></tr></tbody></table></div></body></html>

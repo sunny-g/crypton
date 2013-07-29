@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><title>session.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>session.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<!DOCTYPE html><html><head><title>session.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h1"><a href="#session-id-">Session(id)</a></div><div class="heading h3"><a href="#load-containername--callback-">load(containerName, callback)</a></div><div class="heading h3"><a href="#create-containername--callback-">create(containerName, callback)</a></div><div class="heading h3"><a href="#getcontainer-containername--callback-">getContainer(containerName, callback)</a></div><div class="heading h3"><a href="#getpeer-containername--callback-">getPeer(containerName, callback)</a></div><div class="heading h3"><a href="#on-eventname--listener-">on(eventName, listener)</a></div><div class="heading h3"><a href="#emit-eventname--data-">emit(eventName, data)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>session.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
 <div class="pilwrap">
   <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
 </div>
@@ -19,142 +19,199 @@
 <span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
 <span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
-<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="nx">Session</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Session</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="p">;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">peers</span> <span class="o">=</span> <span class="p">[];</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">events</span> <span class="o">=</span> <span class="p">[];</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">containers</span> <span class="o">=</span> <span class="p">[];</span>
-    <span class="c1">//this.inbox = new crypton.Inbox(this);</span>
-  <span class="p">};</span>
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="session-id-">
+  <h1>
+    <a href="#session-id-" class="pilcrow">&#182;</a>
+    Session(id)
+  </h1>
+</div>
+</div><div class="body"><div class='highlight'><pre><code language=''>var session = new crypton.Session(id);
+</code></pre></div></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">id</span><span class="dox_type">Number</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">Session</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Session</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">peers</span> <span class="o">=</span> <span class="p">[];</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">events</span> <span class="o">=</span> <span class="p">[];</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">containers</span> <span class="o">=</span> <span class="p">[];</span>
+  <span class="c1">//this.inbox = new crypton.Inbox(this);</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="load-containername--callback-">
+  <h3>
+    <a href="#load-containername--callback-" class="pilcrow">&#182;</a>
+    load(containerName, callback)
+  </h3>
+</div>
 
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">serialize</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">};</span>
 
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">ping</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">};</span>
+<p>Retieve container with given platintext <code>containerName</code>,
+either from local cache or server </p></div><div class="body"><p>Calls back with container and without error if successful</p>
 
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">load</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// check for a locally stored container</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">name</span> <span class="o">==</span> <span class="nx">containerName</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
-        <span class="k">return</span><span class="p">;</span>
-      <span class="p">}</span>
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">containerName</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">load</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// check for a locally stored container</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">name</span> <span class="o">==</span> <span class="nx">containerName</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+      <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span>
+  <span class="p">}</span>
 
-    <span class="c1">// check for a container on the server</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">getContainer</span><span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">container</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
-        <span class="k">return</span><span class="p">;</span>
-      <span class="p">}</span>
-
-      <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">container</span><span class="p">);</span>
-      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">container</span><span class="p">);</span>
-    <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">));</span>
-  <span class="p">};</span>
-
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">create</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">name</span> <span class="o">==</span> <span class="nx">containerName</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Container already exists&#39;</span><span class="p">);</span>
-        <span class="k">return</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-
-    <span class="kd">var</span> <span class="nx">sessionKey</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
-    <span class="kd">var</span> <span class="nx">hmacKey</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
-    <span class="kd">var</span> <span class="nx">sessionKeyCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">symkey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">sessionKey</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
-    <span class="kd">var</span> <span class="nx">hmacKeyCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">symkey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">hmacKey</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
-
-    <span class="kd">var</span> <span class="nx">keyshmac</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">hmac</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">));</span>
-    <span class="nx">keyshmac</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">codec</span><span class="p">.</span><span class="nx">hex</span><span class="p">.</span><span class="nx">fromBits</span><span class="p">(</span><span class="nx">keyshmac</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">sessionKey</span><span class="p">)</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">hmacKey</span><span class="p">)));</span>
-
-    <span class="kd">var</span> <span class="nx">signature</span> <span class="o">=</span> <span class="s1">&#39;hello&#39;</span><span class="p">;</span> <span class="c1">// TODO sign with private key</span>
-    <span class="kd">var</span> <span class="nx">containerNameHmac</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">hmac</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">containerNameHmacKey</span><span class="p">);</span>
-    <span class="nx">containerNameHmac</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">codec</span><span class="p">.</span><span class="nx">hex</span><span class="p">.</span><span class="nx">fromBits</span><span class="p">(</span><span class="nx">containerNameHmac</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">containerName</span><span class="p">));</span>
-    <span class="kd">var</span> <span class="nx">payloadCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">hmacKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({}),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
-
-    <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
-    <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kd">var</span> <span class="nx">chunks</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">{</span>
-          <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainer&#39;</span><span class="p">,</span>
-          <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span>
-        <span class="p">},</span> <span class="p">{</span>
-          <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainerSessionKey&#39;</span><span class="p">,</span>
-          <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span><span class="p">,</span>
-          <span class="nx">signature</span><span class="o">:</span> <span class="nx">signature</span>
-        <span class="p">},</span> <span class="p">{</span>
-          <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainerSessionKeyShare&#39;</span><span class="p">,</span>
-          <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span><span class="p">,</span>
-          <span class="nx">sessionKeyCiphertext</span><span class="o">:</span> <span class="nx">sessionKeyCiphertext</span><span class="p">,</span>
-          <span class="nx">hmacKeyCiphertext</span><span class="o">:</span> <span class="nx">hmacKeyCiphertext</span>
-        <span class="p">},</span> <span class="p">{</span>
-          <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainerRecord&#39;</span><span class="p">,</span>
-          <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span><span class="p">,</span>
-          <span class="nx">payloadCiphertext</span><span class="o">:</span> <span class="nx">payloadCiphertext</span>
-        <span class="p">}</span>
-      <span class="p">];</span>
-
-      <span class="nx">async</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">chunks</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">tx</span><span class="p">.</span><span class="nx">save</span><span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
-      <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">),</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
-        <span class="c1">// TODO handle err</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
-          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
-          <span class="k">return</span><span class="p">;</span>
-        <span class="p">}</span>
-
-        <span class="nx">tx</span><span class="p">.</span><span class="nx">commit</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-          <span class="kd">var</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Container</span><span class="p">(</span><span class="nx">that</span><span class="p">);</span>
-          <span class="nx">container</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">containerName</span><span class="p">;</span>
-          <span class="nx">container</span><span class="p">.</span><span class="nx">sessionKey</span> <span class="o">=</span> <span class="nx">sessionKey</span><span class="p">;</span>
-          <span class="nx">container</span><span class="p">.</span><span class="nx">hmacKey</span> <span class="o">=</span> <span class="nx">hmacKey</span><span class="p">;</span>
-          <span class="nx">that</span><span class="p">.</span><span class="nx">containers</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">container</span><span class="p">);</span>
-          <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">container</span><span class="p">);</span>
-        <span class="p">});</span>
-      <span class="p">});</span>
-    <span class="p">});</span>
-  <span class="p">};</span>
-
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getContainer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Container</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
-    <span class="nx">container</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">containerName</span><span class="p">;</span>
-    <span class="nx">container</span><span class="p">.</span><span class="nx">sync</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
-      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">container</span><span class="p">);</span>
-    <span class="p">});</span>
-  <span class="p">};</span>
-
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getPeer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">peers</span><span class="p">[</span><span class="nx">username</span><span class="p">])</span> <span class="p">{</span>
-      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">peers</span><span class="p">[</span><span class="nx">username</span><span class="p">]);</span>
+  <span class="c1">// check for a container on the server</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">getContainer</span><span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">container</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
       <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span>
 
-    <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="nx">peer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Peer</span><span class="p">();</span>
-    <span class="nx">peer</span><span class="p">.</span><span class="nx">username</span> <span class="o">=</span> <span class="nx">username</span><span class="p">;</span>
-    <span class="nx">peer</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">container</span><span class="p">);</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">container</span><span class="p">);</span>
+  <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">));</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="create-containername--callback-">
+  <h3>
+    <a href="#create-containername--callback-" class="pilcrow">&#182;</a>
+    create(containerName, callback)
+  </h3>
+</div>
 
-    <span class="nx">peer</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">peer</span><span class="p">)</span> <span class="p">{</span>
+
+<p>Create container with given platintext <code>containerName</code>,
+save it to server</p></div><div class="body"><p>Calls back with container and without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">containerName</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">create</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">name</span> <span class="o">==</span> <span class="nx">containerName</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Container already exists&#39;</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="kd">var</span> <span class="nx">sessionKey</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">hmacKey</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">sessionKeyCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">symkey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">sessionKey</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">hmacKeyCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">symkey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">hmacKey</span><span class="p">),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">keyshmac</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">hmac</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">randomBytes</span><span class="p">(</span><span class="mi">8</span><span class="p">));</span>
+  <span class="nx">keyshmac</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">codec</span><span class="p">.</span><span class="nx">hex</span><span class="p">.</span><span class="nx">fromBits</span><span class="p">(</span><span class="nx">keyshmac</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">sessionKey</span><span class="p">)</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">hmacKey</span><span class="p">)));</span>
+
+  <span class="kd">var</span> <span class="nx">signature</span> <span class="o">=</span> <span class="s1">&#39;hello&#39;</span><span class="p">;</span> <span class="c1">// TODO sign with private key</span>
+  <span class="kd">var</span> <span class="nx">containerNameHmac</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">misc</span><span class="p">.</span><span class="nx">hmac</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">account</span><span class="p">.</span><span class="nx">containerNameHmacKey</span><span class="p">);</span>
+  <span class="nx">containerNameHmac</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">codec</span><span class="p">.</span><span class="nx">hex</span><span class="p">.</span><span class="nx">fromBits</span><span class="p">(</span><span class="nx">containerNameHmac</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">containerName</span><span class="p">));</span>
+  <span class="kd">var</span> <span class="nx">payloadCiphertext</span> <span class="o">=</span> <span class="nx">sjcl</span><span class="p">.</span><span class="nx">encrypt</span><span class="p">(</span><span class="nx">hmacKey</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({}),</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">cipherOptions</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">chunks</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="p">{</span>
+        <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainer&#39;</span><span class="p">,</span>
+        <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span>
+      <span class="p">},</span> <span class="p">{</span>
+        <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainerSessionKey&#39;</span><span class="p">,</span>
+        <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span><span class="p">,</span>
+        <span class="nx">signature</span><span class="o">:</span> <span class="nx">signature</span>
+      <span class="p">},</span> <span class="p">{</span>
+        <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainerSessionKeyShare&#39;</span><span class="p">,</span>
+        <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span><span class="p">,</span>
+        <span class="nx">sessionKeyCiphertext</span><span class="o">:</span> <span class="nx">sessionKeyCiphertext</span><span class="p">,</span>
+        <span class="nx">hmacKeyCiphertext</span><span class="o">:</span> <span class="nx">hmacKeyCiphertext</span>
+      <span class="p">},</span> <span class="p">{</span>
+        <span class="nx">type</span><span class="o">:</span> <span class="s1">&#39;addContainerRecord&#39;</span><span class="p">,</span>
+        <span class="nx">containerNameHmac</span><span class="o">:</span> <span class="nx">containerNameHmac</span><span class="p">,</span>
+        <span class="nx">payloadCiphertext</span><span class="o">:</span> <span class="nx">payloadCiphertext</span>
+      <span class="p">}</span>
+    <span class="p">];</span>
+
+    <span class="nx">async</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">chunks</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">tx</span><span class="p">.</span><span class="nx">save</span><span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
+    <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">),</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// TODO handle err</span>
       <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
         <span class="k">return</span><span class="p">;</span>
       <span class="p">}</span>
 
-      <span class="nx">that</span><span class="p">.</span><span class="nx">peers</span><span class="p">[</span><span class="nx">username</span><span class="p">]</span> <span class="o">=</span> <span class="nx">peer</span><span class="p">;</span>
-      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">peer</span><span class="p">);</span>
+      <span class="nx">tx</span><span class="p">.</span><span class="nx">commit</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Container</span><span class="p">(</span><span class="nx">that</span><span class="p">);</span>
+        <span class="nx">container</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">containerName</span><span class="p">;</span>
+        <span class="nx">container</span><span class="p">.</span><span class="nx">sessionKey</span> <span class="o">=</span> <span class="nx">sessionKey</span><span class="p">;</span>
+        <span class="nx">container</span><span class="p">.</span><span class="nx">hmacKey</span> <span class="o">=</span> <span class="nx">hmacKey</span><span class="p">;</span>
+        <span class="nx">that</span><span class="p">.</span><span class="nx">containers</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">container</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">container</span><span class="p">);</span>
+      <span class="p">});</span>
     <span class="p">});</span>
-  <span class="p">};</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="getcontainer-containername--callback-">
+  <h3>
+    <a href="#getcontainer-containername--callback-" class="pilcrow">&#182;</a>
+    getContainer(containerName, callback)
+  </h3>
+</div>
 
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">on</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="nx">event</span><span class="p">]</span> <span class="o">=</span> <span class="nx">callback</span><span class="p">;</span>
-  <span class="p">};</span>
 
-  <span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">emit</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="nx">event</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="nx">event</span><span class="p">](</span><span class="nx">data</span><span class="p">);</span>
-  <span class="p">};</span>
+<p>Retrieve container with given platintext <code>containerName</code>
+specifically from the server</p></div><div class="body"><p>Calls back with container and without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">containerName</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getContainer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Container</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+  <span class="nx">container</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="nx">containerName</span><span class="p">;</span>
+  <span class="nx">container</span><span class="p">.</span><span class="nx">sync</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">container</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="getpeer-containername--callback-">
+  <h3>
+    <a href="#getpeer-containername--callback-" class="pilcrow">&#182;</a>
+    getPeer(containerName, callback)
+  </h3>
+</div>
+
+
+<p>Retrieve a peer object from the database for given <code>username</code></p></div><div class="body"><p>Calls back with peer and without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">username</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getPeer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">peers</span><span class="p">[</span><span class="nx">username</span><span class="p">])</span> <span class="p">{</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">peers</span><span class="p">[</span><span class="nx">username</span><span class="p">]);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">peer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Peer</span><span class="p">();</span>
+  <span class="nx">peer</span><span class="p">.</span><span class="nx">username</span> <span class="o">=</span> <span class="nx">username</span><span class="p">;</span>
+  <span class="nx">peer</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+
+  <span class="nx">peer</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">peer</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">that</span><span class="p">.</span><span class="nx">peers</span><span class="p">[</span><span class="nx">username</span><span class="p">]</span> <span class="o">=</span> <span class="nx">peer</span><span class="p">;</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">peer</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="on-eventname--listener-">
+  <h3>
+    <a href="#on-eventname--listener-" class="pilcrow">&#182;</a>
+    on(eventName, listener)
+  </h3>
+</div>
+
+
+<p>Set <code>listener</code> to be called anytime <code>eventName</code> is emitted</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">eventName</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">listener</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="c1">// TODO allow multiple listeners</span>
+<span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">on</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">eventName</span><span class="p">,</span> <span class="nx">listener</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="nx">eventName</span><span class="p">]</span> <span class="o">=</span> <span class="nx">listener</span><span class="p">;</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="emit-eventname--data-">
+  <h3>
+    <a href="#emit-eventname--data-" class="pilcrow">&#182;</a>
+    emit(eventName, data)
+  </h3>
+</div>
+
+
+<p>Call listener for <code>eventName</code>, passing it <code>data</code> as an argument</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">eventName</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">data</span><span class="dox_type">Object</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="c1">// TODO allow multiple listeners</span>
+<span class="nx">Session</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">emit</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">eventName</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="nx">eventName</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">events</span><span class="p">[</span><span class="nx">eventName</span><span class="p">](</span><span class="nx">data</span><span class="p">);</span>
+<span class="p">};</span>
+
 <span class="p">})();</span>
 </pre></div></td></tr></tbody></table></div></body></html>

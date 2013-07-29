@@ -42,6 +42,15 @@ switch (env) {
 
 var maxIndex = possibleLevels.indexOf(maxLevel);
 
+/**!
+ * ## log(level, message)
+ * Log `message` to stdout if `level` is high enough for output
+ *
+ * `level` defaults to `'info'`
+ * 
+ * @param {String} level
+ * @param {String} message
+ */
 module.exports = function log (level, message) {
   if (!message) {
     message = level;

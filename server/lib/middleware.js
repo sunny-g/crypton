@@ -20,6 +20,14 @@ var app = process.app;
 
 var middleware = module.exports = {};
 
+/**!
+ * ### verifySession(req, res, next)
+ * Determine if the `session-identifier` header exists in the session store
+ * 
+ * @param {Object} req
+ * @param {Object} res
+ * @param {Function} next
+ */
 middleware.verifySession = function (req, res, next) {
   var id = req.headers['session-identifier'];
   app.log('debug', 'verifying session ' + id);

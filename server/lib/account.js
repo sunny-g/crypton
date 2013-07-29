@@ -20,8 +20,26 @@ var app = require('../app');
 var db = app.datastore;
 var bcrypt = require('bcrypt');
 
+/**!
+ * # Account()
+ *
+ * ````
+ * var account = new Account();
+ * ````
+ */
 var Account = module.exports = function Account () {};
 
+/**!
+ * ### get(username, callback)
+ * Retrieve a user account from the database using the specified `username`
+ *
+ * Adds data to account object and calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {String} username
+ * @param {Function} callback
+ */
 Account.prototype.get = function (username, callback) {
   app.log('debug', 'getting account for username: ' + username);
 
@@ -38,6 +56,17 @@ Account.prototype.get = function (username, callback) {
   });
 };
 
+/**!
+ * ### getById(id, callback)
+ * Retrieve a user account from the database using the specified `id`
+ *
+ * Adds data to account object and calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Number} id
+ * @param {Function} callback
+ */
 Account.prototype.getById = function (id, callback) {
   app.log('debug', 'getting account for id: ' + id);
 
@@ -54,6 +83,17 @@ Account.prototype.getById = function (id, callback) {
   });
 };
 
+/**!
+ * ### hashChallengeKey(challengeKey, callback)
+ * Hash an encoded version of the supplied `challengeKey` and store it in the parent account object
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {String} challengeKey
+ * @param {Function} callback
+ */
 Account.prototype.hashChallengeKey = function (challengeKey, callback) {
   app.log('debug', 'hashing challenge key');
 
@@ -91,6 +131,17 @@ Account.prototype.hashChallengeKey = function (challengeKey, callback) {
   });
 };
 
+/**!
+ * ### verifyChallenge(challengeKeyReponse, callback)
+ * Compare `challengeKeyResponse` with stored `challengeKeyHash`
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {String} challengeKeyResponse
+ * @param {Function} callback
+ */
 Account.prototype.verifyChallenge = function (challengeKeyResponse, callback) {
   app.log('debug', 'verifying challenge');
 
@@ -108,6 +159,17 @@ Account.prototype.verifyChallenge = function (challengeKeyResponse, callback) {
   });
 };
 
+/**!
+ * ### update(key, value)
+ * Update one or a set of keys in the parent account object
+ * 
+ * @param {String} key
+ * @param {Object} value
+ *
+ * or
+ *
+ * @param {Object} input
+ */
 // TODO add field validation and callback
 Account.prototype.update = function () {
   // update({ key: 'value' });
@@ -123,6 +185,12 @@ Account.prototype.update = function () {
   }
 };
 
+/**!
+ * ### toJSON()
+ * Dump non-function values of account object into an object
+ * 
+ * @return {Object} account
+ */
 Account.prototype.toJSON = function () {
   var fields = {};
 
@@ -135,11 +203,35 @@ Account.prototype.toJSON = function () {
   return fields;
 };
 
+/**!
+ * ### save(callback)
+ * Saves the current state of the account object to the database
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Function} callback
+ */
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
   db.saveAccount(this.toJSON(), callback);
 };
 
+/**!
+ * ### sendMessage(from. headers, body, callback)
+ * Send a message from current account
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Number} from
+ * @param {Object} headers
+ * @param {Object} body
+ * @param {Function} callback
+ */
+// TODO consider moving from, headers, body to single argument object
 Account.prototype.sendMessage = function (from, headers, body, callback) {
   if (!this.accountId) {
     app.log('warn', 'accountId was not supplied');

@@ -24,13 +24,26 @@ var datastore = require('./');
 
 datastore.util = {};
 
-// turns under_scores into camelCase
+/**!
+ * ### util.camelize(str)
+ * Convert from under_scores to camelCase
+ *
+ * @param {String} str
+ * @return {String}
+ */
 datastore.util.camelize = function (str) {
   return str.replace(/\_(.)/g, function (x, chr) {
      return chr.toUpperCase();
   });
 };
 
+/**!
+ * ### util.camelizeObject(obj)
+ * Camelize every key in an object
+ *
+ * @param {Object} obj
+ * @return {Object}
+ */
 datastore.util.camelizeObject = function (obj) {
   var newObj = {};
 
@@ -41,7 +54,19 @@ datastore.util.camelizeObject = function (obj) {
   return newObj;
 };
 
-// callback with a client. crash the whole app on error.
+/**!
+ * ### connect(callback)
+ * Create a connection to the database
+ *
+ * __Note:__ always call the `done` function when finished
+ * with the client to return capacity to the connection pool
+ *
+ * Calls back with client object and done function without error if successful.
+ *
+ * __Throws__ if unsuccessful
+ *
+ * @param {Function} callback
+ */
 var connect = datastore.connect = function connect(callback) {
   var config = process.app.config.database;
   var conString = 'tcp://' +
@@ -65,11 +90,22 @@ var connect = datastore.connect = function connect(callback) {
   });
 };
 
-// callback with (error, listOfTables) from database
+/**!
+ * ### listTables(callback)
+ * List the tables in the configured database
+ *
+ * Calls back with an array of table names without error if successful.
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
 datastore.listTables = function listTables(callback) {
   connect(function (client) {
     client.query('select * from pg_tables', function (err, result) {
-      if (err) { return callback(err); }
+      if (err) {
+        return callback(err);
+      }
 
       var tables = [];
       var rows = result.rows.length;

@@ -22,6 +22,10 @@ var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
 var Container = require('../lib/container');
 
+/**!
+ * ### GET /container/:containerNameHmac
+ * Retrieve container records for the given `containerNameHmac`
+*/
 app.get('/container/:containerNameHmac', verifySession, function (req, res) {
   app.log('debug', 'handling GET /container/:containerNameHmac');
 
@@ -46,6 +50,10 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
   });
 });
 
+/**!
+ * ### GET /container/:containerNameHmac/:recordVersionIdentifier
+ * Retrieve specific record for the given `containerNameHmac` by `recordVersionIdentifier`
+*/
 app.get('/container/:containerNameHmac/:recordVersionIdentifier', verifySession, function (req, res) {
   app.log('debug', 'handling GET /container/:containerNameHmac/:recordVersionIdentifier');
 

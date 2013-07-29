@@ -73,7 +73,7 @@ describe('Account model', function () {
 
       account.get('pizza', function (err) {
         if (err) throw err;
-        assert.deepEqual(expectedProperties, Object.keys(perhapsAccount));
+        assert.deepEqual(expectedProperties, Object.keys(account.toJSON()));
         done();
       });
     });

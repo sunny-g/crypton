@@ -20,8 +20,18 @@
 
 var connect = require('./').connect;
 
-/* Save a new account
- * Add keyring info to it */
+/**!
+ * ### saveAccount(account, callback)
+ * Create account and base_keyring rows with data
+ * and add account row with base_keyring_id
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} account
+ * @param {Function} callback
+ */
 exports.saveAccount = function saveAccount(account, callback) {
   var requiredFields = [
     'username',
@@ -116,8 +126,17 @@ exports.saveAccount = function saveAccount(account, callback) {
   });
 };
 
-
-/* Get an account and its keyring */
+/**!
+ * ### getAccount(username, callback)
+ * Retrieve account and base_keyring rows for given `username`
+ *
+ * Calls back with account object and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} username
+ * @param {Function} callback
+ */
 exports.getAccount = function getAccount(username, callback) {
   connect(function (client, done) {
     var accountQuery = {
@@ -165,7 +184,18 @@ exports.getAccount = function getAccount(username, callback) {
   });
 };
 
-exports.getAccountById = function getAccountById(id, callback) {
+/**!
+ * ### getAccountById(accountId, callback)
+ * Retrieve account and base_keyring rows for given `id`
+ *
+ * Calls back with account object and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Function} callback
+ */
+exports.getAccountById = function getAccountById(accountId, callback) {
   connect(function (client, done) {
     var accountQuery = {
       text:
@@ -178,7 +208,7 @@ exports.getAccountById = function getAccountById(id, callback) {
         "from account left join base_keyring using (base_keyring_id) " +
         "where account.account_id=$1",
       values: [
-        id
+        accountId
       ]
     };
 
@@ -212,6 +242,17 @@ exports.getAccountById = function getAccountById(id, callback) {
   });
 };
 
+/**
+ * ### saveMessage(options, callback)
+ * Add row to message table for given `options.toAccount`
+ *
+ * Calls back with message id and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options
+ * @param {Function} callback
+ */
 exports.saveMessage = function (options, callback) {
   connect(function (client, done) {
     var messageQuery = {

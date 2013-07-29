@@ -27,6 +27,10 @@ var env = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase();
 
 app.log('info', 'loading config');
 
+/**!
+ * Attempt to load a provided `config.json` file, falling back to the example file
+ */
+
 if (process.configFile) {
   configFile = path.resolve(process.env.PWD, process.configFile);
 } else if (env === 'test') {

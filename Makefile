@@ -18,4 +18,9 @@ clean:
 setup-test-environment:
 	$(MAKE) -C integration_tests setup-test-environment
 
-.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup-test-environment
+docs:
+	npm install -g otis jade
+	sed -i '' -e '1s:node:node --stack_size=4096:' $$(dirname $$(which otis))/$$(readlink $$(which otis))
+	otis .
+
+.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup-test-environment docs

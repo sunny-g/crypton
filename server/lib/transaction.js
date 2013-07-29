@@ -19,8 +19,24 @@
 var app = require('../app');
 var db = app.datastore;
 
+/**!
+ * # Transaction()
+ *
+ * ````
+ * var tx = new Transaction();
+ * ````
+ */
 var Transaction = module.exports = function Transaction () {};
 
+/**!
+ * ### create(accountId, callback)
+ * Attempt to add a new transaction to the database belonging to the specified `accountId`
+ * Adds `transactionId` to transaction object if successful
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Number} accountId
+ * @param {Function} callback
+ */
 Transaction.prototype.create = function (accountId, callback) {
   app.log('debug', 'creating transaction');
 
@@ -38,12 +54,22 @@ Transaction.prototype.create = function (accountId, callback) {
   });
 };
 
-Transaction.prototype.get = function (id, callback) {
-  app.log('debug', 'getting transaction with id: ' + id);
+/**!
+ * ### get(transactionId, callback)
+ * Attempt retreive transaction data from the database for the specified `transactionId`
+ * Adds data to transaction object if successful
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Number} transactionId
+ * @param {Function} callback
+ */
+// TODO which data?
+Transaction.prototype.get = function (transactionId, callback) {
+  app.log('debug', 'getting transaction with id: ' + transactionId);
 
   var that = this;
 
-  db.getTransaction(id, function (err, transaction) {
+  db.getTransaction(transactionId, function (err, transaction) {
     if (err) {
       callback(err);
       return;
@@ -60,6 +86,17 @@ Transaction.prototype.get = function (id, callback) {
   });
 };
 
+/**!
+ * ### update()
+ * Update one or a set of keys in the parent transaction object
+ * 
+ * @param {String} key
+ * @param {Object} value
+ *
+ * or
+ *
+ * @param {Object} input
+ */
 // TODO add field validation and callback
 Transaction.prototype.update = function () {
   // update({ key: 'value' });
@@ -75,6 +112,13 @@ Transaction.prototype.update = function () {
   }
 };
 
+/**!
+ * ### add(data, callback)
+ * Add a chunk to current transaction
+ * 
+ * @param {Object} data
+ * @param {Function} callback
+ */
 Transaction.prototype.add = function (data, callback) {
   app.log('debug', 'adding data to transaction');
 
@@ -85,6 +129,13 @@ Transaction.prototype.add = function (data, callback) {
   });
 };
 
+/**!
+ * ### abort(callback)
+ * Mark transaction as aborted with database
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Function} callback
+ */
 Transaction.prototype.abort = function (callback) {
   app.log('debug', 'aborting transaction');
 
@@ -94,6 +145,13 @@ Transaction.prototype.abort = function (callback) {
   });
 };
 
+/**!
+ * ### commit(callback)
+ * Request transaction commital with database
+ * Calls back with error if request is unsuccessful
+ * 
+ * @param {Function} callback
+ */
 Transaction.prototype.commit = function (callback) {
   app.log('debug', 'requesting transaction commit');
 
@@ -103,13 +161,23 @@ Transaction.prototype.commit = function (callback) {
   });
 };
 
+/**!
+ * ### assertOwnership(callback, next)
+ * Determine if transaction's `interactingAccount` matches `accountId` from database
+ * Calls `next` if successful
+ * Calls `callback` with error if unsuccessful
+ * 
+ * @param {Function} callback
+ * @param {Function} next
+ */
+// TODO consider switching argument order
 Transaction.prototype.assertOwnership = function (callback, next) {
   app.log('debug', 'asserting transaction ownership');
 
-  if (this.interactingAccount != this.accountId) {
+  if (this.interactingAccount === this.accountId) {
+    next();
+  } else {
     app.log('warn', 'transaction does not belong to account');
     callback('Transaction does not belong to account');
-  } else {
-    next();
   }
 };

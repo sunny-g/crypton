@@ -22,6 +22,10 @@ var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
 var Account = require('../lib/account');
 
+/**!
+ * ### GET /peer/:username
+ * Retrieve public key for given `username`
+*/
 app.get('/peer/:username', verifySession, function (req, res) {
   app.log('debug', 'handling GET /peer/:username');
 
@@ -50,6 +54,10 @@ app.get('/peer/:username', verifySession, function (req, res) {
   });
 });
 
+/**!
+ * ### POST /peer
+ * Send a message to posted `toAccount` from current session's `accountId`
+*/
 app.post('/peer', verifySession, function (req, res) {
   app.log('debug', 'handling POST /peer');
 

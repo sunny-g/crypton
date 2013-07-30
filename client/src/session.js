@@ -59,15 +59,16 @@ Session.prototype.load = function (containerName, callback) {
   }
 
   // check for a container on the server
+  var that = this;
   this.getContainer(containerName, function (err, container) {
     if (err) {
       callback(err);
       return;
     }
 
-    this.containers.push(container);
+    that.containers.push(container);
     callback(null, container);
-  }.bind(this));
+  });
 };
 
 /**!
@@ -127,7 +128,7 @@ Session.prototype.create = function (containerName, callback) {
 
     async.each(chunks, function (chunk, callback) {
       tx.save(chunk, callback);
-    }.bind(this), function (err) {
+    }, function (err) {
       // TODO handle err
       if (err) {
         console.log(err);

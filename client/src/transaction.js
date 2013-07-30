@@ -33,8 +33,8 @@
  * @param {Function} callback
  */
 var Transaction = crypton.Transaction = function (session, callback) {
+  var that = this;
   this.session = session;
-
   this.types = [
     'addAccount',
     'setBaseKeyring',
@@ -62,8 +62,8 @@ var Transaction = crypton.Transaction = function (session, callback) {
 
     this.id = id;
 
-    callback && callback(null, this);
-  }.bind(this));
+    callback && callback(null, that);
+  });
 };
 
 /**!
@@ -103,8 +103,10 @@ Transaction.prototype.create = function (callback) {
  */
 Transaction.prototype.save = function () {
   this.verify();
+  var that = this;
   var args = Array.prototype.slice.call(arguments);
   var callback = args.pop();
+
   if (typeof callback != 'function') {
     args.push(callback);
     callback = function () {};
@@ -117,8 +119,8 @@ Transaction.prototype.save = function () {
       return;
     }
 
-    this.saveChunk(chunk, cb);
-  }.bind(this), function (err) {
+    that.saveChunk(chunk, cb);
+  }, function (err) {
     callback(err);
   });
 };

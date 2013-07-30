@@ -15,7 +15,10 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 (function () {
+
+'use strict';
 
 /**!
  * # Peer(options)

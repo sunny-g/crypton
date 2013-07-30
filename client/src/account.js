@@ -18,6 +18,8 @@
 
 (function() {
 
+'use strict';
+
 /**!
  * # Account()
  *

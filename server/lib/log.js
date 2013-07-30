@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var colors = require('colors');
 
 var maxLevel;

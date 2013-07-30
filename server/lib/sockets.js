@@ -1,3 +1,6 @@
+
+'use strict';
+
 var app = process.app;
 var io = require('socket.io');
 var cookie = require('cookie');

@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = require('../app');
 var db = app.datastore;
 

@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = process.app;
 var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;

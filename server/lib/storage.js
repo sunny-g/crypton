@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = process.app || require('../app');
 
 app.log('info', 'loading datastore');

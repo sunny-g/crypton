@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var fs = require('fs');
 var files = fs.readdirSync(__dirname);
 

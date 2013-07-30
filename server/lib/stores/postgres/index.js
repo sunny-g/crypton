@@ -18,7 +18,6 @@
 
 'use strict';
 
-
 /**!
  * ### extend(modName)
  * One-off function to bring in a module and expose it under local exports

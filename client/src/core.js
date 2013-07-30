@@ -32,6 +32,12 @@ crypton.version = '0.0.2';
 crypton.host = window.location.hostname;
 
 /**!
+ * ### port
+ * Holds port of Crypton server
+ */
+crypton.port = 443;
+
+/**!
  * ### cipherOptions
  * Sets AES mode to GCM, necessary for SJCL
  */
@@ -46,7 +52,7 @@ crypton.cipherOptions = {
  * @return {String} url
  */
 crypton.url = function () {
-  return 'https://' + crypton.host;
+  return 'https://' + crypton.host + ':' + crypton.port;
 };
 
 /**!

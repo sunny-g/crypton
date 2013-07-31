@@ -60,7 +60,7 @@ var Transaction = crypton.Transaction = function (session, callback) {
       return;
     }
 
-    this.id = id;
+    that.id = id;
 
     callback && callback(null, that);
   });

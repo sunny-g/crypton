@@ -2,17 +2,17 @@
   "author": "SpiderOak (https://spideroak.com/)",
   "name": "crypton",
   "description": "A zero-knowledge application framework",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "homepage": "http://crypton.io",
   "repository": {
     "type": "git",
     "url": "git://github.com/SpiderOak/crypton-server.git"
   },
   "engines": {
-    "node": "~0.8.1"
+    "node": "0.10.x"
   },
   "bin": {
-    "crypton": "server.js"
+    "crypton": "bin/cli.js"
   },
   "dependencies": {
     "id_translator": "https://github.com/alanfairless/id_translator/tarball/master",
@@ -24,7 +24,10 @@
     "node-uuid": "1.4.x",
     "bcrypt": "0.7.x",
     "socket.io": "0.9.x",
-    "cookie": "0.1.x"
+    "cookie": "0.1.x",
+    "colors": "0.6.x",
+    "connect-redis": "~1.4.5",
+    "redis": "~0.8.4"
   },
   "devDependencies": {
     "mocha": "1.8.x",

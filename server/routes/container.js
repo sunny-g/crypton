@@ -16,13 +16,21 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = process.app;
 var db = app.datastore;
 var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
 var Container = require('../lib/container');
 
+/**!
+ * ### GET /container/:containerNameHmac
+ * Retrieve container records for the given `containerNameHmac`
+*/
 app.get('/container/:containerNameHmac', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /container/:containerNameHmac');
+
   var accountId = req.session.accountId;
   var containerNameHmac = req.params.containerNameHmac;
 
@@ -44,7 +52,13 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
   });
 });
 
+/**!
+ * ### GET /container/:containerNameHmac/:recordVersionIdentifier
+ * Retrieve specific record for the given `containerNameHmac` by `recordVersionIdentifier`
+*/
 app.get('/container/:containerNameHmac/:recordVersionIdentifier', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /container/:containerNameHmac/:recordVersionIdentifier');
+
   var accountId = req.session.accountId;
   var containerName = req.params.containerNameHmac;
   var versionIdentifier = req.params.recordVersionIdentifier;
@@ -62,6 +76,7 @@ app.get('/container/:containerNameHmac/:recordVersionIdentifier', verifySession,
     
     // TODO this has to be a map because records is going to be an array
     if (!container.records[versionIdentifier]) {
+      app.log('warn', 'record does not exist');
       res.send({
         success: false,
         error: 'Record identifier does not exist'

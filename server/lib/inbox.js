@@ -16,13 +16,34 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = require('../app');
 var db = app.datastore;
 
-var Inbox = module.exports = function Inbox (id) {
-  this.accountId = id;
+/**!
+ * # Inbox(id)
+ *
+ * ````
+ * var inbox = new Inbox(1);
+ * ````
+ *
+ * @param {Number} accountId
+ */
+var Inbox = module.exports = function Inbox (accountId) {
+  this.accountId = accountId;
 };
 
+/**!
+ * ### getAllMessages(callback)
+ * Retrieve all messages from the database for the specified `accountId`
+ *
+ * Calls back without error and with messages if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Function} callback
+ */
 Inbox.prototype.getAllMessages = function (callback) {
   db.getAllMessages(this.accountId, function (err, messages) {
     callback(err, messages);

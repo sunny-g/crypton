@@ -1,0 +1,167 @@
+<!DOCTYPE html><html><head><title>transaction.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h3"><a href="#post--transaction-create">POST /transaction/create</a></div><div class="heading h3"><a href="#post--transaction--transactionid">POST /transaction/:transactionId</a></div><div class="heading h3"><a href="#post--transaction--transactionid-commit">POST /transaction/:transactionId/commit</a></div><div class="heading h3"><a href="#del--transaction--transactionid">DEL /transaction/:transactionId</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>transaction.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Server, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Server.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Server.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">app</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">db</span> <span class="o">=</span> <span class="nx">app</span><span class="p">.</span><span class="nx">datastore</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">verifySession</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../lib/middleware&#39;</span><span class="p">).</span><span class="nx">verifySession</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">Transaction</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../lib/transaction&#39;</span><span class="p">);</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="post--transaction-create">
+  <h3>
+    <a href="#post--transaction-create" class="pilcrow">&#182;</a>
+    POST /transaction/create
+  </h3>
+</div>
+
+
+<p>Create a transaction for current session's <code>accountId</code>
+and return created transaction's <code>transactionId</code></p></div><div class="body"></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">app</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">&#39;/transaction/create&#39;</span><span class="p">,</span> <span class="nx">verifySession</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;handling POST /transaction/create&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">accountId</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">accountId</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Transaction</span><span class="p">();</span>
+  <span class="nx">tx</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">accountId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+        <span class="nx">success</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nx">error</span><span class="o">:</span> <span class="nx">err</span>
+      <span class="p">});</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+      <span class="nx">success</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="nx">id</span><span class="o">:</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">transactionId</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">});</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="post--transaction--transactionid">
+  <h3>
+    <a href="#post--transaction--transactionid" class="pilcrow">&#182;</a>
+    POST /transaction/:transactionId
+  </h3>
+</div>
+
+
+<p>Add posted body as a chunk to <code>transactionId</code></p></div><div class="body"></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">app</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">&#39;/transaction/:transactionId&#39;</span><span class="p">,</span> <span class="nx">verifySession</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;handling POST /transaction/:transactionId&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">body</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">transactionId</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">accountId</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">accountId</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Transaction</span><span class="p">();</span>
+  <span class="nx">tx</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">transactionId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+        <span class="nx">success</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nx">error</span><span class="o">:</span> <span class="nx">err</span>
+      <span class="p">});</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">tx</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="s1">&#39;interactingAccount&#39;</span><span class="p">,</span> <span class="nx">accountId</span><span class="p">);</span>
+
+    <span class="nx">tx</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+          <span class="nx">success</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+          <span class="nx">error</span><span class="o">:</span> <span class="nx">err</span>
+        <span class="p">});</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+        <span class="nx">success</span><span class="o">:</span> <span class="kc">true</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">});</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="post--transaction--transactionid-commit">
+  <h3>
+    <a href="#post--transaction--transactionid-commit" class="pilcrow">&#182;</a>
+    POST /transaction/:transactionId/commit
+  </h3>
+</div>
+
+
+<p>Request commit for given <code>transactionId</code></p></div><div class="body"></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">app</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">&#39;/transaction/:transactionId/commit&#39;</span><span class="p">,</span> <span class="nx">verifySession</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;handling POST /transaction/:transactionId/commit&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">transactionId</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">accountId</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">accountId</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Transaction</span><span class="p">();</span>
+
+  <span class="nx">tx</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="s1">&#39;interactingAccount&#39;</span><span class="p">,</span> <span class="nx">accountId</span><span class="p">);</span>
+
+  <span class="nx">tx</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">transactionId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">tx</span><span class="p">.</span><span class="nx">commit</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+          <span class="nx">success</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+          <span class="nx">error</span><span class="o">:</span> <span class="nx">err</span>
+        <span class="p">});</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+        <span class="nx">success</span><span class="o">:</span> <span class="kc">true</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">});</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="del--transaction--transactionid">
+  <h3>
+    <a href="#del--transaction--transactionid" class="pilcrow">&#182;</a>
+    DEL /transaction/:transactionId
+  </h3>
+</div>
+
+
+<p>Abort given <code>transactionId</code></p></div><div class="body"></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">app</span><span class="p">.</span><span class="nx">del</span><span class="p">(</span><span class="s1">&#39;/transaction/:id&#39;</span><span class="p">,</span> <span class="nx">verifySession</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;handling DEL /transaction/:id&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">transactionId</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">accountId</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">accountId</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Transaction</span><span class="p">();</span>
+
+  <span class="nx">tx</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="s1">&#39;interactingAccount&#39;</span><span class="p">,</span> <span class="nx">accountId</span><span class="p">);</span>
+  
+  <span class="nx">tx</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">transactionId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">tx</span><span class="p">.</span><span class="nx">abort</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+          <span class="nx">success</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+          <span class="nx">error</span><span class="o">:</span> <span class="nx">err</span>
+        <span class="p">});</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+        <span class="nx">success</span><span class="o">:</span> <span class="kc">true</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+</pre></div></td></tr></tbody></table></div></body></html>

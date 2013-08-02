@@ -16,9 +16,22 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var datastore = require('./');
 var connect = datastore.connect;
 
+/**!
+ * ### getAllMessages(accountId, callback)
+ * Retrieve all messages for given `accountId`
+ *
+ * Calls back with array of messages and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {accountId} accountId
+ * @param {Function} callback
+ */
 datastore.getAllMessages = function (accountId, callback) {
   connect(function (client, done) {
     var query = {

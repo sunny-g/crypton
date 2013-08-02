@@ -13,5 +13,11 @@
   },
   "cookieSecretFile": "/dev/urandom",
   "privateKey": "privateKeyExample.pem",
-  "certificate": "certificateExample.pem"
+  "certificate": "certificateExample.pem",
+  "appPath": ".",
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "pass": ""
+  }
 }

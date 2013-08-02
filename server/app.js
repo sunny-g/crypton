@@ -19,16 +19,18 @@
 'use strict';
 
 var fs = require('fs');
+var path = require('path');
 var https = require('https');
 var connect = require('connect');
 var express = require('express');
 var util = require('./lib/util');
 
 var app = process.app = module.exports = express();
+app.log = require('./lib/log');
 app.config = require('./lib/config');
 app.datastore = require('./lib/storage');
 /*jslint camelcase: false*/
-app.id_translator = require("id_translator")
+app.id_translator = require('id_translator')
     .load_id_translator(app.config.id_translator.key_file);
 /*jslint camelcase: true*/
 
@@ -41,30 +43,56 @@ var allowCrossDomain = function (req, res, next) {
   next();
 };
 
+app.log('info', 'configuring server');
+
 app.secret = util.readFileSync(
   // TODO: 'binary' encoding is deprecated
   // TODO: also do we need to do this at all?
   app.config.cookieSecretFile, 'binary',
   app.config.defaultKeySize
 );
-app.secret = 'foo';
 
-app.sessionStore = new express.session.MemoryStore();
-app.use(express.logger('dev'));
-app.use(connect.cookieParser());
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
-app.use(connect.session({
+app.use(express.cookieParser());
+
+var redis = require('redis').createClient(
+  app.config.redis.port,
+  app.config.redis.host, {
+    auth_pass: app.config.redis.pass
+  }
+);
+
+var RedisStore = require('connect-redis')(express);
+app.sessionStore = new RedisStore({
+  client: redis,
+  prefix: 'crypton.sid:'
+});
+
+app.use(express.session({
   secret: app.secret,
   store: app.sessionStore,
-  key: 'crypton.sid',
   cookie: {
     secure: true
   }
 }));
 
-if (process.env.NODE_ENV === 'test') {
-  app.use(express.static(__dirname + '/../client'));
+
+app.use(express.logger(function (info, req, res) {
+  var color = 'green';
+
+  if (res.statusCode == 404) {
+    color = 'red';
+  }
+
+  var line = res.statusCode.toString()[color] + ' ' + req.method + ' ' + req.url;
+  app.log('info', line); 
+}));
+
+if (app.config.appPath) {
+  var appPath = path.resolve(process.cwd(), app.config.appPath);
+  app.use(express.static(appPath));
+  app.use(express.static(__dirname + '/../client/dist'));
 }
 
 app.options('/*', function (req, res) {
@@ -72,18 +100,32 @@ app.options('/*', function (req, res) {
 });
 
 app.start = function start () {
-  var privateKey = fs.readFileSync(__dirname + '/' + app.config.privateKey).toString();
-  var certificate = fs.readFileSync(__dirname + '/' + app.config.certificate).toString();
+  app.log('info', 'starting HTTPS server');
+
+  var privateKeyPath = path.resolve(process.cwd(), app.config.privateKey);
+  var certificatePath = path.resolve(process.cwd(), app.config.certificate);
+  var privateKeyExists = fs.existsSync(privateKeyPath);
+  var certificateExists = fs.existsSync(certificatePath);
+  var privateKeyRealPath = privateKeyExists ? privateKeyPath : __dirname + '/config/privateKeyExample.pem';
+  var certificateRealPath = certificateExists ? certificatePath : __dirname + '/config/certificateExample.pem';
 
   var options = {
-    key: privateKey,
-    cert: certificate
+    key: fs.readFileSync(privateKeyRealPath).toString(),
+    cert: fs.readFileSync(certificateRealPath).toString()
   };
 
+  app.port = app.config.port || 443;
   app.server = https.createServer(options, app).listen(app.port, function () {
-    require('./sockets');
-    console.log('Crypton server started on port ' + app.port);
+    app.log('HTTPS server listening on port ' + app.port);
+    require('./lib/sockets');
   });
 };
 
+app.log('info', 'loading routes');
 require('./routes');
+
+process.on('uncaughtException', function (err) {
+  app.log('fatal', err.stack);
+  process.exit(1);
+});
+

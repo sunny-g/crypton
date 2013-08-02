@@ -19,20 +19,31 @@
 
 'use strict';
 
+/**!
+ * A simple CLI to start the server
+ *
+ * ````
+ * Usage: crypton [options]
+ *
+ * Options:
+ *
+ *   -h, --help           output usage information
+ *   -V, --version        output the version number
+ *   -c, --config [file]  Specify a custom configuration file [default config]
+ * ````
+ */
+
+var fs = require('fs');
 var program = require('commander');
-var app = require('./app');
 
 program
-  .version('0.0.1')
-  .option('-c, --config [file]',
-    'Specify a custom configuration file [default config]')
-  .option('-p, --port [port]', 'Specify a port number [443]', 443)
-  .option('-v, --verbose', 'Enable verbose logging')
+  .version('0.0.2')
+  .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
   .parse(process.argv);
 
 process.configFile = program.config;
-app.port = program.port;
 
 if (require.main === module) {
+  var app = require('../app');
   app.start();
 }

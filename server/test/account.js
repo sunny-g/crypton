@@ -20,10 +20,71 @@ var assert = require('assert');
 var Account = require('../lib/account');
 
 describe('Account model', function () {
-  it('should create a blank account object', function () {
-    var account = new Account();
-    assert(account instanceof Account);
-    assert(JSON.stringify(account.serialize()) == JSON.stringify({}));
+  describe('save()', function () {
+    it('should save valid accounts', function (done) {
+      var account = new Account();
+
+      var requestedAccount = {
+        username: 'pizza',
+        keypairSalt: '[1,2,3]',
+        keypairCiphertext: { keypair: 'ciphertext' },
+        pubKey: { pub: 'key' },
+        challengeKeyHash: 'string',
+        challengeKeySalt: '[1,2,3]',
+        symKeyCiphertext: { sym: 'key' },
+        containerNameHmacKeyCiphertext: '[1,2,3]',
+        hmacKeyCiphertext: '[1,2,3]'
+      };
+
+      account.update(requestedAccount);
+
+      account.save(function (err) {
+        if (err) throw err;
+        done();
+      });
+    });
+
+    it('should err out for empty accounts', function (done) {
+      var account = new Account();
+
+      account.save(function (err) {
+        assert(err !== null);
+        done();
+      });
+    });
+  });
+
+  describe('get()', function () {
+    it('should retrieve account object from database', function (done) {
+      var account = new Account();
+      var expectedProperties = [
+        'username',
+        'accountId',
+        'keyringId',
+        'keypairSalt',
+        'keypairCiphertext',
+        'pubKey',
+        'symKeyCiphertext',
+        'challengeKeySalt',
+        'challengeKeyHash',
+        'containerNameHmacKeyCiphertext',
+        'hmacKeyCiphertext'
+      ];
+
+      account.get('pizza', function (err) {
+        if (err) throw err;
+        assert.deepEqual(expectedProperties, Object.keys(account.toJSON()));
+        done();
+      });
+    });
+
+    it('should callback with error if given nonexistant username', function (done) {
+      var account = new Account();
+      account.get('pizzasaurus', function (err) {
+        assert.equal(err, 'Account not found.');
+        done();
+      });
+    });
   });
 
   describe('update()', function () {
@@ -44,21 +105,23 @@ describe('Account model', function () {
     });
   });
 
-  describe('generateChallenge()', function () {
+  describe('hashChallengeKey()', function () {
     it('should generate a challengeKeyHash', function (done) {
       var account = new Account();
-      account.challengeKey = [];
-      account.generateChallenge(function (err) {
+      var challengeKey = [];
+
+      account.hashChallengeKey(challengeKey, function (err) {
         if (err) throw err;
         assert.equal(typeof account.challengeKeyHash, 'string');
+        assert.equal(account.challengeKeyHash.length, 60); // bcrypt output length
         done();
       });
     });
 
-    it('should delete the challengeKey', function (done) {
+    it('should not put raw challengeKey into the Account object', function (done) {
       var account = new Account();
-      account.challengeKey = [];
-      account.generateChallenge(function (err) {
+      var challengeKey = [];
+      account.hashChallengeKey(challengeKey, function (err) {
         assert.equal(typeof account.challengeKey, 'undefined');
         done();
       });
@@ -66,7 +129,9 @@ describe('Account model', function () {
 
     it('should fail if there is no challengeKey', function (done) {
       var account = new Account();
-      account.generateChallenge(function (err) {
+      var challengeKey = null;
+
+      account.hashChallengeKey(challengeKey, function (err) {
         assert.equal(err, 'Must supply challengeKey');
         done();
       });
@@ -74,98 +139,46 @@ describe('Account model', function () {
   });
 
   describe('verifyChallenge()', function () {
-    it('should callback with err on wrong password', function (done) {
-      var account = new Account();
-      account.challengeKey = [];
-      account.generateChallenge(function (err) {
-        var response = [];
-        account.verifyChallenge(response, function (err) {
-          assert.equal(err, 'Incorrect password');
-          done();
-        });
-      });
-    });
-
     it('should callback without error on correct input', function (done) {
       var account = new Account();
       // pbkdf2 of 'bananas' and random salt
-      var key = '[-1284768048,-920447856,-475398093,1331192739,-1763268843,1822534881,-85602294,1946893769]';
-      account.challengeKey = key;
-      account.generateChallenge(function (err) {
+      var challengeKey = '[-1284768048,-920447856,-475398093,1331192739,-1763268843,1822534881,-85602294,1946893769]';
+
+      account.hashChallengeKey(challengeKey, function (err) {
         // key would now be generated in browser with saved salt
-        account.verifyChallenge(key, function (err) {
+        account.verifyChallenge(challengeKey, function (err) {
           if (err) throw err;
           done();
         });
       });
     });
+
+    it('should callback with err on wrong password', function (done) {
+      var account = new Account();
+      var challengeKey = [];
+
+      account.hashChallengeKey(challengeKey, function (err) {
+        var challengeKeyResponse = '[1234]';
+        account.verifyChallenge(challengeKeyResponse, function (err) {
+          assert.equal(err, 'Incorrect password');
+          done();
+        });
+      });
+    });
   });
 
-  describe('serialize()', function () {
-    it('should do return an object', function () {
+  describe('toJSON()', function () {
+    it('should return an object', function () {
       var account = new Account();
-      var ret = account.serialize();
+      var ret = account.toJSON();
       assert.equal(typeof ret, 'object');
     });
 
-    it('should do return account properties', function () {
+    it('should return account properties', function () {
       var account = new Account();
       account.update('foo', 'bar');
-      var ret = account.serialize();
+      var ret = account.toJSON();
       assert.equal(ret.foo, 'bar');
-    });
-  });
-
-  describe('save()', function () {
-    it('should save valid accounts', function (done) {
-      var account = new Account();
-
-      var user = {
-        username: 'pizza',
-        keypairSalt: '[1,2,3]',
-        keypairCiphertext: { keypair: 'ciphertext' },
-        pubKey: { pub: 'key' },
-        challengeKeyHash: 'string',
-        challengeKeySalt: '[1,2,3]',
-        symKeyCiphertext: { sym: 'key' },
-        containerNameHmacKeyCiphertext: '[1,2,3]',
-        hmacKeyCiphertext: '[1,2,3]'
-      };
-
-      account.update(user);
-
-      account.save(function (err) {
-        if (err) throw err;
-        done();
-      });
-    });
-
-    it('should err out for invalid accounts', function (done) {
-      var account = new Account();
-
-      account.save(function (err) {
-        assert(err !== null);
-        done();
-      });
-    });
-  });
-
-  describe('get()', function () {
-    it('should fill out account object', function (done) {
-      var account = new Account();
-      account.get('pizza', function (err) {
-        if (err) throw err;
-        assert.equal(account.username, 'pizza');
-        done();
-      });
-    });
-
-    it('should callback with error if given nonexistant username', function (done) {
-      var account = new Account();
-      account.get('pizzasaurus', function (err) {
-        assert.equal(err, 'Account not found.');
-        done();
-      });
     });
   });
 });

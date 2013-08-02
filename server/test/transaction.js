@@ -20,11 +20,6 @@ var assert = require('assert');
 var Transaction = require('../lib/transaction');
 
 describe('Transaction model', function () {
-  it('should create a blank transaction object', function () {
-    var tx = new Transaction();
-    assert(tx instanceof Transaction);
-  });
-
   var transactionId;
   describe('#create()', function () {
     it('should add a transactionId to the object', function (done) {

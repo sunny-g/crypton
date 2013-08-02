@@ -1,0 +1,59 @@
+<!DOCTYPE html><html><head><title>middleware.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h3"><a href="#verifysession-req--res--next-">verifySession(req, res, next)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>middleware.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Server, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Server.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Server.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">app</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">middleware</span> <span class="o">=</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="verifysession-req--res--next-">
+  <h3>
+    <a href="#verifysession-req--res--next-" class="pilcrow">&#182;</a>
+    verifySession(req, res, next)
+  </h3>
+</div>
+
+
+<p>Determine if the <code>session-identifier</code> header exists in the session store</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">req</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">res</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">next</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">middleware</span><span class="p">.</span><span class="nx">verifySession</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="nx">req</span><span class="p">.</span><span class="nx">headers</span><span class="p">[</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">];</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;verifying session &#39;</span> <span class="o">+</span> <span class="nx">id</span><span class="p">);</span>
+
+  <span class="nx">req</span><span class="p">.</span><span class="nx">sessionStore</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span> <span class="o">||</span> <span class="o">!</span><span class="nx">session</span> <span class="o">||</span> <span class="o">!</span><span class="nx">session</span><span class="p">.</span><span class="nx">accountId</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;session &#39;</span> <span class="o">+</span> <span class="nx">id</span> <span class="o">+</span> <span class="s1">&#39; invalid&#39;</span><span class="p">);</span>
+      <span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">({</span>
+        <span class="nx">success</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nx">error</span><span class="o">:</span> <span class="s1">&#39;Invalid session&#39;</span>
+      <span class="p">});</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// TODO this may be a leak but it&#39;s the only</span>
+    <span class="c1">// way to get around CORS without implementing our</span>
+    <span class="c1">// own sessionStore</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">session</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">i</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">i</span> <span class="o">==</span> <span class="s1">&#39;cookie&#39;</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+      <span class="nx">req</span><span class="p">.</span><span class="nx">session</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">session</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+    <span class="p">});</span>
+
+    <span class="nx">next</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+</pre></div></td></tr></tbody></table></div></body></html>

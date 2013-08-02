@@ -1,0 +1,471 @@
+<!DOCTYPE html><html><head><title>zkof_spec3.py</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>zkof_spec3.py</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="c"># synopsis spec of zero knowledge application framework.</span>
+
+<span class="c"># this is a draft. no code exists. just trying to make the interface intuitive</span>
+<span class="c"># and effective.  But I already wish, this had existed 5 years ago when I was</span>
+<span class="c"># writing the original SpiderOak!</span>
+
+<span class="c"># this demos client side operations, so everything is from the perspective of</span>
+<span class="c"># code running in a browser.  We&#39;ll demo the ways a developer would use the</span>
+<span class="c"># framework to build apps, rather than show the internal details of what the</span>
+<span class="c"># framework is doing behind the scenes.  We will attempt to descirbe those</span>
+<span class="c"># behind the scenes details (mostly about crypto, protocol, and internal data</span>
+<span class="c"># structures) in comments.</span>
+
+<span class="c"># we&#39;re using pseudocode rather correct javascript, because for purposes of</span>
+<span class="c"># understanding and iterating the concept quickly, I find this easier to read.</span>
+<span class="c"># Also, the spec is intended to be language agnostic, such tha clients could be</span>
+<span class="c"># developed in a variety of languages, and all interoperate.</span>
+
+<span class="c"># for similar reasons, this is written using synchronous code, whereas in a</span>
+<span class="c"># real app an async approach would usually be needed with callbacks and such,</span>
+<span class="c"># since many of the methods involve blocking network access, although the</span>
+<span class="c"># framework may do behind the scenes caching so blocking is reduced.  Since</span>
+<span class="c"># we&#39;re just trying to demo capabilities here and most people find synchronous</span>
+<span class="c"># code easier to read, we&#39;ll stick with that.</span>
+
+<span class="c"># === generating a new account (i.e. which implies a crypto context for object</span>
+<span class="c"># storage and communication with peers.)</span>
+
+<span class="c"># bob signs up for an account in our OMG awesome zero knowledge diary</span>
+<span class="c"># application.</span>
+
+<span class="c"># this locally generates an object containing root level keys, including an</span>
+<span class="c"># outer level session key derived from the pass phrase using a key derivation</span>
+<span class="c"># function.  Also creates public/private keypair, a HMAC key, a couple of salt</span>
+<span class="c"># strings, and a challenge key that can later be used for auth between</span>
+<span class="c"># client/server via a zero knowledge password proof.</span>
+<span class="n">account</span> <span class="o">=</span> <span class="n">zkaf</span><span class="o">.</span><span class="n">generate_account</span><span class="p">(</span><span class="s">&#39;pass phrase&#39;</span><span class="p">)</span>
+<span class="c"># account names can be whatever strings the server&#39;s policy allows. that&#39;s up</span>
+<span class="c"># to the server. account names are plain text.</span>
+<span class="n">account</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;account_name&#39;</span>
+<span class="c"># this establishes a new account on the server with the given name. that</span>
+<span class="c"># name might not be available so check result.</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">!==</span> <span class="s">&#39;ok&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">error</span> <span class="o">!==</span> <span class="s">&#39;dupe&#39;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">alert</span><span class="p">(</span><span class="s">&quot;can&#39;t create this account: &quot;</span> <span class="o">+</span> <span class="n">result</span><span class="o">.</span><span class="n">errormessage</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="p">}</span>
+    <span class="n">account</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;another account_name&#39;</span> <span class="c"># try again with a name that isn&#39;t taken</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">account</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c"># now we have an account. we can securely store objects and data.</span>
+
+<span class="c"># === authenticating into an established account (establishing a crypto session</span>
+<span class="c"># in the context of an existing account.)</span>
+<span class="c"># this does a zero knowledge password proof auth to the server for the</span>
+<span class="c"># specified account, then retrieves the cipher text of our keys, decrypts them</span>
+<span class="c"># with the key from the KDF and the pass phrase, and therefore establishes a</span>
+<span class="c"># crypto session with access to our keys and authorization to retrieve our</span>
+<span class="c"># storage containers.</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">zkaf</span><span class="o">.</span><span class="n">auth</span><span class="p">(</span><span class="s">&#39;account_name&#39;</span><span class="p">,</span> <span class="s">&#39;pass phrase&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="p">:</span>
+    <span class="c"># we don&#39;t necessarily get a clear message on why this failed, because</span>
+    <span class="c"># that would leak information</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;bad account name or password&quot;</span><span class="p">)</span>
+
+<span class="c"># === persisting a session</span>
+<span class="c"># caching the crypto session locally (HTML5 local storage?) so we don&#39;t have to</span>
+<span class="c"># prompt for password and derive keys again (which is expensive.)</span>
+<span class="n">session_as_string</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span> <span class="c"># save this somewhere</span>
+
+<span class="c"># resurrect it later</span>
+<span class="n">zkaf</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">session_as_string</span><span class="p">)</span>
+<span class="c"># make sure that server believes this is still a valid account/session. (like</span>
+<span class="c"># if it&#39;s been persisted for a long time..)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
+<span class="c"># for example, the session might be invalid if the password has changed since</span>
+<span class="c"># it was saved, or if the account has been deleteded or disabled server side</span>
+<span class="c"># (such as for non-payment.)</span>
+
+<span class="c"># === changing a pass phrase for an account</span>
+<span class="n">session</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">pasphrase</span> <span class="o">=</span> <span class="s">&#39;new passprhase&#39;</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="c"># check the result -- you might get a version error if you don&#39;t have the</span>
+<span class="c"># newest version of the account at the time you try to save. (more on</span>
+<span class="c"># versioning later.)</span>
+<span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="s">&#39;refresh&#39;</span><span class="p">:</span>
+    <span class="n">old_version</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+    <span class="n">new_version</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> 
+
+<span class="c"># === introducing object storage via containers </span>
+<span class="c"># we&#39;re going to store our app&#39;s data using objects, like a traditional object</span>
+<span class="c"># database.  Many people are already familiar with object databases such as</span>
+<span class="c"># ZODB.  Our object database is a similar concept, while making zero knowledge</span>
+<span class="c"># privacy guarantees and also making it possible to selectively (and privately)</span>
+<span class="c"># share and collaborate with others.</span>
+
+<span class="c"># Objects are stored in containers.  Containers are always associated with a</span>
+<span class="c"># specific account (and unreadable by other accounts, unless explicitly shared</span>
+<span class="c"># with a peer or a group.)  Containers are a way of partitioning the data</span>
+<span class="c"># required for object storage. an app with relatively smallish data storage</span>
+<span class="c"># requirements might just use one container, and store every object in that</span>
+<span class="c"># container. other apps may use many separate containers.  A container must be</span>
+<span class="c"># fetched in its full length from the server and decrypted client side for the</span>
+<span class="c"># objects inside it to be read.  </span>
+
+<span class="n">container</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;diary&#39;</span><span class="p">)</span> <span class="c"># load this container from the server to</span>
+                                  <span class="c"># local, making access to all objects</span>
+                                  <span class="c"># available without blocking.  If the</span>
+                                  <span class="c"># container is already available in cache,</span>
+                                  <span class="c"># this returns immediately.</span>
+
+<span class="c"># containers are identified by keys such as &#39;diary&#39; above. any string is</span>
+<span class="c"># allowed. From the server&#39;s perspective, container names (and of course their</span>
+<span class="c"># contents) are unreadable.</span>
+
+<span class="c"># If the data set is going to grow very large, partitioning data across</span>
+<span class="c"># containers and lazy loading them as you need them can help with app load</span>
+<span class="c"># time.  Behind the scenes, the framework does some local caching for the</span>
+<span class="c"># contents of frequently used storage containers, so it doesn&#39;t always have to</span>
+<span class="c"># download the full container when the app needs it.</span>
+
+<span class="c"># One simple tactic for partitioning data among containers is to keep app</span>
+<span class="c"># metadata all in one container, and keep bulky binary data (images, videos,</span>
+<span class="c"># long text strings, whatever) in many other containers.  Metadata is usually</span>
+<span class="c"># very small, and can load quickly.</span>
+
+<span class="c"># For example, a diary app might have a single metadata container with a list</span>
+<span class="c"># of entries. Each entry has a title, date, keywords, and other basic</span>
+<span class="c"># attributes.  Average size is probably under 500 bytes.  So one entry per day</span>
+<span class="c"># for 10 years would only be be 1.8 meg.  In 10 years, 1.8 meg will be like 1.8</span>
+<span class="c"># KB today, so storing all this in one container is fine.  Each entry would</span>
+<span class="c"># reference other containers to find the text of the entry and media</span>
+<span class="c"># attachments like images, videos, etc.</span>
+
+
+<span class="n">diary_entries</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;entries&quot;</span><span class="p">)</span>
+<span class="n">draft_entries</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;drafts&quot;</span><span class="p">)</span>
+<span class="c"># these objects are like regular javascript objects that we can store data</span>
+<span class="c"># into.</span>
+<span class="n">new_entry</span> <span class="o">=</span> <span class="p">{</span> <span class="nb">id</span><span class="p">:</span> <span class="n">get_uuid</span><span class="p">(),</span> <span class="n">title</span><span class="p">:</span> <span class="s">&quot;Adventures with Crypto&quot;</span> <span class="p">}</span>
+<span class="n">draft_entries</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">new_entry</span><span class="p">)</span>
+<span class="c"># atomically save all modified objects back to the container. if we had made</span>
+<span class="c"># changes to either diary_entries or draft_entries, both would be saved. the</span>
+<span class="c"># default parameters for saving objects preserves object history (i.e. previous</span>
+<span class="c"># versions of the object are still reachable) and uses diffing where</span>
+<span class="c"># appropritae to minimize the total size. </span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+<span class="c"># let&#39;s add some more content to this entry.  We&#39;ll store the text content</span>
+<span class="c"># separately from the metadata, in its own one-off container.</span>
+<span class="n">text</span> <span class="o">=</span> <span class="s">&quot;we&#39;re having fun here in object storage land....&quot;</span>
+
+<span class="n">new_entry</span><span class="o">.</span><span class="n">text_container_name</span> <span class="o">=</span> <span class="s">&#39;text_for_&#39;</span> <span class="o">+</span> <span class="n">new_entry</span><span class="o">.</span><span class="n">id</span>
+<span class="n">text_container</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">new_container</span><span class="p">(</span><span class="n">new_entry</span><span class="o">.</span><span class="n">text_container_name</span><span class="p">)</span>
+<span class="n">text_container</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_entry</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<span class="n">text_container</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c"># save our text to one the one-off container</span>
+<span class="n">container</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c"># and save our changes to draft_entries from above to the main</span>
+                 <span class="c"># container. (later we&#39;ll show how to do both of these</span>
+                 <span class="c"># atomically in one op.)</span>
+
+<span class="c"># here&#39;s how we would iterate over all the entries in the diary, retrieving</span>
+<span class="c"># text and media attachments from their own containers.</span>
+<span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">diary_entries</span><span class="p">:</span>
+    <span class="n">text_container</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">text_container_name</span><span class="p">)</span>
+    <span class="n">diary_text</span> <span class="o">=</span> <span class="n">text_container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">attachment_container_name</span><span class="p">:</span>
+        <span class="n">attachment_container</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">attachment_container_name</span><span class="p">)</span>
+        <span class="n">list_of_attachments</span> <span class="o">=</span> <span class="n">attachment_container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+<span class="c"># general container operations</span>
+<span class="n">list_of_object_keys</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="n">myobject</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;mynewobjectname&#39;</span><span class="p">,</span> <span class="p">{})</span>
+<span class="n">myobject</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;myobjectname&#39;</span><span class="p">)</span>
+<span class="n">myobject</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s">&#39;myobjectname&#39;</span><span class="p">)</span> <span class="c"># it&#39;s still available in the</span>
+<span class="c"># container&#39;s history, until the next compaction. more on compaction later.</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">new_property</span> <span class="o">=</span> <span class="s">&#39;abc&#39;</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+<span class="n">myobject</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;myobjectname&#39;</span><span class="p">)</span>
+<span class="n">mylist</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">myobject</span><span class="p">[</span><span class="s">&#39;list_of_stuff&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mylist</span>
+<span class="n">mylist</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+
+<span class="c"># see which objects have been locally modified and not yet saved</span>
+<span class="n">modified_keys</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">modified_keys</span><span class="p">()</span>
+<span class="n">modified_objects</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">modified_objects</span><span class="p">()</span>
+
+<span class="c"># atomically save an object, multiple objects, or all modified objects</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">myobject</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">save</span><span class="p">([</span><span class="n">myobject</span><span class="p">])</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">save_keys</span><span class="p">([</span><span class="s">&#39;myobjectname&#39;</span><span class="p">],</span> 
+                             <span class="c"># some optional paramaters</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c"># save everything that&#39;s been locally modified</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>  <span class="c"># give the container more direction on finding </span>
+                          <span class="c"># modified objects. by default it will do a deep</span>
+                          <span class="c"># comparsion of every object that&#39;s been retrieved</span>
+                          <span class="c"># from the container with .get(), which is guaranteed</span>
+                          <span class="c"># to be accurate, but can be slow if there are many</span>
+                          <span class="c"># objects or very large objects.</span>
+                        <span class="p">{</span> <span class="n">shallow</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">deep</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="mi">5</span><span class="p">})</span>
+
+<span class="c"># atomically save across multiple containers using a transaction:</span>
+<span class="n">tx</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">tx</span><span class="p">()</span>
+<span class="n">tx</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">myobject</span><span class="p">)</span>  <span class="c"># add a particular object to a transaction </span>
+<span class="n">tx</span><span class="o">.</span><span class="n">save</span><span class="p">([</span><span class="n">myobject1</span><span class="p">,</span> <span class="n">myobject2</span><span class="p">])</span> <span class="c"># add a list of objects</span>
+<span class="n">tx</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">container1</span><span class="p">,</span> <span class="p">[</span><span class="n">another_object</span><span class="p">,</span> <span class="n">and_another_object</span><span class="p">])</span> <span class="c"># add a list of objects</span>
+<span class="n">tx</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">container3</span><span class="p">,</span> <span class="p">[</span><span class="n">another_object</span><span class="p">,</span> <span class="n">and_another_object</span><span class="p">])</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="s">&#39;refresh&#39;</span><span class="p">:</span>
+    <span class="c"># refresh and deal with the changes.</span>
+
+<span class="c"># == modifying objects, concurrency, and versioning</span>
+
+
+<span class="c"># containers have version identifiers. the identifiers are opague strings</span>
+<span class="c"># provided by the server. they aren&#39;t sortable client side.  a container&#39;s</span>
+<span class="c"># version identifier changes whenever modifications to a container and/or the</span>
+<span class="c"># objects in a container are saved.  When a container is loaded, it normally</span>
+<span class="c"># includes the complete change history of all objects in the container (but see</span>
+<span class="c"># below about compaction.)  This means that clients can see the history of</span>
+<span class="c"># objects in a container, and find the differences between them.</span>
+
+<span class="c"># refreshing objects, finding changes between times.</span>
+
+<span class="n">old_identifier</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">version_identifier</span><span class="p">()</span>
+<span class="n">container</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+<span class="n">new_identifier</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">version_identifier</span><span class="p">()</span>
+<span class="c"># getting many tokens at once</span>
+<span class="n">version_identifier_list</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">version_identifiers</span><span class="p">([</span><span class="n">container1</span><span class="p">,</span> <span class="n">container2</span><span class="p">])</span>
+
+<span class="c"># we can see which things have changed between versions of a container.</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">old_identifier</span> <span class="o">==</span> <span class="n">new_identifier</span><span class="p">:</span>
+    <span class="n">list_of_changed_keys</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">modified_keys</span><span class="p">(</span><span class="n">old_identifier</span><span class="p">,</span> <span class="n">new_identifier</span><span class="p">)</span>
+    <span class="c"># for a given key, we can get a list of one or more diff objects that shows</span>
+    <span class="c"># us specifically what changed between the intervening version(s)</span>
+    <span class="n">list_of_diffs</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">diffs</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">old_identifier</span><span class="p">,</span> <span class="n">new_identifier</span><span class="p">)</span>
+    <span class="c"># or we could compare the objects ourselves</span>
+    <span class="n">old_object</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">get_version</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">old_identifier</span><span class="p">)</span>
+    <span class="n">new_object</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">get_version</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">new_identifier</span><span class="p">)</span>
+    <span class="c"># or we could see the whole history</span>
+    <span class="n">object_history</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">get_history</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">object_history</span><span class="p">:</span>
+        <span class="c"># we can look through the attributes of the entry</span>
+
+        <span class="c"># these properties are added by the server, and are guaranteed to be</span>
+        <span class="c"># correct.</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">version_identifier</span> <span class="c"># the new version of the container at the time</span>
+                                 <span class="c"># this object was changed. (note that many</span>
+                                 <span class="c"># objects in the container may share the same</span>
+                                 <span class="c"># version identifiers, since the identifier</span>
+                                 <span class="c"># applies to the entire container and all the</span>
+                                 <span class="c"># objects it changes; a transaction modifying</span>
+                                 <span class="c"># several objects would give the new versions</span>
+                                 <span class="c"># of those objects each the same new version</span>
+                                 <span class="c"># identifier.</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">author</span>    <span class="c"># the account name the change came from. </span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">timestamp</span> <span class="c"># this is server time from whenever .save() was called.</span>
+                        <span class="c"># not the time the object actually changed. (also</span>
+                        <span class="c"># guaranteed to be accurate by the server.)</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">diffsize</span>  <span class="c"># the size of the binary storage of the diff (after </span>
+                        <span class="c"># compression, encryption, etc.)  In other words, the</span>
+                        <span class="c"># length of the ciphertext of the diff.</span>
+
+        <span class="c"># for these, the server cannot guarantee anything about the contents, since</span>
+        <span class="c"># they are unreadable to the server.</span>
+
+        <span class="n">entry</span><span class="o">.</span><span class="n">get_serialized_diff</span><span class="p">()</span> <span class="c"># get the serialize (as a string) of the </span>
+                                    <span class="c"># diff (the plaintext.)</span>
+
+        <span class="n">entry</span><span class="o">.</span><span class="n">get_diff</span><span class="p">()</span> <span class="c"># get the actual diff object.</span>
+
+        <span class="n">old_object</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get_object</span><span class="p">()</span> <span class="c"># just materialize the object at this</span>
+                                        <span class="c"># point in history.</span>
+
+        <span class="n">old_object</span><span class="o">.</span><span class="n">abc</span> <span class="o">=</span> <span class="s">&quot;changed&quot;</span>  <span class="c"># this change is temporary and unsavable</span>
+
+        <span class="n">old_object</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c"># throws an exception; historical objects are</span>
+                          <span class="c"># immutable.</span>
+        
+    
+<span class="c"># === zero knowledge sharing of containers/objects with peers.</span>
+<span class="c"># you can share with an individual peer or with defined groups (below.) sharing</span>
+<span class="c"># happens by making objects available to peers or groups.  The objects continue</span>
+<span class="c"># to be unreadable to the server or to anyone other than the peers the objects</span>
+<span class="c"># are shared with.</span>
+
+<span class="c"># obligitory scenario of alice and bob wanting to communicate with crypto :)</span>
+
+<span class="n">alice</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get_peer</span><span class="p">(</span><span class="s">&quot;alice&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">alice</span><span class="p">:</span>
+    <span class="n">alert</span><span class="p">(</span><span class="s">&quot;peer alice not available&quot;</span><span class="p">)</span>
+
+<span class="c"># share an entire container (including all objects and their history since the</span>
+<span class="c"># last compaction) with alice.  share implies reads only, not writes.  alice</span>
+<span class="c"># will be able to read the historical and current state of all objects in this</span>
+<span class="c"># container as they are updated and changed until it is deleted or unshared.</span>
+<span class="n">container</span><span class="o">.</span><span class="n">share</span><span class="p">(</span><span class="n">alice</span><span class="p">)</span>
+<span class="c"># appropritate warnings about info theory here!</span>
+<span class="n">container</span><span class="o">.</span><span class="n">unshare</span><span class="p">()</span>       <span class="c"># remove all sharing with all peers</span>
+<span class="n">container</span><span class="o">.</span><span class="n">unshare</span><span class="p">(</span><span class="n">alice</span><span class="p">)</span>  <span class="c"># just remove alice</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">container</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c"># still have to check for conflicts/retry, even</span>
+                          <span class="c"># though you&#39;re not changing any data.</span>
+
+<span class="c"># what really happens when bob unshares a container with alice? </span>
+<span class="c">#  - we tell the server to no longer make the contents of the container</span>
+<span class="c">#    readable to alice (i.e. so that alice is disallowed by the server </span>
+<span class="c">#    from retreving the encrypted data stream of the container.)</span>
+<span class="c">#  - we re-key the container such that all further writes to the container</span>
+<span class="c">#    continue to be unreadable to alice, even if alice happens to be Mallory&#39;s</span>
+<span class="c">#    girlfriend (and mallory is an evil system administrator employed by the</span>
+<span class="c">#    service operator, with administrative and physical access to the server(s)</span>
+<span class="c">#    the container is stored on.)</span>
+<span class="c">#  (information theory of course means that any data previously shared with</span>
+<span class="c">#  alice, alice already knows. so there&#39;s not much point in re-encrypting that</span>
+<span class="c">#  data.)</span>
+
+<span class="c"># share only a specific object with alice. like above, object will remain</span>
+<span class="c"># shared and the peer can see changes/updates/history.  this is more expensive</span>
+<span class="c"># than just sharing a whole container, but not excessively so.  From alice&#39;s</span>
+<span class="c"># perspective, it seems like the container only contains the specific objects</span>
+<span class="c"># that are shared.</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">share</span><span class="p">(</span><span class="n">alice</span><span class="p">)</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">unshare</span><span class="p">(</span><span class="n">alice</span><span class="p">)</span>
+<span class="n">myobject</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+<span class="c"># how alice gets to this data (from her own session)</span>
+<span class="n">bob</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get_peer</span><span class="p">(</span><span class="s">&quot;bob&quot;</span><span class="p">)</span>
+<span class="c"># get a container object for from peer</span>
+<span class="n">bob_container</span> <span class="o">=</span> <span class="n">bob</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&quot;container_name&quot;</span><span class="p">)</span>
+<span class="c"># bob_container may have every key available to us (if bob shared the whole</span>
+<span class="c"># container), or just the specific keys that bob shared with us.  from alice&#39;s</span>
+<span class="c"># perspective, she can&#39;t tell the difference between a container that&#39;s fully</span>
+<span class="c"># shared vs. one that just has some shared objects in it.</span>
+<span class="n">bob_object</span> <span class="o">=</span> <span class="n">bob_container</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;bobs_object&#39;</span><span class="p">)</span>
+
+<span class="c"># now we could read bob&#39;s diary as above, just as if it was one of our own</span>
+<span class="c"># objects. We just can&#39;t save changes back to it.  (But more on that later...)</span>
+
+<span class="c"># === secure real time messages. this is not messages in the</span>
+<span class="c"># sense of email, but messages in the sense of message queues, or message</span>
+<span class="c"># oriented application development.  still, the inbox metaphore mostly fits.</span>
+<span class="c"># messages are async; the recipients don&#39;t have to be connected/online right</span>
+<span class="c"># now to receive these. they&#39;ll notice new messages whenever they next poll</span>
+<span class="c"># their inbox.</span>
+
+<span class="c"># allow our peer alice to send us stuff.</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">allow_messages</span><span class="p">(</span><span class="n">alice</span><span class="p">,</span> 
+    <span class="p">{</span> <span class="n">max_unread_messages</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> 
+         <span class="n">max_message_size</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span> 
+          <span class="n">max_unread_size</span><span class="p">:</span> <span class="mi">1000000</span> <span class="p">})</span>
+<span class="c"># TODO: resolve this question: should it be possible to blanket allow messages</span>
+<span class="c"># from anyone? maybe a limit of just a few small messages?</span>
+<span class="c"># proposed answer: make it easy to allow a small number of messages from</span>
+<span class="c"># anyone, and have that limit automatically go away if you send a message back.</span>
+
+<span class="c"># sending and checking message queues. we can send messages to ourselves, or to</span>
+<span class="c"># our peers that have set allow_messages from us.</span>
+<span class="c"># messages have these properties: id, from, to, timestamp, size, header, body, ttl</span>
+<span class="c"># messages are immutable -- they are only created, delivered, retrieved, and</span>
+<span class="c">#   deleted.</span>
+<span class="c"># they are never modified (not even in the sense that they are &quot;marked as</span>
+<span class="c">#   read&quot;).  In that sense, in message queue terms, they have &quot;at least once&quot;</span>
+<span class="c">#   delivery semantics.</span>
+<span class="c"># header and body are encrypted such that only recipient can read them.</span>
+<span class="c"># the size property is the length of the ciphertext of headers + body</span>
+<span class="c"># headers may optionally be retrieved when the inbox contents is listed.</span>
+<span class="c"># headers are limited to 4k in size per message.</span>
+<span class="c"># the headers are really just an object. any javascript JSON object is allowed.</span>
+<span class="c">#   the size limitation is applied to the serialized, compressed, and encrypted</span>
+<span class="c">#   form of the object.</span>
+<span class="c"># the body is also an object, but without a hard limit.</span>
+<span class="c"># headers and body must be defined. it&#39;s conventional to send false as a value</span>
+<span class="c">#   when you don&#39;t need to send a particular value.</span>
+<span class="c"># searching or filtering through the listed messages by headers necessarily</span>
+<span class="c">#   takes place on the client side, since the server cannot decrypt them for</span>
+<span class="c">#   us.</span>
+<span class="c"># headers and body together count towards maximum message sizes that a peer</span>
+<span class="c">#   might be willing to receive from another peer (as configured above.)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span>                <span class="c"># return when new messages are available</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">messages_by_peer</span><span class="p">()</span>    <span class="c"># get a map of peer -&gt; number of messages</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>                <span class="c"># get list of unread messages (metadata only)</span>
+<span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+    <span class="c"># properties: msg.id, msg.from, msg.to, msg.timestamp, msg.size, msg.ttl</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">get_headers</span><span class="p">()</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">get_body</span><span class="p">()</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span> <span class="c"># it&#39;s faster to build up a list of IDs and delete them all at</span>
+                 <span class="c"># once (as below.)</span>
+    <span class="n">tx</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">delete</span><span class="p">)</span>  <span class="c"># add deleting this message to a running transaction, </span>
+                        <span class="c"># such that deleting the message can happen atomically</span>
+                        <span class="c"># in combination with changes to objects.</span>
+<span class="n">tx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span> <span class="c"># rememer to commit our transaction</span>
+
+<span class="c"># list with filtering. all parameters optional. specifying no filtering</span>
+<span class="c"># parameters gets same results as list, except that the inclusion of headers in</span>
+<span class="c"># the result set can be controlled.</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">peer</span> <span class="o">=</span> <span class="n">bob</span><span class="p">,</span> 
+                     <span class="n">after</span> <span class="o">=</span> <span class="n">earliest_time</span><span class="p">,</span> 
+                     <span class="n">before</span> <span class="o">=</span> <span class="n">latest_time</span><span class="p">,</span>
+                     <span class="n">include_headers</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>
+                     <span class="n">header_filter</span> <span class="o">=</span> <span class="n">my_filter_function</span><span class="p">,</span>
+                     <span class="n">limit</span> <span class="o">=</span> <span class="n">max_messages_to_return</span><span class="p">)</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">list_of_message_ids</span><span class="p">])</span>  <span class="c"># get a list of message headers and bodies</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">delete</span><span class="p">([</span><span class="n">list_of_message_ids</span><span class="p">])</span> <span class="c"># atomically remove a list of messages</span>
+<span class="n">session</span><span class="o">.</span><span class="n">inbox</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span> <span class="c"># flippantly delete all messages, seen or unseen</span>
+
+<span class="n">message_id</span> <span class="o">=</span> <span class="n">peer</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">message_id</span> <span class="o">==</span> <span class="s">&#39;error&#39;</span>
+
+<span class="c"># sharing with groups instead of just individual peers:</span>
+<span class="c"># groups are about membership.</span>
+<span class="c"># groups members can be individuals or other groups, recursively to a</span>
+<span class="c">#   reasonably high limit.</span>
+<span class="c"># group membership always must happen by invitation, such that an existing</span>
+<span class="c">#   member (with read privledges) invites new members.</span>
+<span class="c"># a group has a creator.</span>
+<span class="c"># members maybe given permission (individually) to </span>
+<span class="c">#  - read data intended for the group</span>
+<span class="c">#  - author data as the group</span>
+<span class="c">#  - invite new members</span>
+<span class="c">#  - revoke existing members</span>
+<span class="c">#  - give a member the privledge to invite</span>
+<span class="c">#  - give a member the privledge to revoke</span>
+<span class="c"># crypto structure for a group:</span>
+<span class="c">#  - a group has a set of keys like an individual</span>
+<span class="c">#   - read key</span>
+<span class="c">#   - sign key</span>
+<span class="c">#  - whenever a new member joins the group, the read key for the group</span>
+<span class="c">#    is encoded to that member&#39;s keys.</span>
+<span class="c">#  - when a member leaves the group, the groups keys are rotated:</span>
+<span class="c">#    - new group keys are generated</span>
+<span class="c">#    - all new keys are encrypted to all the continuing members of the group.</span>
+
+<span class="c"># - can create a group.</span>
+<span class="c"># - can invite others to the group as:</span>
+<span class="c">#     - load containers shared to group</span>
+<span class="c">#     # modify containers shar</span>
+<span class="c">#   - viewers (can load containers/messages )</span>
+<span class="c">#   - writers (can add new containers/messages)</span>
+<span class="c">#   - administrators (can change privledges of others)</span>
+<span class="c">#   - owners (can destroy the group)</span>
+<span class="c"># - peers have to accept an invitation to join a group, although they could</span>
+<span class="c">#   also set an auto-accept setting.</span>
+<span class="c"># - storage for the group object is outside the billable storage amount for any</span>
+<span class="c">#   particular account.</span>
+
+<span class="c"># TODO: standardize result objects. </span>
+<span class="c">#   result.status, result.error, result.error_message</span>
+
+<span class="c"># TODO: expose the internal container data for sharing histroy. like, to see</span>
+<span class="c"># the peers you&#39;ve shared, the objects you&#39;ve shared with them, etc.</span>
+
+<span class="c"># TODO: add optional automatic notifications of shared object access -- where</span>
+<span class="c"># the system sends you messages when a peer accesses one of your shared</span>
+<span class="c"># objects. so apps can implement auditing requirements. (so the messages</span>
+<span class="c"># wouldn&#39;t originate from a peer, but from the server itself, in response to</span>
+<span class="c"># object retrieval.)</span>
+
+<span class="c"># TODO multi-user read-write shared containers</span>
+<span class="c"># TODO container compaction</span>
+</pre></div></td></tr></tbody></table></div></body></html>

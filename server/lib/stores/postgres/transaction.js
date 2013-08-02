@@ -16,11 +16,25 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
+var app = process.app;
 var datastore = require('./');
 var connect = datastore.connect;
 var fs = require('fs');
 var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toString();
 
+/**!
+ * ### createTransaction(accountId, callback)
+ * Retrieve all records for given `containerNameHmac`
+ *
+ * Calls back with transaction id and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Function} callback
+ */
 datastore.createTransaction = function (accountId, callback) {
   connect(function (client, done) {
     var query = {
@@ -35,7 +49,7 @@ datastore.createTransaction = function (accountId, callback) {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Database error');
         return;
       }
@@ -45,18 +59,31 @@ datastore.createTransaction = function (accountId, callback) {
   });
 };
 
-datastore.getTransaction = function (id, callback) {
+/**!
+ * ### getTransaction(transactionId, callback)
+ * Retrieve transaction ros for given `transactionId`
+ *
+ * Calls back with transaction data and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} transactionId
+ * @param {Function} callback
+ */
+datastore.getTransaction = function (transactionId, callback) {
   connect(function (client, done) {
     var query = {
       text: 'select * from transaction where transaction_id = $1',
-      values: [ id ]
+      values: [
+        transactionId
+      ]
     };
 
     client.query(query, function (err, result) {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Database error');
         return;
       }
@@ -67,6 +94,17 @@ datastore.getTransaction = function (id, callback) {
   });
 };
 
+/**!
+ * ### abortTransaction(transactionId, callback)
+ * Mark transaction aborted for given `transactionId`
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} transactionId
+ * @param {Function} callback
+ */
 datastore.abortTransaction = function (transactionId, callback) {
   connect(function (client, done) {
     var query = {
@@ -83,10 +121,25 @@ datastore.abortTransaction = function (transactionId, callback) {
     client.query(query, function (err, results) {
       done();
       callback(err, results);
+      // TODO why pass results back?
     });
   });
 };
 
+/**!
+ * ### updateTransaction(transaction, data, callback)
+ * Pass `data` off to specific chunk handler to be added to given `transaction`
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} transaction
+ * @param {Object} data
+ * @param {Function} callback
+ */
+// TODO consider reversing data and transaction arguments
+// to match the transaction chunk handler methods
 datastore.updateTransaction = function (transaction, data, callback) {
   var types = Object.keys(datastore.transaction);
   var type = data.type;
@@ -97,37 +150,56 @@ datastore.updateTransaction = function (transaction, data, callback) {
     return;
   }
 
-  connect(function (client, done) {
-    datastore.transaction[type](data, transaction, function (err) {
-      done();
-      callback(err);
-    });
-  });
+  datastore.transaction[type](data, transaction, callback);
 };
 
-datastore.requestTransactionCommit = function (id, account, callback) {
+/**!
+ * ### requestTransactionCommit(transactionId, accountId, callback)
+ * Pass transaction to commit requester after validation is successful
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} transactionId
+ * @param {Number} accountId
+ * @param {Function} callback
+ */
+datastore.requestTransactionCommit = function (transactionId, accountId, callback) {
   connect(function (client, done) {
-    datastore.getTransaction(id, function (err, transaction) {
+    datastore.getTransaction(transactionId, function (err, transaction) {
+      done();
+
       if (!transaction.transactionId) {
         callback('Transaction does not exist');
         return;
       }
 
-      if (account != transaction.accountId) {
+      if (accountId != transaction.accountId) {
         callback('Transaction does not belong to account');
         return;
       }
 
-      commit.request(transaction.transactionId, function (err) {
-        done();
-        callback(err);
-      });
+      commit.request(transaction.transactionId, callback);
     });
   });
 };
 
 datastore.transaction = {};
 
+/**!
+ * ### transaction.addContainer(data, transaction, callback)
+ * Add addContainer chunk to given `transaction`
+ * via transaction_add_container table
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} data
+ * @param {Object} transaction
+ * @param {Function} callback
+ */
 datastore.transaction.addContainer = function (data, transaction, callback) {
   connect(function (client, done) {
     var query = {
@@ -145,7 +217,7 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
 
         if (~err.message.indexOf('violates unique constraint')) {
           callback('Container already exists');
@@ -161,6 +233,19 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
   });
 };
 
+/**!
+ * ### transaction.addContainerSessionKey(data, transaction, callback)
+ * Add addContainerSessionKey chunk to given `transaction`
+ * via transaction_add_container_session_key table
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} data
+ * @param {Object} transaction
+ * @param {Function} callback
+ */
 datastore.transaction.addContainerSessionKey = function (data, transaction, callback) {
   connect(function (client, done) {
     var query = {
@@ -179,7 +264,7 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Invalid chunk data');
         return;
       }
@@ -189,6 +274,19 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
   });
 };
 
+/**!
+ * ### transaction.addContainerSessionKeyShare(data, transaction, callback)
+ * Add addContainerSessionKeyShare chunk to given `transaction`
+ * via transaction_add_container_session_key_share table
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} data
+ * @param {Object} transaction
+ * @param {Function} callback
+ */
 datastore.transaction.addContainerSessionKeyShare = function (data, transaction, callback) {
   connect(function (client, done) {
     var query = {
@@ -210,7 +308,7 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Invalid chunk data');
         return;
       }
@@ -220,6 +318,19 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
   });
 };
 
+/**!
+ * ### transaction.addContainerRecord(data, transaction, callback)
+ * Add addContainerRecord chunk to given `transaction`
+ * via transaction_add_container_record table
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} data
+ * @param {Object} transaction
+ * @param {Function} callback
+ */
 datastore.transaction.addContainerRecord = function (data, transaction, callback) {
   connect(function (client, done) {
     var query = {
@@ -245,7 +356,7 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
       done();
 
       if (err) {
-        console.log(err);
+        app.log('warn', err);
         callback('Invalid chunk data');
         return;
       }
@@ -257,6 +368,18 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
 
 var commit = {};
 
+/**!
+ * ### commit.request(transactionId, callback)
+ * Mark commit_request_time for given `transactionId`
+ * so commit troller will pick it up
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} transactionId
+ * @param {Function} callback
+ */
 commit.request = function (transactionId, callback) {
   connect(function (client, done) {
     var query = {
@@ -274,10 +397,16 @@ commit.request = function (transactionId, callback) {
     client.query(query, function (err, results) {
       done();
       callback(err, results);
+      // TODO why are we passing back results?
     });
   });
 };
 
+/**!
+ * ### commit.troll()
+ * Searches for transactions with commit requested but not started
+ * and passes them to commit.finish()
+ */
 commit.troll = function () {
   connect(function (client, done) {
     /*jslint multistr: true*/
@@ -292,13 +421,13 @@ commit.troll = function () {
       done();
 
       if (err) {
-        console.log(err);
+        app.log('fatal', err);
         process.exit(1);
         return;
       }
 
       if (result.rows.length) {
-        console.log(result.rows.length + ' transactions to commit');
+        app.log(result.rows.length + ' transactions to commit');
         // TODO queue
         for (var i in result.rows) {
           commit.finish(result.rows[i].transaction_id);
@@ -307,10 +436,20 @@ commit.troll = function () {
     });
   });
 };
+
+/**!
+ * Search for commits every tenth of a second
+ */
+// TODO should we make this configurable?
 setInterval(commit.troll, 100);
 
+/**!
+ * ### commit.finish(transactionId)
+ * Execute transaction SQL for given `transactionId`
+ */
 commit.finish = function (transactionId) {
   connect(function (client, done) {
+    // TODO use hostname of node
     var tq = transactionQuery
       .replace(/\{\{hostname\}\}/gi, 'hostname')
       .replace(/\{\{transactionId\}\}/gi, transactionId);
@@ -318,7 +457,7 @@ commit.finish = function (transactionId) {
     client.query(tq, function (err, result) {
       if (err) {
         client.query('rollback');
-        console.log(err);
+        app.log('warn', err);
       }
 
       done();

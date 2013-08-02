@@ -20,11 +20,6 @@ var assert = require('assert');
 var Container = require('../lib/container');
 
 describe('Container model', function () {
-  it('should create a blank container object', function () {
-    var container = new Container();
-    assert(container instanceof Container);
-  });
-
   describe('#update()', function () {
     it('should update the container by key/value', function () {
       var container = new Container();

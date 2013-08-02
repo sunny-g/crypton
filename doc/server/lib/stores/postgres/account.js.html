@@ -1,0 +1,284 @@
+<!DOCTYPE html><html><head><title>account.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../../../doc-style.css"><script src="../../../../doc-filelist.js"></script><script>var relativeDir = '../../../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h3"><a href="#saveaccount-account--callback-">saveAccount(account, callback)</a></div><div class="heading h3"><a href="#getaccount-username--callback-">getAccount(username, callback)</a></div><div class="heading h3"><a href="#getaccountbyid-accountid--callback-">getAccountById(accountId, callback)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>account.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Server, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Server.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Server.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">connect</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="p">).</span><span class="nx">connect</span><span class="p">;</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="saveaccount-account--callback-">
+  <h3>
+    <a href="#saveaccount-account--callback-" class="pilcrow">&#182;</a>
+    saveAccount(account, callback)
+  </h3>
+</div>
+
+
+<p>Create account and base_keyring rows with data
+and add account row with base_keyring_id</p></div><div class="body"><p>Calls back without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">account</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">exports</span><span class="p">.</span><span class="nx">saveAccount</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">saveAccount</span><span class="p">(</span><span class="nx">account</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">requiredFields</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;username&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;keypairCiphertext&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;keypairSalt&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pubKey&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;symKeyCiphertext&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;containerNameHmacKeyCiphertext&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hmacKeyCiphertext&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;challengeKeySalt&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;challengeKeyHash&#39;</span>
+  <span class="p">];</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="nx">requiredFields</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">account</span><span class="p">[</span><span class="nx">requiredFields</span><span class="p">[</span><span class="nx">i</span><span class="p">]])</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Missing field: &#39;</span> <span class="o">+</span> <span class="nx">requiredFields</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;begin&#39;</span><span class="p">);</span>
+
+    <span class="kd">var</span> <span class="nx">accountQuery</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">text</span><span class="o">:</span>
+        <span class="s2">&quot;insert into account (username, base_keyring_id) &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;values ($1, nextval(&#39;version_identifier&#39;)) &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;returning account_id, base_keyring_id&quot;</span><span class="p">,</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">account</span><span class="p">.</span><span class="nx">username</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">accountQuery</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;rollback&#39;</span><span class="p">);</span>
+        <span class="nx">done</span><span class="p">();</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">code</span> <span class="o">===</span> <span class="s1">&#39;23505&#39;</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Username already taken.&#39;</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Unhandled database error: &#39;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">);</span>
+          <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Database error.&#39;</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="kd">var</span> <span class="nx">keyringQuery</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">text</span><span class="o">:</span>
+          <span class="s2">&quot;insert into base_keyring (&quot;</span> <span class="o">+</span>
+          <span class="s2">&quot;  base_keyring_id, account_id,&quot;</span> <span class="o">+</span>
+          <span class="s2">&quot;  keypair, keypair_salt, pubkey, symkey,&quot;</span> <span class="o">+</span>
+          <span class="s2">&quot;  container_name_hmac_key,&quot;</span> <span class="o">+</span>
+          <span class="s2">&quot;  hmac_key, challenge_key_salt, challenge_key_hash&quot;</span> <span class="o">+</span>
+          <span class="s2">&quot;) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)&quot;</span><span class="p">,</span>
+        <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+          <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">base_keyring_id</span><span class="p">,</span>
+          <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">account_id</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">keypairCiphertext</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">keypairSalt</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">pubKey</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">symKeyCiphertext</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">containerNameHmacKeyCiphertext</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">hmacKeyCiphertext</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">challengeKeySalt</span><span class="p">,</span>
+          <span class="nx">account</span><span class="p">.</span><span class="nx">challengeKeyHash</span>
+        <span class="p">]</span>
+      <span class="p">};</span>
+
+      <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">keyringQuery</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;rollback&#39;</span><span class="p">);</span>
+          <span class="nx">done</span><span class="p">();</span>
+
+          <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">code</span> <span class="o">===</span> <span class="s1">&#39;23514&#39;</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Invalid keyring data.&#39;</span><span class="p">);</span>
+          <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Unhandled database error: &#39;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">);</span>
+            <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Database error.&#39;</span><span class="p">);</span>
+          <span class="p">}</span>
+
+          <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;commit&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+          <span class="nx">done</span><span class="p">();</span>
+          <span class="nx">callback</span><span class="p">();</span>
+        <span class="p">});</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="getaccount-username--callback-">
+  <h3>
+    <a href="#getaccount-username--callback-" class="pilcrow">&#182;</a>
+    getAccount(username, callback)
+  </h3>
+</div>
+
+
+<p>Retrieve account and base_keyring rows for given <code>username</code></p></div><div class="body"><p>Calls back with account object and without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">username</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">exports</span><span class="p">.</span><span class="nx">getAccount</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">getAccount</span><span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">accountQuery</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">text</span><span class="o">:</span>
+        <span class="s2">&quot;select username, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;account.account_id, base_keyring_id, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;challenge_key_hash, challenge_key_salt, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;keypair, keypair_salt, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;pubkey, symkey, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;container_name_hmac_key, hmac_key &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;from account left join base_keyring using (base_keyring_id) &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;where username=$1&quot;</span><span class="p">,</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">username</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">accountQuery</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Unhandled database error: &#39;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Database error.&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Account not found.&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">username</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">username</span><span class="p">,</span>
+        <span class="nx">accountId</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">account_id</span><span class="p">,</span>
+        <span class="nx">keyringId</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">base_keyring_id</span><span class="p">,</span>
+        <span class="nx">keypairSalt</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">keypair_salt</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">keypairCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">keypair</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">pubKey</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">pubkey</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">symKeyCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">symkey</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">challengeKeySalt</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">challenge_key_salt</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">challengeKeyHash</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">challenge_key_hash</span><span class="p">.</span><span class="nx">toString</span><span class="p">(),</span>
+        <span class="nx">containerNameHmacKeyCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">container_name_hmac_key</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">hmacKeyCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">hmac_key</span><span class="p">.</span><span class="nx">toString</span><span class="p">())</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="getaccountbyid-accountid--callback-">
+  <h3>
+    <a href="#getaccountbyid-accountid--callback-" class="pilcrow">&#182;</a>
+    getAccountById(accountId, callback)
+  </h3>
+</div>
+
+
+<p>Retrieve account and base_keyring rows for given <code>id</code></p></div><div class="body"><p>Calls back with account object and without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">accountId</span><span class="dox_type">Number</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">exports</span><span class="p">.</span><span class="nx">getAccountById</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">getAccountById</span><span class="p">(</span><span class="nx">accountId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">accountQuery</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">text</span><span class="o">:</span>
+        <span class="s2">&quot;select account.account_id, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;account.username, base_keyring_id, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;challenge_key_hash, challenge_key_salt, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;keypair, keypair_salt, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;pubkey, symkey, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;container_name_hmac_key, hmac_key &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;from account left join base_keyring using (base_keyring_id) &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;where account.account_id=$1&quot;</span><span class="p">,</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">accountId</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">accountQuery</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Unhandled database error: &#39;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Database error.&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Account not found.&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">username</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">username</span><span class="p">,</span>
+        <span class="nx">accountId</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">account_id</span><span class="p">,</span>
+        <span class="nx">keyringId</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">base_keyring_id</span><span class="p">,</span>
+        <span class="nx">keypairSalt</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">keypair_salt</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">keypairCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">keypair</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">pubKey</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">pubkey</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">symKeyCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">symkey</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">challengeKeySalt</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">challenge_key_salt</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">challengeKeyHash</span><span class="o">:</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">challenge_key_hash</span><span class="p">.</span><span class="nx">toString</span><span class="p">(),</span>
+        <span class="nx">containerNameHmacKeyCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">container_name_hmac_key</span><span class="p">.</span><span class="nx">toString</span><span class="p">()),</span>
+        <span class="nx">hmacKeyCiphertext</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">hmac_key</span><span class="p">.</span><span class="nx">toString</span><span class="p">())</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * ### saveMessage(options, callback)</span>
+<span class="cm"> * Add row to message table for given `options.toAccount`</span>
+<span class="cm"> *</span>
+<span class="cm"> * Calls back with message id and without error if successful</span>
+<span class="cm"> *</span>
+<span class="cm"> * Calls back with error if unsuccessful</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param {Object} options</span>
+<span class="cm"> * @param {Function} callback</span>
+<span class="cm"> */</span>
+<span class="nx">exports</span><span class="p">.</span><span class="nx">saveMessage</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">options</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">connect</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">client</span><span class="p">,</span> <span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">messageQuery</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">text</span><span class="o">:</span>
+        <span class="s2">&quot;insert into message &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;(to_account_id, from_account_id, &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;header_ciphertext, payload_ciphertext) &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;values ($1, $2, $3, $4) &quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;returning message_id&quot;</span><span class="p">,</span>
+      <span class="nx">values</span><span class="o">:</span> <span class="p">[</span>
+        <span class="nx">options</span><span class="p">.</span><span class="nx">toAccount</span><span class="p">,</span>
+        <span class="nx">options</span><span class="p">.</span><span class="nx">fromAccount</span><span class="p">,</span>
+        <span class="nx">options</span><span class="p">.</span><span class="nx">headers</span><span class="p">,</span>
+        <span class="nx">options</span><span class="p">.</span><span class="nx">body</span>
+      <span class="p">]</span>
+    <span class="p">};</span>
+
+    <span class="nx">client</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="nx">messageQuery</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">done</span><span class="p">();</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Unhandled database error: &#39;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">);</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Database error.&#39;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">result</span><span class="p">.</span><span class="nx">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">message_id</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+</pre></div></td></tr></tbody></table></div></body></html>

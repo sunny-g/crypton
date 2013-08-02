@@ -1,0 +1,282 @@
+<!DOCTYPE html><html><head><title>diary.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../../doc-style.css"><script src="../../../doc-filelist.js"></script><script>var relativeDir = '../../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>diary.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Client, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Client.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">host</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">host</span><span class="p">;</span>
+
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login input&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">().</span><span class="nx">focus</span><span class="p">();</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login input[type=submit]&#39;</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">action</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">name</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login form&#39;</span><span class="p">).</span><span class="nx">serializeArray</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">username</span> <span class="o">=</span> <span class="nx">data</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">value</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">password</span> <span class="o">=</span> <span class="nx">data</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">value</span><span class="p">;</span>
+    <span class="nx">actions</span><span class="p">[</span><span class="nx">action</span><span class="p">](</span><span class="nx">username</span><span class="p">,</span> <span class="nx">password</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+
+<span class="kd">var</span> <span class="nx">actions</span> <span class="o">=</span> <span class="p">{};</span>
+
+<span class="nx">actions</span><span class="p">.</span><span class="nx">login</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">password</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">$form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login form&#39;</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">$status</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login #status&#39;</span><span class="p">);</span>
+
+  <span class="nx">$form</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+  <span class="nx">$status</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+  <span class="nx">$status</span><span class="p">.</span><span class="nx">text</span><span class="p">(</span><span class="s1">&#39;Logging in...&#39;</span><span class="p">);</span>
+
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">authorize</span><span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">password</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">$form</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+      <span class="nx">$status</span><span class="p">.</span><span class="nx">text</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login input&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">().</span><span class="nx">focus</span><span class="p">();</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nb">window</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="nx">session</span><span class="p">;</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login&#39;</span><span class="p">).</span><span class="nx">hide</span><span class="p">();</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;body&#39;</span><span class="p">).</span><span class="nx">removeClass</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">);</span>
+    <span class="nx">init</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">actions</span><span class="p">.</span><span class="nx">register</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">password</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">$form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login form&#39;</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">$status</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login #status&#39;</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">$progressBar</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login .progressBar&#39;</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">$progress</span> <span class="o">=</span> <span class="nx">$progressBar</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;.progress&#39;</span><span class="p">);</span>
+
+  <span class="nx">$form</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+  <span class="nx">$status</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+  <span class="nx">$progressBar</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+  <span class="nx">$status</span><span class="p">.</span><span class="nx">text</span><span class="p">(</span><span class="s1">&#39;Generating encryption keys...&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">messages</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Generating encryption keys...&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Doing a bunch of math...&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Making your diary really, really safe...&#39;</span>
+  <span class="p">];</span>
+
+  <span class="kd">var</span> <span class="nx">steps</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="nx">crypton</span><span class="p">.</span><span class="nx">generateAccount</span><span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">password</span><span class="p">,</span> <span class="kd">function</span> <span class="nx">done</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">account</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">$form</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+      <span class="nx">$status</span><span class="p">.</span><span class="nx">text</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="nx">$progressBar</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+      <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#login input&#39;</span><span class="p">).</span><span class="nx">first</span><span class="p">().</span><span class="nx">focus</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nx">actions</span><span class="p">.</span><span class="nx">login</span><span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">password</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="kd">function</span> <span class="nx">init</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#app&#39;</span><span class="p">).</span><span class="nx">show</span><span class="p">();</span>
+  <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#header&#39;</span><span class="p">).</span><span class="nx">removeClass</span><span class="p">(</span><span class="s1">&#39;hiding&#39;</span><span class="p">);</span>
+  <span class="p">},</span> <span class="mi">200</span><span class="p">);</span>
+  <span class="nx">loadDiary</span><span class="p">();</span>
+
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#create&#39;</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="nx">createEntry</span><span class="p">);</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#display&#39;</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="nx">displayEntries</span><span class="p">);</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#save&#39;</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="nx">saveEntry</span><span class="p">);</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#delete&#39;</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="nx">deleteEntry</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">setStatus</span> <span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#header span&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">loadDiary</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">setStatus</span><span class="p">(</span><span class="s1">&#39;Loading diary...&#39;</span><span class="p">);</span>
+
+  <span class="nx">session</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="s1">&#39;diary&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">container</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">session</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="s1">&#39;diary&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">container</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nb">window</span><span class="p">.</span><span class="nx">diary</span> <span class="o">=</span> <span class="nx">container</span><span class="p">;</span>
+        <span class="nx">loadEntries</span><span class="p">();</span>
+      <span class="p">});</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nb">window</span><span class="p">.</span><span class="nx">diary</span> <span class="o">=</span> <span class="nx">container</span><span class="p">;</span>
+    <span class="nx">loadEntries</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">loadEntries</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">setStatus</span><span class="p">(</span><span class="s1">&#39;Loading entries...&#39;</span><span class="p">);</span>
+  <span class="nx">diary</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="s1">&#39;entries&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">diary</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;entries&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">entries</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nb">window</span><span class="p">.</span><span class="nx">entries</span> <span class="o">=</span> <span class="nx">entries</span><span class="p">;</span>
+      <span class="nx">setStatus</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+      <span class="nx">displayEntries</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">displayEntries</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">keys</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">entries</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">keys</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">setStatus</span><span class="p">(</span><span class="s1">&#39;No saved entries&#39;</span><span class="p">);</span>
+    <span class="nx">createEntry</span><span class="p">();</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">checkEntry</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nx">setStatus</span><span class="p">(</span><span class="s1">&#39;Rendering entries...&#39;</span><span class="p">);</span>
+  <span class="nx">clearInterval</span><span class="p">(</span><span class="nx">dateRenderLoop</span><span class="p">);</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#pad&#39;</span><span class="p">).</span><span class="nx">removeClass</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">);</span>
+  <span class="nx">entry</span> <span class="o">=</span> <span class="kc">undefined</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">$list</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#entryList&#39;</span><span class="p">);</span>
+  <span class="nx">$list</span><span class="p">.</span><span class="nx">empty</span><span class="p">();</span>
+  <span class="nx">$list</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">);</span>
+
+  <span class="c1">// sort the entries by timestamp descending</span>
+  <span class="nx">keys</span><span class="p">.</span><span class="nx">sort</span><span class="p">();</span>
+  <span class="nx">keys</span><span class="p">.</span><span class="nx">reverse</span><span class="p">();</span>
+
+  <span class="kd">var</span> <span class="nx">$ul</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;&lt;ul /&gt;&#39;</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="k">in</span> <span class="nx">keys</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">$li</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;&lt;li /&gt;&#39;</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">time</span> <span class="o">=</span> <span class="nx">entries</span><span class="p">[</span><span class="nx">keys</span><span class="p">[</span><span class="nx">i</span><span class="p">]].</span><span class="nx">time</span><span class="p">;</span>
+    <span class="nx">$li</span><span class="p">.</span><span class="nx">text</span><span class="p">(</span><span class="nx">prettyDate</span><span class="p">(</span><span class="nx">time</span><span class="p">));</span>
+    <span class="nx">$li</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="nx">time</span><span class="p">);</span>
+    <span class="nx">$li</span><span class="p">.</span><span class="nx">click</span><span class="p">(</span><span class="nx">clickEntry</span><span class="p">);</span>
+    <span class="nx">$ul</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">$li</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="nx">$list</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">$ul</span><span class="p">);</span>
+  <span class="nx">setStatus</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">showPad</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">$list</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#entryList&#39;</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">$pad</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#pad&#39;</span><span class="p">);</span>
+  <span class="nx">$list</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">);</span>
+  <span class="nx">$pad</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">);</span>
+  <span class="nx">$pad</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;textarea&#39;</span><span class="p">).</span><span class="nx">focus</span><span class="p">().</span><span class="nx">val</span><span class="p">(</span><span class="nx">entry</span><span class="p">.</span><span class="nx">body</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">clickEntry</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">time</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">data</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">);</span>
+  <span class="nx">getEntry</span><span class="p">(</span><span class="nx">time</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">createEntry</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nb">window</span><span class="p">.</span><span class="nx">entry</span> <span class="o">=</span> <span class="p">{};</span>
+  <span class="nx">entry</span><span class="p">.</span><span class="nx">time</span> <span class="o">=</span> <span class="o">+</span><span class="k">new</span> <span class="nb">Date</span><span class="p">();</span>
+  <span class="nx">entry</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+  
+  <span class="nx">showPad</span><span class="p">();</span>
+  <span class="nx">renderDate</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">dateRenderLoop</span><span class="p">;</span>
+<span class="kd">function</span> <span class="nx">renderDate</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#date&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">(</span><span class="s1">&#39;Dated &#39;</span> <span class="o">+</span> <span class="nx">prettyDate</span><span class="p">(</span><span class="nx">entry</span><span class="p">.</span><span class="nx">time</span><span class="p">));</span>
+  <span class="nx">dateRenderLoop</span> <span class="o">=</span> <span class="nx">setInterval</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#date&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">(</span><span class="s1">&#39;Dated &#39;</span> <span class="o">+</span> <span class="nx">prettyDate</span><span class="p">(</span><span class="nx">entry</span><span class="p">.</span><span class="nx">time</span><span class="p">));</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">checkEntry</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">entry</span> <span class="o">!=</span> <span class="s1">&#39;undefined&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">text</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;textarea&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">();</span>
+
+    <span class="c1">// if it&#39;s not saved</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">entries</span><span class="p">[</span><span class="nx">entry</span><span class="p">.</span><span class="nx">time</span><span class="p">])</span> <span class="p">{</span>
+      <span class="c1">// if it&#39;s not  blank</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">text</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">confirmCheck</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="c1">// it is saved</span>
+      <span class="c1">// if it&#39;s changed</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">text</span> <span class="o">!=</span> <span class="nx">entries</span><span class="p">[</span><span class="nx">entry</span><span class="p">.</span><span class="nx">time</span><span class="p">].</span><span class="nx">body</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">confirmCheck</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="kd">function</span> <span class="nx">confirmCheck</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">confirm</span><span class="p">(</span><span class="s1">&#39;You have unsaved changes. Are you sure you want to leave this page?&#39;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">getEntry</span> <span class="p">(</span><span class="nx">time</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">checkEntry</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nb">window</span><span class="p">.</span><span class="nx">entry</span> <span class="o">=</span> <span class="nx">entries</span><span class="p">[</span><span class="nx">time</span><span class="p">];</span>
+  <span class="nx">showPad</span><span class="p">();</span>
+  <span class="nx">renderDate</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">saveEntry</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">entry</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;textarea&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">();</span>
+  <span class="nx">entries</span><span class="p">[</span><span class="nx">entry</span><span class="p">.</span><span class="nx">time</span><span class="p">]</span> <span class="o">=</span> <span class="nx">entry</span><span class="p">;</span>
+  <span class="nx">saveDiary</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">deleteEntry</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">sure</span> <span class="o">=</span> <span class="nx">confirm</span><span class="p">(</span><span class="s1">&#39;Are you sure you want to delete this entry?&#39;</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">sure</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+  <span class="k">delete</span> <span class="nx">entries</span><span class="p">[</span><span class="nx">entry</span><span class="p">.</span><span class="nx">time</span><span class="p">];</span>
+  <span class="nx">saveDiary</span><span class="p">();</span>
+  <span class="nx">displayEntries</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">saveDiary</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">setStatus</span><span class="p">(</span><span class="s1">&#39;Saving diary...&#39;</span><span class="p">);</span>
+  <span class="nx">diary</span><span class="p">.</span><span class="nx">save</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">setStatus</span><span class="p">(</span><span class="nx">err</span> <span class="o">||</span> <span class="s1">&#39;Diary saved&#39;</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">prettyDate</span> <span class="p">(</span><span class="nx">time</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">d</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">date</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="nx">time</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">diff</span> <span class="o">=</span> <span class="p">((</span><span class="nx">d</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span> <span class="o">-</span> <span class="nx">date</span><span class="p">.</span><span class="nx">getTime</span><span class="p">())</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">day_diff</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nx">diff</span> <span class="o">/</span> <span class="mi">86400</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">isNaN</span><span class="p">(</span><span class="nx">day_diff</span><span class="p">)</span> <span class="o">||</span> <span class="nx">day_diff</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="nx">day_diff</span> <span class="o">&gt;=</span> <span class="mi">31</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nx">day_diff</span> <span class="o">===</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="p">(</span>
+        <span class="nx">diff</span> <span class="o">&lt;</span> <span class="mi">60</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;just now&quot;</span> <span class="o">||</span>
+        <span class="nx">diff</span> <span class="o">&lt;</span> <span class="mi">120</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;1 minute ago&quot;</span> <span class="o">||</span>
+        <span class="nx">diff</span> <span class="o">&lt;</span> <span class="mi">3600</span> <span class="o">&amp;&amp;</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span> <span class="nx">diff</span> <span class="o">/</span> <span class="mi">60</span> <span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; minutes ago&quot;</span> <span class="o">||</span>
+        <span class="nx">diff</span> <span class="o">&lt;</span> <span class="mi">7200</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;1 hour ago&quot;</span> <span class="o">||</span>
+        <span class="nx">diff</span> <span class="o">&lt;</span> <span class="mi">86400</span> <span class="o">&amp;&amp;</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span> <span class="nx">diff</span> <span class="o">/</span> <span class="mi">3600</span> <span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; hours ago&quot;</span><span class="p">)</span> <span class="o">||</span>
+    <span class="nx">day_diff</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;Yesterday&quot;</span> <span class="o">||</span>
+    <span class="nx">day_diff</span> <span class="o">&lt;</span> <span class="mi">7</span> <span class="o">&amp;&amp;</span> <span class="nx">day_diff</span> <span class="o">+</span> <span class="s2">&quot; days ago&quot;</span> <span class="o">||</span>
+    <span class="nx">day_diff</span> <span class="o">&lt;</span> <span class="mi">31</span> <span class="o">&amp;&amp;</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">ceil</span><span class="p">(</span> <span class="nx">day_diff</span> <span class="o">/</span> <span class="mi">7</span> <span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; week ago&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div></td></tr></tbody></table></div></body></html>

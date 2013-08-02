@@ -1,0 +1,24 @@
+{
+  "database": {
+    "type": "postgres",
+    "username": "crypton_test_user",
+    "password": "crypton_test_user_password",
+    "database": "crypton_test",
+    "host": "localhost",
+    "port": 5432
+  },
+  "defaultKeySize": 32,
+  "id_translator": {
+    "key_file": "/dev/urandom"
+  },
+  "cookieSecretFile": "/dev/urandom",
+  "privateKey": "privateKeyExample.pem",
+  "certificate": "certificateExample.pem",
+  "appPath": ".",
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "pass": ""
+  },
+  "port": 1025
+}

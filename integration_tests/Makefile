@@ -19,6 +19,6 @@ build-client:
 
 run-server:
 	$(MAKE) -C ../server node_modules
-	NODE_ENV=test node ../server/server.js -p 1025 &
+	NODE_ENV=test node ../server/bin/cli.js -c config.json &
 
 .PHONY: test test-integration setup-test-environment clean-test-db build-client run-server

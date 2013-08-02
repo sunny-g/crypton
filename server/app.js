@@ -39,7 +39,7 @@ var allowCrossDomain = function (req, res, next) {
   res.header('Access-Control-Allow-Methods',
              'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers',
-             'x-requested-with,content-type,session-identifier');
+             'x-requested-with,content-type,x-session-identifier');
   next();
 };
 

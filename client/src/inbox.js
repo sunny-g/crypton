@@ -33,7 +33,7 @@ Inbox.prototype.poll = function (callback) {
   callback = callback || function () {};
 
   superagent.get(url)
-    .set('session-identifier', this.session.id)
+    .set('x-session-identifier', this.session.id)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);

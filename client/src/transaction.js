@@ -79,7 +79,7 @@ var Transaction = crypton.Transaction = function (session, callback) {
 Transaction.prototype.create = function (callback) {
   var url = crypton.url() + '/transaction/create';
   superagent.post(url)
-    .set('session-identifier', this.session.id)
+    .set('x-session-identifier', this.session.id)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -142,7 +142,7 @@ Transaction.prototype.saveChunk = function (chunk, callback) {
   var url = crypton.url() + '/transaction/' + this.id;
 
   superagent.post(url)
-    .set('session-identifier', this.session.id)
+    .set('x-session-identifier', this.session.id)
     .send(chunk)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
@@ -168,7 +168,7 @@ Transaction.prototype.commit = function (callback) {
   this.verify();
   var url = crypton.url() + '/transaction/' + this.id + '/commit';
   superagent.post(url)
-    .set('session-identifier', this.session.id)
+    .set('x-session-identifier', this.session.id)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);

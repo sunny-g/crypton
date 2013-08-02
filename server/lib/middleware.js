@@ -31,7 +31,7 @@ var middleware = module.exports = {};
  * @param {Function} next
  */
 middleware.verifySession = function (req, res, next) {
-  var id = req.headers['session-identifier'];
+  var id = req.headers['x-session-identifier'];
   app.log('debug', 'verifying session ' + id);
 
   req.sessionStore.get(id, function (err, session) {

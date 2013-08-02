@@ -66,7 +66,7 @@ Peer.prototype.fetch = function (callback) {
   var that = this;
   var url = crypton.url() + '/peer/' + this.username;
   superagent.get(url)
-    .set('session-identifier', this.session.id)
+    .set('x-session-identifier', this.session.id)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -127,7 +127,7 @@ Peer.prototype.sendMessage = function (headers, body, callback) {
   var url = crypton.url() + '/peer';
   superagent.post(url)
     .send(message)
-    .set('session-identifier', this.session.id)
+    .set('x-session-identifier', this.session.id)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);

@@ -34,7 +34,7 @@ var Session = crypton.Session = function (id) {
   this.peers = [];
   this.events = [];
   this.containers = [];
-  //this.inbox = new crypton.Inbox(this);
+  this.inbox = new crypton.Inbox(this);
 };
 
 /**!

@@ -53,41 +53,68 @@ Inbox.prototype.list = function () {
 };
 
 Inbox.prototype.filter = function (criteria, callback) {
+  criteria = criteria || {};
+
+  async.filter(this.messages, function (message) {
+    for (var i in criteria) {
+      if (message[i] != criteria[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }, function (messages) {
+    callback(messages);
+  });
 };
 
 Inbox.prototype.get = function (id, callback) {
-  // id = array or number
+  var that = this;
+  var url = crypton.url() + '/inbox/' + id;
+  callback = callback || function () {};
+
+  superagent.get(url)
+    .set('x-session-identifier', this.session.id)
+    .end(function (res) {
+    if (!res.body || res.body.success !== true) {
+      callback(res.body.error);
+      return;
+    }
+
+    callback(null, res.body.message);
+  });
 };
 
-Inbox.prototype.delete = function (callback) {
+Inbox.prototype.delete = function (id, callback) {
+  var chunk = {
+    type: 'deleteMessage',
+    messageId: id
+  };
+
+  // TODO handle errs
+  var tx = new crypton.Transaction(this.session, function (err) {
+    tx.save(chunk, function (err) {
+      tx.commit(function (err) {
+        callback();
+      });
+    });
+  });
+};
+
+Inbox.prototype.clear = function (callback) {
   // start + commit tx
-};
+  var chunk = {
+    type: 'clearInbox'
+  };
 
-Inbox.prototype.clear = function () {
-  // start + commit tx
-};
-
-
-function Message () {
-  // id
-  // from
-  // to
-  // timestamp
-  // size
-  // ttl
-  // headers
-  // body
-  // raw?
-};
-
-Message.prototype.getHeaders = function (callback) {
-};
-
-Message.prototype.getBody = function (callback) {
-};
-
-Message.prototype.delete = function (callback) {
-  // start + commit tx
+  // TODO handle errs
+  var tx = new crypton.Transaction(this.session, function (err) {
+    tx.save(chunk, function (err) {
+      tx.commit(function (err) {
+        callback();
+      });
+    });
+  });
 };
 
 })();

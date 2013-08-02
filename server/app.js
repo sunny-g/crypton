@@ -72,6 +72,7 @@ app.sessionStore = new RedisStore({
 app.use(express.session({
   secret: app.secret,
   store: app.sessionStore,
+  key: 'crypton.sid',
   cookie: {
     secure: true
   }

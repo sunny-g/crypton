@@ -32,7 +32,7 @@ describe('Core functionality', function () {
       });
     });
 
-    it('should registrations registrations without an existing username', function (done) {
+    it('should not accept registrations without an existing username', function (done) {
       crypton.generateAccount('notSoSmart', '', function (err, account) {
         assert.equal(err, 'Username already taken.');
         done();

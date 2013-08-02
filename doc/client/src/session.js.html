@@ -19,7 +19,10 @@
 <span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
 <span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
-<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
 <div class="pilwrap" id="session-id-">
   <h1>
     <a href="#session-id-" class="pilcrow">&#182;</a>
@@ -55,15 +58,16 @@ either from local cache or server </p></div><div class="body"><p>Calls back with
   <span class="p">}</span>
 
   <span class="c1">// check for a container on the server</span>
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
   <span class="k">this</span><span class="p">.</span><span class="nx">getContainer</span><span class="p">(</span><span class="nx">containerName</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">container</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
       <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
       <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span>
 
-    <span class="k">this</span><span class="p">.</span><span class="nx">containers</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">container</span><span class="p">);</span>
+    <span class="nx">that</span><span class="p">.</span><span class="nx">containers</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">container</span><span class="p">);</span>
     <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">container</span><span class="p">);</span>
-  <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">));</span>
+  <span class="p">});</span>
 <span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
 <div class="pilwrap" id="create-containername--callback-">
   <h3>
@@ -121,7 +125,7 @@ save it to server</p></div><div class="body"><p>Calls back with container and wi
 
     <span class="nx">async</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">chunks</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
       <span class="nx">tx</span><span class="p">.</span><span class="nx">save</span><span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
-    <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">),</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">},</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
       <span class="c1">// TODO handle err</span>
       <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>

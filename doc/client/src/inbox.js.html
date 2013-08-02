@@ -19,75 +19,80 @@
 <span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
 <span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
+
 <span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="nx">Inbox</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Inbox</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">Inbox</span> <span class="p">(</span><span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="nx">session</span><span class="p">;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">messages</span> <span class="o">=</span> <span class="p">[];</span>
 
-    <span class="k">this</span><span class="p">.</span><span class="nx">poll</span><span class="p">();</span>
-  <span class="p">};</span>
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
 
-  <span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">poll</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/inbox&#39;</span><span class="p">;</span>
-    <span class="nx">callback</span> <span class="o">=</span> <span class="nx">callback</span> <span class="o">||</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{};</span>
+<span class="kd">var</span> <span class="nx">Inbox</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Inbox</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">Inbox</span> <span class="p">(</span><span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="nx">session</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">messages</span> <span class="o">=</span> <span class="p">[];</span>
 
-    <span class="nx">superagent</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
-      <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
-      <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
-        <span class="k">return</span><span class="p">;</span>
-      <span class="p">}</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">poll</span><span class="p">();</span>
+<span class="p">};</span>
 
-      <span class="c1">// should we merge or overwrite here?</span>
-      <span class="nx">that</span><span class="p">.</span><span class="nx">messages</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">messages</span><span class="p">;</span>
+<span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">poll</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/inbox&#39;</span><span class="p">;</span>
+  <span class="nx">callback</span> <span class="o">=</span> <span class="nx">callback</span> <span class="o">||</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{};</span>
 
-      <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">messages</span><span class="p">);</span>
-    <span class="p">});</span>
-  <span class="p">};</span>
+  <span class="nx">superagent</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
 
-  <span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">list</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// TODO should we poll here?</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">messages</span><span class="p">();</span>
-  <span class="p">};</span>
+    <span class="c1">// should we merge or overwrite here?</span>
+    <span class="nx">that</span><span class="p">.</span><span class="nx">messages</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">messages</span><span class="p">;</span>
 
-  <span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">filter</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">criteria</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">};</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">messages</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span>
 
-  <span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">get</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// id = array or number</span>
-  <span class="p">};</span>
+<span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">list</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// TODO should we poll here?</span>
+  <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">messages</span><span class="p">();</span>
+<span class="p">};</span>
 
-  <span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="k">delete</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// start + commit tx</span>
-  <span class="p">};</span>
+<span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">filter</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">criteria</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">};</span>
 
-  <span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">clear</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// start + commit tx</span>
-  <span class="p">};</span>
+<span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">get</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// id = array or number</span>
+<span class="p">};</span>
+
+<span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="k">delete</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// start + commit tx</span>
+<span class="p">};</span>
+
+<span class="nx">Inbox</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">clear</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// start + commit tx</span>
+<span class="p">};</span>
 
 
-  <span class="kd">function</span> <span class="nx">Message</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// id</span>
-    <span class="c1">// from</span>
-    <span class="c1">// to</span>
-    <span class="c1">// timestamp</span>
-    <span class="c1">// size</span>
-    <span class="c1">// ttl</span>
-    <span class="c1">// headers</span>
-    <span class="c1">// body</span>
-    <span class="c1">// raw?</span>
-  <span class="p">};</span>
+<span class="kd">function</span> <span class="nx">Message</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// id</span>
+  <span class="c1">// from</span>
+  <span class="c1">// to</span>
+  <span class="c1">// timestamp</span>
+  <span class="c1">// size</span>
+  <span class="c1">// ttl</span>
+  <span class="c1">// headers</span>
+  <span class="c1">// body</span>
+  <span class="c1">// raw?</span>
+<span class="p">};</span>
 
-  <span class="nx">Message</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getHeaders</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">};</span>
+<span class="nx">Message</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getHeaders</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">};</span>
 
-  <span class="nx">Message</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getBody</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">};</span>
+<span class="nx">Message</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getBody</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">};</span>
 
-  <span class="nx">Message</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="k">delete</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// start + commit tx</span>
-  <span class="p">};</span>
+<span class="nx">Message</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="k">delete</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// start + commit tx</span>
+<span class="p">};</span>
+
 <span class="p">})();</span>
 </pre></div></td></tr></tbody></table></div></body></html>

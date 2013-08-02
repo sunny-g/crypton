@@ -56,12 +56,24 @@
   <span class="nx">app</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">defaultKeySize</span>
 <span class="p">);</span>
 
-<span class="nx">app</span><span class="p">.</span><span class="nx">sessionStore</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">express</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">MemoryStore</span><span class="p">();</span>
-<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">connect</span><span class="p">.</span><span class="nx">cookieParser</span><span class="p">());</span>
 <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">allowCrossDomain</span><span class="p">);</span>
 <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">bodyParser</span><span class="p">());</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">cookieParser</span><span class="p">());</span>
 
-<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">connect</span><span class="p">.</span><span class="nx">session</span><span class="p">({</span>
+<span class="kd">var</span> <span class="nx">redis</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;redis&#39;</span><span class="p">).</span><span class="nx">createClient</span><span class="p">(</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">port</span><span class="p">,</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">host</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">auth_pass</span><span class="o">:</span> <span class="nx">app</span><span class="p">.</span><span class="nx">config</span><span class="p">.</span><span class="nx">redis</span><span class="p">.</span><span class="nx">pass</span>
+  <span class="p">}</span>
+<span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">RedisStore</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;connect-redis&#39;</span><span class="p">)(</span><span class="nx">express</span><span class="p">);</span>
+<span class="nx">app</span><span class="p">.</span><span class="nx">sessionStore</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">RedisStore</span><span class="p">({</span>
+  <span class="nx">client</span><span class="o">:</span> <span class="nx">redis</span><span class="p">,</span>
+  <span class="nx">prefix</span><span class="o">:</span> <span class="s1">&#39;crypton.sid:&#39;</span>
+<span class="p">});</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">session</span><span class="p">({</span>
   <span class="nx">secret</span><span class="o">:</span> <span class="nx">app</span><span class="p">.</span><span class="nx">secret</span><span class="p">,</span>
   <span class="nx">store</span><span class="o">:</span> <span class="nx">app</span><span class="p">.</span><span class="nx">sessionStore</span><span class="p">,</span>
   <span class="nx">key</span><span class="o">:</span> <span class="s1">&#39;crypton.sid&#39;</span><span class="p">,</span>
@@ -69,6 +81,7 @@
     <span class="nx">secure</span><span class="o">:</span> <span class="kc">true</span>
   <span class="p">}</span>
 <span class="p">}));</span>
+
 
 <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">logger</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">info</span><span class="p">,</span> <span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="nx">color</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span><span class="p">;</span>

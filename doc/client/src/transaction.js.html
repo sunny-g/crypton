@@ -19,7 +19,10 @@
 <span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
 <span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
-<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
 <div class="pilwrap" id="transaction-session--callback-">
   <h1>
     <a href="#transaction-session--callback-" class="pilcrow">&#182;</a>
@@ -30,8 +33,8 @@
   // your code
 });
 </code></pre></div></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">session</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">Transaction</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Transaction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">session</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
   <span class="k">this</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="nx">session</span><span class="p">;</span>
-
   <span class="k">this</span><span class="p">.</span><span class="nx">types</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;addAccount&#39;</span><span class="p">,</span>
     <span class="s1">&#39;setBaseKeyring&#39;</span><span class="p">,</span>
@@ -57,10 +60,10 @@
       <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span>
 
-    <span class="k">this</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="p">;</span>
+    <span class="nx">that</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="p">;</span>
 
-    <span class="nx">callback</span> <span class="o">&amp;&amp;</span> <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
-  <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">));</span>
+    <span class="nx">callback</span> <span class="o">&amp;&amp;</span> <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">that</span><span class="p">);</span>
+  <span class="p">});</span>
 <span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
 <div class="pilwrap" id="create-callback-">
   <h3>
@@ -97,8 +100,10 @@
 
 <p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">chunk</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">save</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
   <span class="k">this</span><span class="p">.</span><span class="nx">verify</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
   <span class="kd">var</span> <span class="nx">args</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
   <span class="kd">var</span> <span class="nx">callback</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+
   <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">callback</span> <span class="o">!=</span> <span class="s1">&#39;function&#39;</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">args</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">callback</span><span class="p">);</span>
     <span class="nx">callback</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{};</span>
@@ -111,8 +116,8 @@
       <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span>
 
-    <span class="k">this</span><span class="p">.</span><span class="nx">saveChunk</span><span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">cb</span><span class="p">);</span>
-  <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">),</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">that</span><span class="p">.</span><span class="nx">saveChunk</span><span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">cb</span><span class="p">);</span>
+  <span class="p">},</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
   <span class="p">});</span>
 <span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">

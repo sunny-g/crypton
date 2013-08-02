@@ -20,7 +20,9 @@
 <span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 <span class="cm">*/</span>
 
-<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
 <div class="pilwrap" id="container-session-">
   <h1>
     <a href="#container-session-" class="pilcrow">&#182;</a>
@@ -198,7 +200,8 @@ encrypt the record, and send it to the server to be saved</p></div><div class="b
 <p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Container</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getHistory</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="nx">containerNameHmac</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getPublicName</span><span class="p">();</span>
 
-  <span class="nx">superagent</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/container/&#39;</span> <span class="o">+</span> <span class="nx">containerNameHmac</span><span class="p">)</span>
+  <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/container/&#39;</span> <span class="o">+</span> <span class="nx">containerNameHmac</span><span class="p">;</span>
+  <span class="nx">superagent</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
     <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
     <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>

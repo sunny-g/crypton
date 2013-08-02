@@ -38,7 +38,7 @@ app.io.set('authorization', function (handshakeData, accept) {
 
 app.io.sockets.on('connection', function (socket) {
   var sid = socket.handshake.sessionId;
-  var rawSession = app.sessionStore.sessions[sid]
+  var rawSession = null; //app.sessionStore.sessions[sid]
 
   if (!rawSession) {
     // reconnect after server died and flushed sessions

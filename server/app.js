@@ -52,19 +52,31 @@ app.secret = util.readFileSync(
   app.config.defaultKeySize
 );
 
-app.sessionStore = new express.session.MemoryStore();
-app.use(connect.cookieParser());
 app.use(allowCrossDomain);
 app.use(express.bodyParser());
+app.use(express.cookieParser());
 
-app.use(connect.session({
+var redis = require('redis').createClient(
+  app.config.redis.port,
+  app.config.redis.host, {
+    auth_pass: app.config.redis.pass
+  }
+);
+
+var RedisStore = require('connect-redis')(express);
+app.sessionStore = new RedisStore({
+  client: redis,
+  prefix: 'crypton.sid:'
+});
+
+app.use(express.session({
   secret: app.secret,
   store: app.sessionStore,
-  key: 'crypton.sid',
   cookie: {
     secure: true
   }
 }));
+
 
 app.use(express.logger(function (info, req, res) {
   var color = 'green';

@@ -204,7 +204,8 @@ Container.prototype.getPublicName = function () {
 Container.prototype.getHistory = function (callback) {
   var containerNameHmac = this.getPublicName();
 
-  superagent.get(crypton.url() + '/container/' + containerNameHmac)
+  var url = crypton.url() + '/container/' + containerNameHmac;
+  superagent.get(url)
     .set('session-identifier', this.session.id)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {

@@ -22,7 +22,8 @@
 
 var Inbox = crypton.Inbox = function Inbox (session) {
   this.session = session;
-  this.messages = [];
+  this.rawMessages = [];
+  this.messages = {};
 
   this.poll();
 };
@@ -41,7 +42,8 @@ Inbox.prototype.poll = function (callback) {
     }
 
     // should we merge or overwrite here?
-    that.messages = res.body.messages;
+    that.rawMessages = res.body.messages;
+    that.parseRawMessages();
 
     callback(null, res.body.messages);
   });
@@ -69,6 +71,12 @@ Inbox.prototype.filter = function (criteria, callback) {
 };
 
 Inbox.prototype.get = function (id, callback) {
+  var cachedMessage = this.messages[messageId];
+  if (cachedMessage) {
+    callback(null, cachedMessage);
+    return;
+  }
+
   var that = this;
   var url = crypton.url() + '/inbox/' + id;
   callback = callback || function () {};
@@ -115,6 +123,44 @@ Inbox.prototype.clear = function (callback) {
       });
     });
   });
+};
+
+Inbox.prototype.parseRawMessages = function () {
+  var secretKey = this.session.account.secretKey;
+
+  for (var i in this.rawMessages) {
+    var rawMessage = this.rawMessages[i];
+
+    if (!this.messages[rawMessage.messageId]) {
+      var message = new crypton.Message();
+
+      var headers = sjcl.decrypt(secretKey, rawMessage.headerCiphertext, crypton.cipherOptions);
+      var payload = sjcl.decrypt(secretKey, rawMessage.payloadCiphertext, crypton.cipherOptions);
+
+      var err;
+      try {
+        headers = JSON.parse(headers);
+        payload = JSON.parse(payload);
+      } catch (e) {
+        err = 'Could not parse message';
+      }
+
+      if (err) {
+        // TODO throw?
+      } else {
+        message.headers = headers;
+        message.payload = payload;
+        message.ttl = rawMessage.ttl;
+        message.id = rawMessage.messageId;
+        message.to = rawMessage.toAccountId;
+        message.from = rawMessage.fromAccountId;
+        message.created = new Date(rawMessage.creationTime);
+
+        this.messages[message.id] = message;
+        console.log(this.messages[message.id]);
+      }
+    }
+  }
 };
 
 })();

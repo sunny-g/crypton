@@ -58,6 +58,8 @@ datastore.getAllMessages = function (accountId, callback) {
       var records = [];
       result.rows.forEach(function (row) {
         row = datastore.util.camelizeObject(row);
+        row.headerCiphertext = row.headerCiphertext.toString();
+        row.payloadCiphertext = row.payloadCiphertext.toString();
         records.push(row);
       });
 

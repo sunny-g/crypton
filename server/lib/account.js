@@ -268,12 +268,7 @@ Account.prototype.sendMessage = function (from, headers, body, callback) {
         app.log('debug', 'sending message over websocket');
 
         app.clients[to].emit('message', {
-          from: {
-            id: from,
-            username: sender.username
-          },
-          headers: headers,
-          body: body
+          messageId: messageId
         });
       }
     });

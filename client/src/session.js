@@ -35,6 +35,18 @@ var Session = crypton.Session = function (id) {
   this.events = [];
   this.containers = [];
   this.inbox = new crypton.Inbox(this);
+
+  var that = this;
+  this.socket = io.connect(crypton.url(), {
+    secure: true
+  });
+
+  this.socket.on('message', function (data) {
+    that.inbox.poll();
+    that.emit('message', {
+      messageId: data.messageId
+    });
+  });
 };
 
 /**!

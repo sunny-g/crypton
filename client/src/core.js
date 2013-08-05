@@ -156,27 +156,12 @@ crypton.authorize = function (username, passphrase, callback) {
           var session = new crypton.Session(sessionIdentifier);
           session.account = new crypton.Account();
           session.account.passphrase = passphrase;
+
           for (var i in res.body.account) {
             session.account[i] = res.body.account[i];
           }
 
           session.account.unravel(function () {
-            var socket = crypton.io = io.connect(crypton.url(), {
-              secure: true
-            });
-
-            socket.on('message', function (data) {
-              //var peer = session.peers[data.from];
-              var headers = sjcl.decrypt(session.account.secretKey, data.headers, crypton.cipherOptions);
-              var body = sjcl.decrypt(session.account.secretKey, data.body, crypton.cipherOptions);
-
-              session.emit('message', {
-                headers: JSON.parse(headers),
-                body: JSON.parse(body),
-                from: data.from
-              });
-            });
-
             callback(null, session);
           });
         });

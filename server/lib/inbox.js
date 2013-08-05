@@ -63,7 +63,12 @@ Inbox.prototype.getAllMessages = function (callback) {
  */
 Inbox.prototype.getMessageById = function (messageId, callback) {
   db.getMessageById(messageId, function (err, message) {
-    // TODO verify this.accountId
+    if (message.toAccountId != this.accountId) {
+      // don't divulge existance
+      callback('Message does not exist');
+      return;
+    }
+
     callback(err, message);
   });
 };

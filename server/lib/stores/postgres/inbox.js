@@ -65,3 +65,42 @@ datastore.getAllMessages = function (accountId, callback) {
     });
   });
 }
+
+/**!
+ * ### getMessageById(messageId, callback)
+ * Retrieve message for `messageId`
+ *
+ * Calls back with message and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {messageId} messageId
+ * @param {Function} callback
+ */
+datastore.getMessageById = function (messageId, callback) {
+  connect(function (client, done) {
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select * from message where \
+        message_id = $1 and \
+        deletion_time is null',
+       /*jslint multistr: false*/
+      values: [
+        messageId
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      done();
+
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      var message = datastore.util.camelizeObject(result.rows[0]);
+
+      callback(null, records);
+    });
+  });
+}

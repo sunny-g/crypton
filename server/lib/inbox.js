@@ -49,3 +49,21 @@ Inbox.prototype.getAllMessages = function (callback) {
     callback(err, messages);
   });
 };
+
+/**!
+ * ### getMessageById(messageId, callback)
+ * Retrieve message from the database for the specified `accountId` and `messageId`
+ *
+ * Calls back without error and with messages if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {Number} messageId
+ * @param {Function} callback
+ */
+Inbox.prototype.getMessageById = function (messageId, callback) {
+  db.getMessageById(messageId, function (err, message) {
+    // TODO verify this.accountId
+    callback(err, message);
+  });
+};

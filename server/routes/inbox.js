@@ -30,8 +30,8 @@ var Inbox = require('../lib/inbox');
 app.get('/inbox', verifySession, function (req, res) {
   app.log('debug', 'handling GET /inbox');
 
-  var id = req.session.accountId;
-  var inbox = new Inbox(id);
+  var accountId = req.session.accountId;
+  var inbox = new Inbox(accountId);
 
   inbox.getAllMessages(function (err, messages) {
     if (err) {
@@ -50,18 +50,28 @@ app.get('/inbox', verifySession, function (req, res) {
 });
 
 /**!
- * ### GET /inbox/:messageIdentifier
- * Get specific message for the current session's `accountId` by `messageIdentifier`
+ * ### GET /inbox/:messageId
+ * Get specific message for the current session's `accountId` by `messageId`
 */
-app.get('/inbox/:messageIdentifier', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /inbox/:messageIdentifier');
-});
+app.get('/inbox/:messageId', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /inbox/:messageId');
 
-/**!
- * ### DEL /inbox/:messageIdentifier
- * Delete specific message for the current session's `accountId` by `messageIdentifier`
-*/
-// TODO should this be deleted in lieu of a transaction?
-app.del('/inbox/:messageIdentifier', verifySession, function (req, res) {
-  app.log('debug', 'handling DEL /container/:containerNameHmac');
+  var messageId = req.params.messageId;
+  var accountId = req.session.accountId;
+  var inbox = new Inbox(accountId);
+
+  inbox.getMessageById(messageId, function (err, message) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      message: message
+    });
+  });
 });

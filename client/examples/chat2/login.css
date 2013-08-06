@@ -14,6 +14,8 @@
   display: block;
   margin: 10px auto;
   outline: 0;
+  font-family: 'HelveticaNeue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
 }
 
 #login input[type="text"]:focus,
@@ -28,6 +30,8 @@
   color: #fff;
   opacity: 0.7;
   outline: 0;
+  font-family: 'HelveticaNeue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
 }
 
 #login input[type="submit"]:focus,

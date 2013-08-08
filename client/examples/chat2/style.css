@@ -58,8 +58,62 @@ body {
   bottom: 0;
   width: 300px;
   transition: all 0.2s ease;
+  text-align: center;
+}
+
+#sidebar .no-conversations {
+  padding: 15px 0;
+  opacity: 0.5;
 }
 
 .padding {
   padding: 0 15px;
+}
+
+#container {
+  position: fixed;
+  top: 50px;
+  left: 10000px;
+  right: 0;
+  bottom: 0;
+  transition: all 0.2s ease;
+}
+
+#create-conversation {
+  display: none;
+  width: 400px;
+  margin: 100px auto;
+}
+
+#create-conversation input[type="text"] {
+  display: block;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin: 20px auto;
+  outline: 0;
+  font-family: 'HelveticaNeue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+}
+
+#create-conversation input[type="text"]:focus {
+  box-shadow: 0 0 10px #ddd;
+}
+
+#create-conversation input[type="submit"] {
+  border: 0;
+  padding: 10px;
+  background: #59a75e;
+  color: #fff;
+  opacity: 0.7;
+  outline: 0;
+  font-family: 'HelveticaNeue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  display: block;
+  margin: 0 auto;
+}
+
+#create-conversation input[type="submit"]:focus,
+#create-conversation input[type="submit"]:hover {
+  opacity: 1;
+  cursor: pointer;
 }

@@ -58,12 +58,39 @@ body {
   bottom: 0;
   width: 300px;
   transition: all 0.2s ease;
-  text-align: center;
+  padding: 1px;
 }
 
 #sidebar .no-conversations {
   padding: 15px 0;
   opacity: 0.5;
+  text-align: center;
+}
+
+#sidebar .conversation {
+  padding: 15px;
+  margin-bottom: 1px;
+  background: #fdfdfd;
+  color: #aaa;
+  cursor: pointer;
+}
+
+#sidebar .conversation.active,
+#sidebar .conversation:hover {
+  color: #000;
+}
+
+#sidebar .conversation span {
+  display: block;
+}
+
+#sidebar .conversation.active .username,
+#sidebar .conversation:hover .username {
+  font-weight: bold;
+}
+
+#sidebar .conversation .activity {
+  font-size: 0.9em;
 }
 
 .padding {
@@ -117,3 +144,36 @@ body {
   opacity: 1;
   cursor: pointer;
 }
+
+#conversation {
+  display: none;
+  position: fixed;
+  top: 50px;
+  left: 300px;
+  right: 0;
+  bottom: 0;
+  overflow-x: none;
+  overflow-y: scroll;
+}
+
+#conversation #messages {
+  
+}
+
+#conversation #conversation-input input {
+  position: fixed;
+  bottom: 15px;
+  left: 315px;
+  right: 15px;
+  padding: 10px;
+  font-family: 'HelveticaNeue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  outline: 0;
+  border: 1px solid #ddd;
+}
+
+#conversation #conversation-input input:focus {
+  box-shadow: 0 0 10px #ddd;
+}
+
+

@@ -94,22 +94,26 @@ app.renderSidebar = function (callback) {
   var $sidebar = $('#sidebar');
   $sidebar.html('');
 
-  console.log(app.conversations);
-  if (!app.conversations.length) {
+  if (!Object.keys(app.conversations).length) {
+    console.log('nope');
     $('<p />')
       .addClass('no-conversations')
       .text('There are no existing conversations')
       .appendTo($sidebar);
   }
 
-  async.each(app.conversations, function (conversation, cb) {
-    console.log(conversation);
-    $('<div />').addClass('conversation').text(conversation.username).appendTo($sidebar);
+  for (var i in app.conversations) {
+    var conversation = app.conversations[i];
+    console.log('got here', conversation);
+
+    var $conversation = $('<div />').addClass('conversation');
+    $('<span />').addClass('username').text(conversation.username).appendTo($conversation);
+    $('<span />').addClass('activity').text(conversation.lastActivity).appendTo($conversation);
+    $conversation.appendTo($sidebar);
     //bind
-    cb();
-  }, function (err) {
-    callback(err);
-  });
+  }
+
+  callback();
 };
 
 app.bind = function (callback) {
@@ -132,8 +136,13 @@ app.createConversation = function () {
     var data = $(this).serializeArray();
     var username = data[0].value;
 
+    // TODO change to inverse to get rid of extra indent
     if (username) {
-      // TODO check if conversation exists
+      if (app.conversations[username]) {
+        $('#create-conversation').hide();
+        app.loadConversation(username);
+        return;
+      }
 
       app.addPeer(username, function (err) {
         if (err) {
@@ -141,7 +150,7 @@ app.createConversation = function () {
           return;
         }
 
-        $('#create-conversation').fadeOut();
+        $('#create-conversation').hide();
 
         var conversation = {
           username: username,
@@ -150,7 +159,7 @@ app.createConversation = function () {
 
         app.conversations[username] = conversation;
 
-        app.metadata.save(function () {
+        app.metadata.save(function (err) {
           app.renderSidebar(function () {
             app.loadConversation(username);
           });
@@ -188,12 +197,41 @@ app.loadConversation = function (username) {
 };
 
 app.renderConversation = function (messages) {
-  // clear window
-  // render messages
-  // render send ui
+  // TODO there's a better way to do this, let's just pass it in
+  var conversationWith = app.conversation.name.split('_')[1];
+  var $conversations = $('#sidebar .conversation');
+  $conversations.removeClass('active');
+  $conversations.each(function () {
+    var username = $(this).find('.username').text();
+    if (username == conversationWith) {
+      $(this).addClass('active');
+    }
+  });
+
+  var $messages = $('#conversation #messages');
+  $messages.html();
+
   for (var i in messages) {
-    console.log(messages[i]);
+    app.renderMessage(messages[i]);
   }
+
+  $('#conversation').show();
+  $('#conversation-input input').val('').focus();
+
+  $('#conversation-input').focus().submit(function (e) {
+    e.preventDefault();
+    var message = $(this).serializeArray()[0].value;
+    $(this).find('input').val('');
+    app.sendMessage(message);
+  });
+};
+
+app.renderMessage = function (message) {
+  console.log(message);
+};
+
+app.sendMessage = function (message) {
+  console.log(app.conversation, message);
 };
 
 app.logout = function () {

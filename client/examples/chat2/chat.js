@@ -95,7 +95,6 @@ app.renderSidebar = function (callback) {
   $sidebar.html('');
 
   if (!Object.keys(app.conversations).length) {
-    console.log('nope');
     $('<p />')
       .addClass('no-conversations')
       .text('There are no existing conversations')
@@ -104,13 +103,21 @@ app.renderSidebar = function (callback) {
 
   for (var i in app.conversations) {
     var conversation = app.conversations[i];
-    console.log('got here', conversation);
-
     var $conversation = $('<div />').addClass('conversation');
+
     $('<span />').addClass('username').text(conversation.username).appendTo($conversation);
-    $('<span />').addClass('activity').text(conversation.lastActivity).appendTo($conversation);
+    $('<span />').addClass('activity')
+      .attr('data-livestamp', conversation.lastActivity)
+      .livestamp(new Date(conversation.lastActivity)) // doesn't like millisecond
+      .appendTo($conversation);
+
     $conversation.appendTo($sidebar);
-    //bind
+
+    $conversation.click(function () {
+      // can't use conversation.username in callback without IIFE
+      var username = $(this).find('.username').text();
+      app.loadConversation(username);
+    });
   }
 
   callback();
@@ -223,8 +230,10 @@ app.renderConversation = function (messages) {
   $('#conversation-input').focus().submit(function (e) {
     e.preventDefault();
     var message = $(this).serializeArray()[0].value;
-    $(this).find('input').val('');
-    app.sendMessage(message);
+    if (message) {
+      $(this).find('input').val('');
+      app.sendMessage(message);
+    }
   });
 };
 

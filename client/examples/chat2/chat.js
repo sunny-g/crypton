@@ -129,7 +129,9 @@ app.bind = function (callback) {
 app.createConversation = function () {
   $('#conversation').hide();
   $('#create-conversation').fadeIn();
-  $('#create-conversation input')[0].focus();
+  var input = $('#create-conversation input')[0];
+  input.value = '';
+  input.focus();
 
   $('#create-conversation form').submit(function (e) {
     e.preventDefault();

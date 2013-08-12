@@ -101,8 +101,10 @@ datastore.getMessageById = function (messageId, callback) {
       }
 
       var message = datastore.util.camelizeObject(result.rows[0]);
+      message.headerCiphertext = message.headerCiphertext.toString();
+      message.payloadCiphertext = message.payloadCiphertext.toString();
 
-      callback(null, records);
+      callback(null, message);
     });
   });
 }

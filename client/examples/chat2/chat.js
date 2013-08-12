@@ -33,6 +33,54 @@ app.init = function (session) {
     app.setStatus('Ready');
     app.createConversation();
   });
+
+  app.session.on('message', function (data) {
+    app.session.inbox.get(data.messageId, function (err, message) {
+      if (message.headers.app == 'chatExample') {
+        app.processMessage(message);
+      }
+    });
+  });
+};
+
+app.processMessage = function (message) {
+  var type = message.headers.type;
+  var from = message.headers.from;
+
+  if (type == 'message') {
+    if (app.conversations[from]) {
+      app.conversations[from].lastActivity = message.created;
+      app.loadConversation(from, callback);
+    } else {
+      app.startConversation(from, callback);
+    }
+  }
+
+  function callback () {
+    app.renderSidebar(function () {
+      app.addMessageToConversation(message, function () {
+        // delete message
+      });
+    });
+  }
+};
+
+app.addMessageToConversation = function (message, callback) {
+  app.conversation.get('messages', function (err, messages) {
+    var messageToStore = {
+      from: message.headers.from,
+      body: message.payload
+    };
+
+    messages[message.messageId] = messageToStore;
+
+    app.conversation.save(function () {
+      app.renderMessage(messageToStore);
+      console.log(arguments);
+      console.log(app.conversation);
+      callback && callback();
+    });
+  });
 };
 
 app.setUsername = function () {
@@ -60,6 +108,8 @@ app.loadMetadata = function (callback) {
 
       metadata.add('conversations', function () {
         metadata.get('conversations', function (err, conversations) {
+console.log('loaded');
+console.log(metadata, conversations);
           app.metadata = metadata;
           app.conversations = conversations;
           callback();
@@ -116,6 +166,7 @@ app.renderSidebar = function (callback) {
     $conversation.click(function () {
       // can't use conversation.username in callback without IIFE
       var username = $(this).find('.username').text();
+      $('#create-conversation').hide();
       app.loadConversation(username);
     });
   }
@@ -145,36 +196,42 @@ app.createConversation = function () {
     var data = $(this).serializeArray();
     var username = data[0].value;
 
-    // TODO change to inverse to get rid of extra indent
-    if (username) {
-      if (app.conversations[username]) {
-        $('#create-conversation').hide();
-        app.loadConversation(username);
-        return;
-      }
-
-      app.addPeer(username, function (err) {
-        if (err) {
-          alert(err);
-          return;
-        }
-
-        $('#create-conversation').hide();
-
-        var conversation = {
-          username: username,
-          lastActivity: +new Date()
-        };
-
-        app.conversations[username] = conversation;
-
-        app.metadata.save(function (err) {
-          app.renderSidebar(function () {
-            app.loadConversation(username);
-          });
-        });
-      });
+    if (!username) {
+      return;
     }
+
+    if (app.conversations[username]) {
+      $('#create-conversation').hide();
+      app.loadConversation(username);
+      return;
+    }
+
+    app.startConversation(username);
+  });
+};
+
+app.startConversation = function (username, callback) {
+  app.addPeer(username, function (err) {
+    if (err) {
+      alert(err);
+      return;
+    }
+
+    $('#create-conversation').hide();
+
+    var conversation = {
+      username: username,
+      lastActivity: +new Date()
+    };
+
+    app.conversations[username] = conversation;
+
+console.log('saving conversations');
+    app.metadata.save(function (err) {
+      app.renderSidebar(function () {
+        app.loadConversation(username, callback);
+      });
+    });
   });
 };
 
@@ -190,7 +247,7 @@ app.addPeer = function (username, callback) {
   });
 };
 
-app.loadConversation = function (username) {
+app.loadConversation = function (username, callback) {
   var containerName = 'conversation_' + username;
   app.session.create(containerName, function (err) {
     app.session.load(containerName, function (err, conversation) {
@@ -199,15 +256,22 @@ app.loadConversation = function (username) {
       conversation.add('messages', function () {
         conversation.get('messages', function (err, messages) {
           app.renderConversation(messages);
+
+          callback && callback();
         });
       });
     });
   });
 };
 
+app.usernameFromConversation = function () {
+  var conversationWith = app.conversation.name.split('_')[1];
+  return conversationWith;
+};
+
 app.renderConversation = function (messages) {
   // TODO there's a better way to do this, let's just pass it in
-  var conversationWith = app.conversation.name.split('_')[1];
+  var conversationWith = app.usernameFromConversation();
   var $conversations = $('#sidebar .conversation');
   $conversations.removeClass('active');
   $conversations.each(function () {
@@ -238,11 +302,37 @@ app.renderConversation = function (messages) {
 };
 
 app.renderMessage = function (message) {
-  console.log(message);
+  console.log('rendering', message);
+  var $messages = $('#messages');
+
+  var $message = $('<div />').addClass('message');
+  $('<strong />').text(message.from).appendTo($message);
+  $('<span />').text(message.body).appendTo($message);
+
+  $message.appendTo($messages);
+};
+
+app.sendStatus = function (message) {
+  var conversationWith = app.usernameFromConversation();
+  var peer = app.peers[conversationWith];
+  console.log(peer, message);
 };
 
 app.sendMessage = function (message) {
-  console.log(app.conversation, message);
+  var conversationWith = app.usernameFromConversation();
+  var peer = app.peers[conversationWith];
+
+  var headers = {
+    app: 'chatExample',
+    type: 'message',
+    from: app.session.account.username
+  };
+
+  var payload = message;
+
+  peer.sendMessage(headers, payload, function (err, messageId) {
+    console.log('sent ' + messageId);
+  });
 };
 
 app.logout = function () {

@@ -46,18 +46,23 @@ app.setStatus = function (message) {
 app.loadMetadata = function (callback) {
   app.setStatus('Loading metadata from server...');
 
-  app.session.create('chatMetadata', function (err) {
+  app.session.load('chatMetadata', function (err, metadata) {
     if (err) {
       console.log(err);
+      app.session.create('chatMetadata', function (err, metadata) {
+        if (err) {
+          console.log(arguments);
+          return;
+        }
+
+        grabKey(metadata);
+      });
       return;
     }
 
-    app.session.load('chatMetadata', function (err, metadata) {
-      if (err) {
-        console.log(arguments);
-        return;
-      }
+    grabKey(metadata);
 
+    function grabKey (metadata) {
       metadata.add('conversations', function () {
         metadata.get('conversations', function (err, conversations) {
           app.metadata = metadata;
@@ -65,7 +70,7 @@ app.loadMetadata = function (callback) {
           callback();
         });
       });
-    });
+    }
   });
 };
 

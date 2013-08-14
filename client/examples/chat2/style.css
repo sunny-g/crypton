@@ -157,7 +157,21 @@ body {
 }
 
 #conversation #messages {
-  
+  padding: 10px 15px 70px;
+}
+
+#conversation .message {
+  padding: 0 0 5px;
+}
+
+#conversation .message .username {
+  opacity: 0.5;
+  padding-right: 15px;
+}
+
+#conversation .message .sent {
+  opacity: 0.5;
+  float: right;
 }
 
 #conversation #conversation-input input {

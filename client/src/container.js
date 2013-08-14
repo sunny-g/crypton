@@ -102,7 +102,6 @@ Container.prototype.save = function (callback, options) {
     that.versions[now] = JSON.parse(JSON.stringify(that.keys));
     that.version = now;
 
-console.log('diff', diff);
     var payloadCiphertext = sjcl.encrypt(that.hmacKey, JSON.stringify(diff), crypton.cipherOptions);
 
     var chunk = {

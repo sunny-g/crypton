@@ -2,7 +2,7 @@ var app = {};
 
 app.init = function (session) {
   app.session = session;
-  app.peers = [];
+  app.peers = {};
 
   $('#header').css({
     top: 0
@@ -31,7 +31,23 @@ app.init = function (session) {
     }
 
     app.setStatus('Ready');
-    app.createConversation();
+
+    if (Object.keys(app.conversations).length) {
+      var latestActivity = 0;
+      var username;
+
+      for (var i in app.conversations) {
+        var conversation = app.conversations[i];
+
+        if (+new Date(conversation.lastActivity) > latestActivity) {
+          username = conversation.username;
+        }
+      }
+
+      app.loadConversation(username);
+    } else {
+      app.createConversation();
+    }
   });
 
   app.session.on('message', function (data) {
@@ -50,16 +66,24 @@ app.processMessage = function (message) {
   if (type == 'message') {
     if (app.conversations[from]) {
       app.conversations[from].lastActivity = message.created;
-      app.loadConversation(from, callback);
+      var currentConversationWith = app.conversation && app.usernameFromConversation();
+
+      if (currentConversationWith != from) {
+        app.loadConversation(from, callback);
+      } else {
+        callback();
+      }
     } else {
       app.startConversation(from, callback);
     }
   }
 
   function callback () {
-    app.renderSidebar(function () {
-      app.addMessageToConversation(message, function () {
-        // delete message
+    app.metadata.save(function () {
+      app.renderSidebar(function () {
+        app.addMessageToConversation(message, function () {
+          // delete message
+        });
       });
     });
   }
@@ -69,15 +93,14 @@ app.addMessageToConversation = function (message, callback) {
   app.conversation.get('messages', function (err, messages) {
     var messageToStore = {
       from: message.headers.from,
-      body: message.payload
+      body: message.payload,
+      sent: +new Date(message.creationTime)
     };
 
     messages[message.messageId] = messageToStore;
 
     app.conversation.save(function () {
       app.renderMessage(messageToStore);
-      console.log(arguments);
-      console.log(app.conversation);
       callback && callback();
     });
   });
@@ -113,8 +136,6 @@ app.loadMetadata = function (callback) {
     function grabKey (metadata) {
       metadata.add('conversations', function () {
         metadata.get('conversations', function (err, conversations) {
-console.log('loaded');
-console.log(metadata, conversations);
           app.metadata = metadata;
           app.conversations = conversations;
           callback();
@@ -137,8 +158,7 @@ app.syncMessages = function (callback) {
 app.syncPeers = function (callback) {
   app.setStatus('Syncing peers from server...');
 
-  async.each(app.conversations, function (conversation, cb) {
-    var username = conversation.username;
+  async.each(Object.keys(app.conversations), function (username, cb) {
     app.addPeer(username, cb);
   }, function (err) {
     callback(err);
@@ -146,6 +166,7 @@ app.syncPeers = function (callback) {
 };
 
 app.renderSidebar = function (callback) {
+  var currentConversationWith = app.conversation && app.usernameFromConversation();
   var $sidebar = $('#sidebar');
   $sidebar.html('');
 
@@ -160,6 +181,10 @@ app.renderSidebar = function (callback) {
     var conversation = app.conversations[i];
     var $conversation = $('<div />').addClass('conversation');
 
+    if (currentConversationWith == conversation.username) {
+      $conversation.addClass('active');
+    }
+
     $('<span />').addClass('username').text(conversation.username).appendTo($conversation);
     $('<span />').addClass('activity')
       .attr('data-livestamp', conversation.lastActivity)
@@ -169,9 +194,9 @@ app.renderSidebar = function (callback) {
     $conversation.appendTo($sidebar);
 
     $conversation.click(function () {
+      $('#messages').html('');
       // can't use conversation.username in callback without IIFE
       var username = $(this).find('.username').text();
-      $('#create-conversation').hide();
       app.loadConversation(username);
     });
   }
@@ -206,7 +231,6 @@ app.createConversation = function () {
     }
 
     if (app.conversations[username]) {
-      $('#create-conversation').hide();
       app.loadConversation(username);
       return;
     }
@@ -222,8 +246,6 @@ app.startConversation = function (username, callback) {
       return;
     }
 
-    $('#create-conversation').hide();
-
     var conversation = {
       username: username,
       lastActivity: +new Date()
@@ -231,7 +253,6 @@ app.startConversation = function (username, callback) {
 
     app.conversations[username] = conversation;
 
-console.log('saving conversations');
     app.metadata.save(function (err) {
       app.renderSidebar(function () {
         app.loadConversation(username, callback);
@@ -254,19 +275,33 @@ app.addPeer = function (username, callback) {
 
 app.loadConversation = function (username, callback) {
   var containerName = 'conversation_' + username;
-  app.session.create(containerName, function (err) {
-    app.session.load(containerName, function (err, conversation) {
-      app.conversation = conversation;
 
-      conversation.add('messages', function () {
-        conversation.get('messages', function (err, messages) {
-          app.renderConversation(messages);
+  app.session.load(containerName, function (err, conversation) {
+    if (err) {
+      console.log(err);
+      app.session.create(containerName, function (err, conversation) {
+        if (err) {
+          console.log(err);
+        }
 
-          callback && callback();
-        });
+        grabMessages(conversation);
+      });
+      return;
+    }
+
+    grabMessages(conversation);
+  });
+
+  function grabMessages (conversation) {
+    app.conversation = conversation;
+    conversation.add('messages', function () {
+      conversation.get('messages', function (err, messages) {
+        app.renderConversation(messages);
+
+        callback && callback();
       });
     });
-  });
+  }
 };
 
 app.usernameFromConversation = function () {
@@ -275,6 +310,8 @@ app.usernameFromConversation = function () {
 };
 
 app.renderConversation = function (messages) {
+  $('#create-conversation').hide();
+
   // TODO there's a better way to do this, let's just pass it in
   var conversationWith = app.usernameFromConversation();
   var $conversations = $('#sidebar .conversation');
@@ -307,14 +344,19 @@ app.renderConversation = function (messages) {
 };
 
 app.renderMessage = function (message) {
-  console.log('rendering', message);
   var $messages = $('#messages');
 
   var $message = $('<div />').addClass('message');
-  $('<strong />').text(message.from).appendTo($message);
-  $('<span />').text(message.body).appendTo($message);
+  $('<span />').addClass('username').text(message.from).appendTo($message);
+  $('<span />').addClass('body').text(message.body).appendTo($message);
+  $('<span />').addClass('sent')
+    .attr('data-livestamp', message.sent)
+    .livestamp(new Date(message.sent)) // doesn't like millisecond
+    .appendTo($message);
 
   $message.appendTo($messages);
+
+  $('#conversation').scrollTop($messages.height());
 };
 
 app.sendStatus = function (message) {
@@ -335,8 +377,25 @@ app.sendMessage = function (message) {
 
   var payload = message;
 
-  peer.sendMessage(headers, payload, function (err, messageId) {
-    console.log('sent ' + messageId);
+  app.conversations[conversationWith].lastActivity = +new Date();
+  app.conversation.get('messages', function (err, messages) {
+    peer.sendMessage(headers, payload, function (err, messageId) {
+      var messageToStore = {
+        from: app.session.account.username,
+        body: message,
+        sent: +new Date()
+      };
+
+      messages[messageId] = messageToStore;
+
+      app.conversation.save(function () {
+        app.metadata.save(function () {
+          app.renderSidebar(function () {
+            app.renderMessage(messageToStore);
+          });
+        });
+      });
+    });
   });
 };
 
@@ -345,7 +404,7 @@ app.logout = function () {
   app.conversations = null;
 
   $('#sidebar').html('');
-  $('#container').html('');
+  $('#messages').html('');
 
   $('#login .status').text('Logged out');
 
@@ -358,7 +417,7 @@ app.logout = function () {
   });
 
   $('#sidebar').css({
-    left: '-300px'
+    left: '-350px'
   });
 
   $('#container').css({

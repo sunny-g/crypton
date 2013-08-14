@@ -62,8 +62,10 @@ Inbox.prototype.getAllMessages = function (callback) {
  * @param {Function} callback
  */
 Inbox.prototype.getMessageById = function (messageId, callback) {
+  var that = this;
+
   db.getMessageById(messageId, function (err, message) {
-    if (message.toAccountId != this.accountId) {
+    if (message.toAccountId != that.accountId) {
       // don't divulge existance
       callback('Message does not exist');
       return;

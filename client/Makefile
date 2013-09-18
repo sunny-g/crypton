@@ -17,7 +17,7 @@ test-unit: node_modules dist/crypton.js
 	@./node_modules/.bin/karma start --browsers Firefox,PhantomJS --single-run
 
 node_modules:
-	npm install karma
+	npm install karma@0.8.6
 	npm install uglify-js
 
 clean:

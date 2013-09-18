@@ -1,47 +1,49 @@
-basePath = '';
+module.exports = function(config) {
+  config.set({
 
-files = [
-  MOCHA,
-  MOCHA_ADAPTER,
-  'dist/crypton.js',
-  'test/vendor/chai.js',
-  'test/*.js'
-];
+    basePath: '',
 
-exclude = [];
+    frameworks: ["mocha"],
+    files:[
+      'dist/crypton.js',
+      'test/vendor/chai.js',
+        'test/*.js'
+    ],
 
-reporters = [
-  'progress'
-];
+    exclude: [],
 
-port = 9876;
+    reporters: [
+      'progress'
+    ],
 
-runnerPort = 9100;
+    port: 9876,
 
-colors = true;
+    runnerPort: 9100,
 
-// possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
-logLevel = LOG_DEBUG;
+    colors: true,
 
-autoWatch = true;
+    // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
+    logLevel: config.LOG_DEBUG,
 
+    autoWatch: true,
 
-// Start these browsers, currently available:
-// - Chrome
-// - ChromeCanary
-// - Firefox
-// - Opera
-// - Safari (only Mac)
-// - PhantomJS
-// - IE (only Windows)
-browsers = [
-  'Chrome',
-  'Safari',
-  'Firefox',
-  'Opera'
-];
+    // Start these browsers, currently available:
+    // - Chrome
+    // - ChromeCanary
+    // - Firefox
+    // - Opera
+    // - Safari (only Mac)
+    // - PhantomJS
+    // - IE (only Windows)
+    browsers: [
+      'Chrome',
+      'Safari',
+      'Firefox',
+      'Opera'
+    ],
 
+    captureTimeout: 60000,
 
-captureTimeout = 60000;
-
-singleRun = false;
+    singleRun: false
+  });
+};

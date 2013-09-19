@@ -3,11 +3,12 @@ module.exports = function(config) {
 
     basePath: '',
 
-    frameworks: ["mocha"],
+    frameworks: ['mocha'],
+
     files:[
       'dist/crypton.js',
       'test/vendor/chai.js',
-        'test/*.js'
+      'test/*.js'
     ],
 
     exclude: [],

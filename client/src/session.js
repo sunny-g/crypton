@@ -52,12 +52,12 @@ var Session = crypton.Session = function (id) {
 /**!
  * ### load(containerName, callback)
  * Retieve container with given platintext `containerName`,
- * either from local cache or server 
+ * either from local cache or server
  *
  * Calls back with container and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} containerName
  * @param {Function} callback
  */
@@ -91,7 +91,7 @@ Session.prototype.load = function (containerName, callback) {
  * Calls back with container and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} containerName
  * @param {Function} callback
  */
@@ -167,7 +167,7 @@ Session.prototype.create = function (containerName, callback) {
  * Calls back with container and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} containerName
  * @param {Function} callback
  */
@@ -186,7 +186,7 @@ Session.prototype.getContainer = function (containerName, callback) {
  * Calls back with peer and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} username
  * @param {Function} callback
  */
@@ -215,7 +215,7 @@ Session.prototype.getPeer = function (username, callback) {
 /**!
  * ### on(eventName, listener)
  * Set `listener` to be called anytime `eventName` is emitted
- * 
+ *
  * @param {String} eventName
  * @param {Function} listener
  */
@@ -227,7 +227,7 @@ Session.prototype.on = function (eventName, listener) {
 /**!
  * ### emit(eventName, data)
  * Call listener for `eventName`, passing it `data` as an argument
- * 
+ *
  * @param {String} eventName
  * @param {Object} data
  */

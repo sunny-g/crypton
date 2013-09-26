@@ -414,7 +414,8 @@ commit.troll = function () {
       select * from transaction \
       where commit_request_time is not null \
       and commit_start_time is null \
-      order by commit_request_time asc';
+      order by commit_request_time asc, \
+      transaction_id asc';
       /*jslint multistr: false*/
 
     client.query(query, function (err, result) {

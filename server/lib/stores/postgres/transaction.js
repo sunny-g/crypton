@@ -485,7 +485,7 @@ commit.troll = function () {
       }
 
       if (result.rows.length) {
-        app.log(result.rows.length + ' transactions to commit');
+        app.log('debug', result.rows.length + ' transactions to commit');
         // TODO queue
         for (var i in result.rows) {
           commit.finish(result.rows[i].transaction_id);
@@ -494,12 +494,6 @@ commit.troll = function () {
     });
   });
 };
-
-/**!
- * Search for commits every tenth of a second
- */
-// TODO should we make this configurable?
-setInterval(commit.troll, 100);
 
 /**!
  * ### commit.finish(transactionId)
@@ -522,3 +516,68 @@ commit.finish = function (transactionId) {
     });
   });
 };
+
+var garbage = {};
+
+/**!
+ * ### garbage.troll()
+ * Searches for containers marked with deletion_time
+ * and passes them to garbage.destroy()
+ */
+garbage.troll = function () {
+  connect(function (client, done) {
+    var query = {
+      text: 'select container_id, name_hmac from container where deletion_time is not null',
+      values: []
+    };
+
+    client.query(query, function (err, result) {
+      done();
+
+      if (err) {
+        app.log('warn', err);
+      }
+
+      if (!result.rows.length) {
+        return;
+      }
+
+      app.log('debug', result.rows.length + ' containers need deletion');
+
+      for (var i = 0; i < result.rows.length; i++) {
+        garbage.destroy(result.rows[i].container_id);
+      }
+    });
+  });
+};
+
+/**!
+ * ### garbage.destroy(containerId)
+ * Execute deletion SQL for given `containerId`
+ */
+garbage.destroy = function (containerId) {
+  app.log('debug', 'destroying container with id ' + containerId);
+
+  connect(function (client, done) {
+    var containerQuery = {
+      text: 'delete from container where container_id = $1',
+      values: [ containerId ]
+    };
+
+    client.query(containerQuery, function (err, result) {
+      done();
+
+      if (err) {
+        app.log('warn', err);
+      }
+    });
+  });
+};
+
+/**!
+ * Search for commits every tenth of a second
+ * Search for deletions every second
+ */
+// TODO should we make this configurable?
+setInterval(commit.troll, 100);
+setInterval(garbage.troll, 1000);

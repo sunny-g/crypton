@@ -160,6 +160,42 @@ Session.prototype.create = function (containerName, callback) {
 };
 
 /**!
+ * ### deleteContainer(containerName, callback)
+ * Request the server to delete all records and keys
+ * belonging to `containerName`
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerName
+ * @param {Function} callback
+ */
+Session.prototype.deleteContainer = function (containerName, callback) {
+  var that = this;
+  var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
+  containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac.encrypt(containerName));
+
+  new crypton.Transaction(this, function (err, tx) {
+    var chunk = {
+      type: 'deleteContainer',
+      containerNameHmac: containerNameHmac
+    };
+
+    tx.save(chunk, function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      tx.commit(function (err) {
+        callback(err);
+      });
+    });
+  };
+};
+
+
+/**!
  * ### getContainer(containerName, callback)
  * Retrieve container with given platintext `containerName`
  * specifically from the server

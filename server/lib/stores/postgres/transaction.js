@@ -234,6 +234,63 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
 };
 
 /**!
+ * ### transaction.deleteContainer(data, transaction, callback)
+ * Add deleteContainer chunk to given `transaction`
+ * via transaction_delete_container table
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} data
+ * @param {Object} transaction
+ * @param {Function} callback
+ */
+datastore.transaction.addContainer = function (data, transaction, callback) {
+  connect(function (client, done) {
+    var containerQuery = {
+      /*jslint multistr: true*/
+      text: 'insert into transaction_delete_container \
+        (transaction_id, name_hmac) values ($1, $2)',
+      /*jslint multistr: false*/
+      values: [
+        transaction.transactionId,
+        data.containerNameHmac
+      ]
+    };
+
+    var keyQuery = {
+      /*jslint multistr: true*/
+      text: 'insert into transaction_delete_container_key_share \
+        (transaction_id, name_hmac) values ($1, $2)',
+      /*jslint multistr: false*/
+      values: [
+        transaction.transactionId,
+        data.containerNameHmac
+      ]
+    };
+
+    client.query(containerQuery, function (err, result) {
+      done();
+
+      if (err) {
+        app.log('warn', err);
+
+        if (~err.message.indexOf('violates unique constraint')) {
+          callback('Container already exists');
+          return;
+        }
+
+        callback('Invalid chunk data');
+        return;
+      }
+
+      callback();
+    });
+  });
+};
+
+/**!
  * ### transaction.addContainerSessionKey(data, transaction, callback)
  * Add addContainerSessionKey chunk to given `transaction`
  * via transaction_add_container_session_key table

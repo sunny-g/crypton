@@ -213,7 +213,7 @@ container.  Either change should update this column to latest timestamp.';
 create table container_session_key (
     container_session_key_id int8 not null primary key
         default nextval('version_identifier'),
-    container_id int8 not null references container,
+    container_id int8 not null references container on delete cascade,
     account_id int8 not null references account,
     transaction_id int8 not null,
     creation_time timestamp not null default current_timestamp,
@@ -253,7 +253,7 @@ key.';
 create table container_session_key_share (
     container_session_key_share_id int8 not null primary key
         default nextval('version_identifier'),
-    container_session_key_id int8 not null references container_session_key,
+    container_session_key_id int8 not null references container_session_key on delete cascade,
     account_id int8 not null references account,
     to_account_id int8 not null references account (account_id),
     transaction_id int8 not null,
@@ -275,7 +275,7 @@ records.)';
 create table container_record (
     container_record_id int8 not null primary key
         default nextval('version_identifier'),
-    container_id int8 not null references container,
+    container_id int8 not null references container on delete cascade,
     container_session_key_id int8 not null references container_session_key,
     account_id int8 not null references account,
     transaction_id int8 not null,

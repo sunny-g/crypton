@@ -246,7 +246,7 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
  * @param {Object} transaction
  * @param {Function} callback
  */
-datastore.transaction.addContainer = function (data, transaction, callback) {
+datastore.transaction.deleteContainer = function (data, transaction, callback) {
   connect(function (client, done) {
     var containerQuery = {
       /*jslint multistr: true*/

@@ -100,6 +100,15 @@ create temp table txtmp_add_container_record on commit drop as
   from transaction_add_container_record tar
  where transaction_id={{transactionId}};
 
+create temp table txtmp_delete_container on commit drop as
+    select container_id
+      from container
+     where name_hmac = (
+       select tdc.name_hmac
+         from transaction_delete_container tdc
+        where tdc.transaction_id = {{transactionId}}
+     );
+
 /* now, we can finally calculate the latest_record_id value for new containers
  * we're adding */
 update txtmp_add_container set latest_record_id=(
@@ -149,5 +158,11 @@ insert into container_record (container_record_id, container_id,
       from transaction_add_container_record tacr
       join txtmp_add_container_record tx_tacr using (id)
       join transaction t using (transaction_id);
+
+update container
+  set deletion_time = current_timestamp
+  where container_id = (
+    select container_id from txtmp_delete_container
+  );
 
 commit;

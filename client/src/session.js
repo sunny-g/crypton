@@ -108,6 +108,8 @@ Session.prototype.create = function (containerName, callback) {
   var sessionKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(sessionKey), crypton.cipherOptions);
   var hmacKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(hmacKey), crypton.cipherOptions);
 
+  // TODO what are these?
+  // they don't appear to be used below
   var keyshmac = new sjcl.misc.hmac(crypton.randomBytes(8));
   keyshmac = sjcl.codec.hex.fromBits(keyshmac.encrypt(JSON.stringify(sessionKey) + JSON.stringify(hmacKey)));
 

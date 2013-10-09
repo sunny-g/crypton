@@ -193,7 +193,7 @@ Session.prototype.deleteContainer = function (containerName, callback) {
         callback(err);
       });
     });
-  };
+  });
 };
 
 

@@ -161,7 +161,7 @@ insert into container_record (container_record_id, container_id,
 
 update container
   set deletion_time = current_timestamp
-  where container_id = (
+  where container_id in (
     select container_id from txtmp_delete_container
   );
 

@@ -19,7 +19,7 @@ else
     exit 1;
 fi
 
-POSTGRES_USER_EXISTS=$(psql -c "\du" | grep -o postgres)
+POSTGRES_USER_EXISTS=$(psql --user postgres -c "\du" | grep -o postgres)
 if [ $POSTGRES_USER_EXISTS == "postgres" ]; then
     echo "*** Postgres is setup correctly for Crypton"
 else

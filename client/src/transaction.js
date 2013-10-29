@@ -180,7 +180,7 @@ Transaction.prototype.commit = function (callback) {
 };
 
 /**!
- * ### commit(callback)
+ * ### abort(callback)
  * Ask the server to mark the transaction as aborted
  *
  * Calls back without error if successful

@@ -53,6 +53,7 @@ app.secret = util.readFileSync(
 );
 
 app.use(allowCrossDomain);
+app.use(express.limit('20mb'));
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 
@@ -77,7 +78,6 @@ app.use(express.session({
     secure: true
   }
 }));
-
 
 app.use(express.logger(function (info, req, res) {
   var color = 'green';

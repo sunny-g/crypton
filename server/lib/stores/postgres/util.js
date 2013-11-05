@@ -69,14 +69,8 @@ datastore.util.camelizeObject = function (obj) {
  */
 var connect = datastore.connect = function connect(callback) {
   var config = process.app.config.database;
-  var conString = 'tcp://' +
-    encodeURIComponent(config.username) + ':' +
-    encodeURIComponent(config.password) + '@' +
-    encodeURIComponent(config.host) + ':' +
-    encodeURIComponent(config.port) + '/' +
-    encodeURIComponent(config.database);
 
-  pg.connect(conString, function (err, client, done) {
+  pg.connect(config, function (err, client, done) {
     if (err) {
       // TODO: retry a few times with delays, so we can survive a quick
       // database hiccup. crash the whole app only if the DB's really

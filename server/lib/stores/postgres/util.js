@@ -70,11 +70,11 @@ datastore.util.camelizeObject = function (obj) {
 var connect = datastore.connect = function connect(callback) {
   var config = process.app.config.database;
   var conString = 'tcp://' +
-    config.username + ':' +
-    config.password + '@' +
-    config.host + ':' +
-    config.port + '/' +
-    config.database;
+    encodeURIComponent(config.username) + ':' +
+    encodeURIComponent(config.password) + '@' +
+    encodeURIComponent(config.host) + ':' +
+    encodeURIComponent(config.port) + '/' +
+    encodeURIComponent(config.database);
 
   pg.connect(conString, function (err, client, done) {
     if (err) {

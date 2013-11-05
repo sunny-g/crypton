@@ -1,0 +1,225 @@
+<!DOCTYPE html><html><head><title>transaction.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h1"><a href="#transaction-session--callback-">Transaction(session, callback)</a></div><div class="heading h3"><a href="#create-callback-">create(callback)</a></div><div class="heading h3"><a href="#save-chunk--...--callback-">save(chunk, ..., callback)</a></div><div class="heading h3"><a href="#savechunk-chunk--callback-">saveChunk(chunk, callback)</a></div><div class="heading h3"><a href="#commit-callback-">commit(callback)</a></div><div class="heading h3"><a href="#commit-callback-">commit(callback)</a></div><div class="heading h3"><a href="#verify--">verify()</a></div><div class="heading h3"><a href="#verifychunk-chunk-">verifyChunk(chunk)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>transaction.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Client, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Client.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Client is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Client.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="transaction-session--callback-">
+  <h1>
+    <a href="#transaction-session--callback-" class="pilcrow">&#182;</a>
+    Transaction(session, callback)
+  </h1>
+</div>
+</div><div class="body"><div class='highlight'><pre><code language=''>var tx = new crypton.Transaction(session, function (err, tx) {
+  // your code
+});
+</code></pre></div></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">session</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">Transaction</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">Transaction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">session</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">session</span> <span class="o">=</span> <span class="nx">session</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">types</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;addAccount&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;setBaseKeyring&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;addContainer&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;deleteContainer&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;addContainerSessionKey&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;addContainerSessionKeyShare&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;addContainerRecord&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;addMessage&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;deleteMessage&#39;</span>
+  <span class="p">];</span>
+
+  <span class="c1">// necessary for testing</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">callback</span> <span class="o">&amp;&amp;</span> <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">this</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">that</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="p">;</span>
+
+    <span class="nx">callback</span> <span class="o">&amp;&amp;</span> <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">that</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="create-callback-">
+  <h3>
+    <a href="#create-callback-" class="pilcrow">&#182;</a>
+    create(callback)
+  </h3>
+</div>
+
+
+<p>Ask the server for a new transaction id</p></div><div class="body"><p>Calls back with transaction id and without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">create</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/transaction/create&#39;</span><span class="p">;</span>
+  <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="save-chunk--...--callback-">
+  <h3>
+    <a href="#save-chunk--...--callback-" class="pilcrow">&#182;</a>
+    save(chunk, ..., callback)
+  </h3>
+</div>
+
+
+<p>Save set of chunks to the server</p></div><div class="body"><p>Calls back without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">chunk</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">save</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">verify</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">args</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">arguments</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">callback</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">callback</span> <span class="o">!=</span> <span class="s1">&#39;function&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">args</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">callback</span><span class="p">);</span>
+    <span class="nx">callback</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{};</span>
+  <span class="p">}</span>
+
+  <span class="nx">async</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">args</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">cb</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// TODO check the type of the object</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">chunk</span> <span class="o">==</span> <span class="s1">&#39;function&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">cb</span><span class="p">();</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">that</span><span class="p">.</span><span class="nx">saveChunk</span><span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">cb</span><span class="p">);</span>
+  <span class="p">},</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="savechunk-chunk--callback-">
+  <h3>
+    <a href="#savechunk-chunk--callback-" class="pilcrow">&#182;</a>
+    saveChunk(chunk, callback)
+  </h3>
+</div>
+
+
+<p>Save single chunk to the server</p></div><div class="body"><p>Calls back without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">chunk</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">saveChunk</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">chunk</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">verify</span><span class="p">();</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">verifyChunk</span><span class="p">(</span><span class="nx">chunk</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/transaction/&#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+
+  <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">chunk</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="commit-callback-">
+  <h3>
+    <a href="#commit-callback-" class="pilcrow">&#182;</a>
+    commit(callback)
+  </h3>
+</div>
+
+
+<p>Ask the server to queue the transaction for committal</p></div><div class="body"><p>Calls back without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">commit</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">verify</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/transaction/&#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">id</span> <span class="o">+</span> <span class="s1">&#39;/commit&#39;</span><span class="p">;</span>
+  <span class="nx">superagent</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;session-identifier&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">session</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="nx">callback</span><span class="p">();</span>
+    <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="commit-callback-">
+  <h3>
+    <a href="#commit-callback-" class="pilcrow">&#182;</a>
+    commit(callback)
+  </h3>
+</div>
+
+
+<p>Ask the server to mark the transaction as aborted</p></div><div class="body"><p>Calls back without error if successful</p>
+
+<p>Calls back with error if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">abort</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">verify</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">crypton</span><span class="p">.</span><span class="nx">url</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/transaction/&#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+  <span class="nx">superagent</span><span class="p">.</span><span class="nx">del</span><span class="p">(</span><span class="nx">url</span><span class="p">).</span><span class="nx">end</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span> <span class="o">||</span> <span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">success</span> <span class="o">!==</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">callback</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="verify--">
+  <h3>
+    <a href="#verify--" class="pilcrow">&#182;</a>
+    verify()
+  </h3>
+</div>
+
+
+<p>Ensure the transaction is valid to be worked with</p></div><div class="body"><p>Throws if unsuccessful</p></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">verify</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s1">&#39;Invalid transaction&#39;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="verifychunk-chunk-">
+  <h3>
+    <a href="#verifychunk-chunk-" class="pilcrow">&#182;</a>
+    verifyChunk(chunk)
+  </h3>
+</div>
+
+
+<p>Ensure the provided <code>chunk</code> is fit to be sent to server</p></div><div class="body"><p>Throws if unsuccessful</p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">chunk</span><span class="dox_type">Object</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">verifyChunk</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">chunk</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">chunk</span> <span class="o">||</span> <span class="o">!~</span><span class="k">this</span><span class="p">.</span><span class="nx">types</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">chunk</span><span class="p">.</span><span class="nx">type</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s1">&#39;Invalid transaction chunk type&#39;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="p">})();</span>
+</pre></div></td></tr></tbody></table></div></body></html>

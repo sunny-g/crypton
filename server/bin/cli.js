@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* Crypton Server, Copyright 2013 SpiderOak, Inc.
  *
  * This file is part of Crypton Server.
@@ -16,16 +17,33 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var app = process.app;
+'use strict';
 
-app.get('/inbox', function (req, res) {
-});
+/**!
+ * A simple CLI to start the server
+ *
+ * ````
+ * Usage: crypton [options]
+ *
+ * Options:
+ *
+ *   -h, --help           output usage information
+ *   -V, --version        output the version number
+ *   -c, --config [file]  Specify a custom configuration file [default config]
+ * ````
+ */
 
-app.get('/inbox/:messageIdentifier', function (req, res) {
-});
+var fs = require('fs');
+var program = require('commander');
 
-app.del('/inbox/:messageIdentifier', function (req, res) {
-});
+program
+  .version('0.0.2')
+  .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
+  .parse(process.argv);
 
-app.post('/outbox', function (req, res) {
-});
+process.configFile = program.config;
+
+if (require.main === module) {
+  var app = require('../app');
+  app.start();
+}

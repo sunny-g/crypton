@@ -1,0 +1,70 @@
+<!DOCTYPE html><html><head><title>log.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h2"><a href="#log-level--message-">log(level, message)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>log.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Server, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Server.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Server.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">colors</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;colors&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">maxLevel</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">env</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">NODE_ENV</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">possibleLevels</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;warn&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;info&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;debug&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;trace&#39;</span>
+<span class="p">];</span>
+
+<span class="k">switch</span> <span class="p">(</span><span class="nx">env</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="s1">&#39;test&#39;</span><span class="o">:</span>
+    <span class="nx">maxLevel</span> <span class="o">=</span> <span class="s1">&#39;trace&#39;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="s1">&#39;production&#39;</span><span class="o">:</span>
+    <span class="nx">maxLevel</span> <span class="o">=</span> <span class="s1">&#39;info&#39;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">default</span><span class="o">:</span>
+    <span class="nx">maxLevel</span> <span class="o">=</span> <span class="s1">&#39;debug&#39;</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">maxIndex</span> <span class="o">=</span> <span class="nx">possibleLevels</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">maxLevel</span><span class="p">);</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="log-level--message-">
+  <h2>
+    <a href="#log-level--message-" class="pilcrow">&#182;</a>
+    log(level, message)
+  </h2>
+</div>
+
+
+<p>Log <code>message</code> to stdout if <code>level</code> is high enough for output</p></div><div class="body"><p><code>level</code> defaults to <code>'info'</code></p></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">level</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">message</span><span class="dox_type">String</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">log</span> <span class="p">(</span><span class="nx">level</span><span class="p">,</span> <span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">message</span> <span class="o">=</span> <span class="nx">level</span><span class="p">;</span>
+    <span class="nx">level</span> <span class="o">=</span> <span class="s1">&#39;info&#39;</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kd">var</span> <span class="nx">levelIndex</span> <span class="o">=</span> <span class="nx">possibleLevels</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">level</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!~</span><span class="nx">levelIndex</span> <span class="o">||</span> <span class="nx">levelIndex</span> <span class="o">&lt;=</span> <span class="nx">maxIndex</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">initial</span> <span class="o">=</span> <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="nx">level</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span><span class="p">;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">initial</span><span class="p">.</span><span class="nx">blue</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nx">message</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div></td></tr></tbody></table></div></body></html>

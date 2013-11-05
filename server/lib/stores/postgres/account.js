@@ -20,8 +20,18 @@
 
 var connect = require('./').connect;
 
-/* Save a new account
- * Add keyring info to it */
+/**!
+ * ### saveAccount(account, callback)
+ * Create account and base_keyring rows with data
+ * and add account row with base_keyring_id
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} account
+ * @param {Function} callback
+ */
 exports.saveAccount = function saveAccount(account, callback) {
   var requiredFields = [
     'username',
@@ -116,8 +126,17 @@ exports.saveAccount = function saveAccount(account, callback) {
   });
 };
 
-
-/* Get an account and its keyring */
+/**!
+ * ### getAccount(username, callback)
+ * Retrieve account and base_keyring rows for given `username`
+ *
+ * Calls back with account object and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} username
+ * @param {Function} callback
+ */
 exports.getAccount = function getAccount(username, callback) {
   connect(function (client, done) {
     var accountQuery = {
@@ -161,6 +180,106 @@ exports.getAccount = function getAccount(username, callback) {
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
         hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
       });
+    });
+  });
+};
+
+/**!
+ * ### getAccountById(accountId, callback)
+ * Retrieve account and base_keyring rows for given `id`
+ *
+ * Calls back with account object and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Function} callback
+ */
+exports.getAccountById = function getAccountById(accountId, callback) {
+  connect(function (client, done) {
+    var accountQuery = {
+      text:
+        "select account.account_id, " +
+        "account.username, base_keyring_id, " +
+        "challenge_key_hash, challenge_key_salt, " +
+        "keypair, keypair_salt, " +
+        "pubkey, symkey, " +
+        "container_name_hmac_key, hmac_key " +
+        "from account left join base_keyring using (base_keyring_id) " +
+        "where account.account_id=$1",
+      values: [
+        accountId
+      ]
+    };
+
+    client.query(accountQuery, function (err, result) {
+      done();
+
+      if (err) {
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
+        return;
+      }
+      if (!result.rows.length) {
+        callback('Account not found.');
+        return;
+      }
+
+      callback(null, {
+        username: result.rows[0].username,
+        accountId: result.rows[0].account_id,
+        keyringId: result.rows[0].base_keyring_id,
+        keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
+        keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
+        pubKey: JSON.parse(result.rows[0].pubkey.toString()),
+        symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
+        challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
+        challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
+        containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
+        hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
+      });
+    });
+  });
+};
+
+/**
+ * ### saveMessage(options, callback)
+ * Add row to message table for given `options.toAccount`
+ *
+ * Calls back with message id and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options
+ * @param {Function} callback
+ */
+exports.saveMessage = function (options, callback) {
+  connect(function (client, done) {
+    var messageQuery = {
+      text:
+        "insert into message " +
+        "(to_account_id, from_account_id, " +
+        "header_ciphertext, payload_ciphertext) " +
+        "values ($1, $2, $3, $4) " +
+        "returning message_id",
+      values: [
+        options.toAccount,
+        options.fromAccount,
+        options.headers,
+        options.body
+      ]
+    };
+
+    client.query(messageQuery, function (err, result) {
+      done();
+
+      if (err) {
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
+        return;
+      }
+
+      callback(null, result.rows[0].message_id);
     });
   });
 };

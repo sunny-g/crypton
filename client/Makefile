@@ -5,7 +5,7 @@ SRC = src/core.js src/account.js src/session.js src/container.js \
 	src/transaction.js src/peer.js src/message.js src/diff.js src/vendor/*.js
 
 dist/crypton.min.js: dist/crypton.js
-	./node_modules/.bin/uglifyjs dist/crypton.js > dist/crypton.min.js
+	./compile.sh --once
 
 dist/crypton.js: $(SRC) node_modules
 	@mkdir -p dist
@@ -17,8 +17,7 @@ test-unit: node_modules dist/crypton.js
 	@./node_modules/.bin/karma start --browsers Firefox,PhantomJS --single-run
 
 node_modules:
-	npm install karma
-	npm install uglify-js
+	npm install
 
 clean:
 	-rm -rf dist

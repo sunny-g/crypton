@@ -15,19 +15,40 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 (function () {
-  var Diff = crypton.diff = {};
 
-  Diff.create = function (old, current) {
-    var delta = jsondiffpatch.diff(old, current);
-    return delta;
-  };
+'use strict';
 
-  // TODO should we switch the old of these arguments?
-  Diff.apply = function (delta, old) {
-    var current = JSON.parse(JSON.stringify(old));
-    jsondiffpatch.patch(current, delta);
-    return current;
-  };
+var Diff = crypton.diff = {};
+
+/**!
+ * ### create(old, current)
+ * Generate an object representing the difference between two inputs
+ *
+ * @param {Object} old
+ * @param {Object} current
+ * @return {Object} delta
+ */
+Diff.create = function (old, current) {
+  var delta = jsondiffpatch.diff(old, current);
+  return delta;
+};
+
+/**!
+ * ### apply(delta, old)
+ * Apply `delta` to `old` object to build `current` object
+ *
+ * @param {Object} delta
+ * @param {Object} old
+ * @return {Object} current
+ */
+// TODO should we switch the order of these arguments?
+Diff.apply = function (delta, old) {
+  var current = JSON.parse(JSON.stringify(old));
+  jsondiffpatch.patch(current, delta);
+  return current;
+};
+
 })();
 

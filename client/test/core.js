@@ -25,7 +25,7 @@ describe('Core', function () {
 
   describe('default properties', function () {
     it('should have the correct version', function () {
-      assert.equal(crypton.version, '0.0.1');
+      assert.equal(crypton.version, '0.0.2');
     });
 
     it('should have the correct host', function () {

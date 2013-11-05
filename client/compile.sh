@@ -47,6 +47,7 @@ compile() {
     src/transaction.js \
     src/peer.js \
     src/message.js \
+    src/inbox.js \
     src/diff.js \
     src/vendor/*.js \
     > dist/crypton.js

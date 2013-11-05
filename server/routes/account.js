@@ -23,14 +23,20 @@ var db = app.datastore;
 var middleware = require('../lib/middleware');
 var Account = require('../lib/account');
 
-/*
- * Save account to server
- */
+/**!
+ * ### POST /account
+ * Translate posted body to an account object,
+ * hashe and delete `account.challengeKey`,
+ * then save the resulting account object to the server
+*/
 app.post('/account', function (req, res) {
+  app.log('debug', 'handling POST /account');
+
   var account = new Account();
+  var challengeKey = req.body.challengeKey;
   account.update(req.body);
 
-  account.generateChallenge(function (err) {
+  account.hashChallengeKey(challengeKey, function (err) {
     if (err) {
       res.send({
         success: false,
@@ -55,14 +61,21 @@ app.post('/account', function (req, res) {
   });
 });
 
-/*
-* Authorize with server
+/**!
+ * ### POST /account/:username
+ * Retrieve account belonging to `username`,
+ * send challengeKeySalt so client can generate
+ * a challengeKeyReponse
 */
+// TODO this could just be a GET?
 app.post('/account/:username', function (req, res) {
+  app.log('debug', 'handling POST /account/:username');
+
   var account = new Account();
 
   account.get(req.params.username, function (err) {
     if (err) {
+      app.log('debug', 'could not get account for ' + req.params.username);
       res.send({
         success: false,
         error: err
@@ -78,10 +91,17 @@ app.post('/account/:username', function (req, res) {
   });
 });
 
-/*
-* Authorize with server
+/**!
+ * ### POST /account/:username/answer
+ * Retrieve account belonging to `username`,
+ * verify that posted challengeKeyReponse matches
+ * stored challengeKeyHash.
+ * If successful, start a session.
 */
 app.post('/account/:username/answer', function (req, res) {
+  app.log('debug', 'handling POST /account/:username/answer');
+
+  var challengeKeyResponse = req.body.challengeKey;
   var account = new Account();
 
   account.get(req.params.username, function (err) {
@@ -94,8 +114,14 @@ app.post('/account/:username/answer', function (req, res) {
       return;
     }
 
-    account.verifyChallenge(req.body.challengeKey, function (err) {
+    if (typeof challengeKeyResponse != 'string') {
+      app.log('debug', 'challengeKeyResponse was not string');
+      challengeKeyResponse = JSON.stringify(challengeKeyResponse);
+    }
+
+    account.verifyChallenge(challengeKeyResponse, function (err) {
       if (err) {
+        app.log('debug', 'challenge verification failed: ' + err);
         res.send({
           success: false,
           error: err
@@ -104,23 +130,28 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
+      app.log('debug', 'challenge verification succcess');
       req.session.accountId = account.accountId;
 
       res.send({
         success: true,
-        account: account.serialize(),
+        account: account.toJSON(),
         sessionIdentifier: req.sessionID
       });
     });
   });
 });
 
-/*
-* Change the password for account
+/**!
+ * ### POST /account/:username/keyring
+ * Placeholder route for posting regenerated
+ * keyring data after a password change
 */
+// TODO implement this!
 app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {
+    app.log('debug', 'handling POST /account/:username/keyring');
     res.send({
       success: true
     });

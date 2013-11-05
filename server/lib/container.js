@@ -16,12 +16,34 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = require('../app');
 var db = app.datastore;
 
+/**!
+ * # Container()
+ *
+ * ````
+ * var container = new Container();
+ * ````
+ */
 var Container = module.exports = function Container () {};
 
+/**!
+ * ### get(containerNameHmac, callback)
+ * Retrieve all container records from the database for the specified `containerNameHmac`
+ *
+ * Adds records to container object and calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {String} containerNameHmac
+ * @param {Function} callback
+ */
 Container.prototype.get = function (containerNameHmac, callback) {
+  app.log('debug', 'getting container');
+
   var that = this;
 
   db.getContainerRecords(containerNameHmac, function (err, records) {
@@ -31,6 +53,7 @@ Container.prototype.get = function (containerNameHmac, callback) {
     }
 
     if (!records.length) {
+      app.log('debug', 'container does not exist');
       callback('Container does not exist');
       return;
     }
@@ -40,6 +63,17 @@ Container.prototype.get = function (containerNameHmac, callback) {
   });
 };
 
+/**!
+ * ### update()
+ * Update one or a set of keys in the parent container object
+ * 
+ * @param {String} key
+ * @param {Object} value
+ *
+ * or
+ *
+ * @param {Object} input
+ */
 // TODO add field validation and callback
 Container.prototype.update = function () {
   // update({ key: 'value' });

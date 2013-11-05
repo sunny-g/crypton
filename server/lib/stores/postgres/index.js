@@ -18,6 +18,10 @@
 
 'use strict';
 
+/**!
+ * ### extend(modName)
+ * One-off function to bring in a module and expose it under local exports
+ */
 function extend(modName) {
   var mod = require(modName);
   for (var i in mod) {
@@ -26,6 +30,7 @@ function extend(modName) {
 }
 
 extend('./util');
+extend('./inbox');
 extend('./account');
 extend('./container');
 extend('./transaction');

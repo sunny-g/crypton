@@ -1,0 +1,187 @@
+<!DOCTYPE html><html><head><title>transaction.js</title><meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" media="all" href="../../doc-style.css"><script src="../../doc-filelist.js"></script><script>var relativeDir = '../../', thisFile = '/usr/local/share/npm/lib/node_modules/otis/res/tmpl.jade', defaultSidebar = true;</script><script src="../../doc-script.js"></script></head><body><div id="sidebar_wrapper"><div id="sidebar_switch"><span class="tree">Files</span><span class="headings">Headings</span></div><div id="tree"></div><div id="headings"><div class="heading h1"><a href="#transaction--">Transaction()</a></div><div class="heading h3"><a href="#create-accountid--callback-">create(accountId, callback)</a></div><div class="heading h3"><a href="#get-transactionid--callback-">get(transactionId, callback)</a></div><div class="heading h3"><a href="#update--">update()</a></div><div class="heading h3"><a href="#add-data--callback-">add(data, callback)</a></div><div class="heading h3"><a href="#abort-callback-">abort(callback)</a></div><div class="heading h3"><a href="#commit-callback-">commit(callback)</a></div><div class="heading h3"><a href="#assertownership-callback--next-">assertOwnership(callback, next)</a></div></div></div><div id="sidebar-toggle"></div><div id="container"><div class="background highlight"></div><table cellpadding="0" cellspacing="0"><tbody><tr><td class="docs"><h1>transaction.js</h1></td><td class="code highlight"></td></tr><tr><td class="docs">
+<div class="pilwrap">
+  <a class="pilcrow" href="#section-1" id="section-1">&#182;</a>
+</div>
+</td><td class="code highlight"><div class="highlight"><pre><span class="cm">/* Crypton Server, Copyright 2013 SpiderOak, Inc.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This file is part of Crypton Server.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is free software: you can redistribute it and/or modify it</span>
+<span class="cm"> * under the terms of the Affero GNU General Public License as published by the</span>
+<span class="cm"> * Free Software Foundation, either version 3 of the License, or (at your</span>
+<span class="cm"> * option) any later version.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Crypton Server is distributed in the hope that it will be useful, but</span>
+<span class="cm"> * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY</span>
+<span class="cm"> * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public</span>
+<span class="cm"> * License for more details.</span>
+<span class="cm"> *</span>
+<span class="cm"> * You should have received a copy of the Affero GNU General Public License</span>
+<span class="cm"> * along with Crypton Server.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="cm">*/</span>
+
+<span class="s1">&#39;use strict&#39;</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../app&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">db</span> <span class="o">=</span> <span class="nx">app</span><span class="p">.</span><span class="nx">datastore</span><span class="p">;</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="transaction--">
+  <h1>
+    <a href="#transaction--" class="pilcrow">&#182;</a>
+    Transaction()
+  </h1>
+</div>
+</div><div class="body"><div class='highlight'><pre><code language=''>var tx = new Transaction();
+</code></pre></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">Transaction</span> <span class="o">=</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">Transaction</span> <span class="p">()</span> <span class="p">{};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="create-accountid--callback-">
+  <h3>
+    <a href="#create-accountid--callback-" class="pilcrow">&#182;</a>
+    create(accountId, callback)
+  </h3>
+</div>
+
+
+<p>Attempt to add a new transaction to the database belonging to the specified <code>accountId</code>
+Adds <code>transactionId</code> to transaction object if successful
+Calls back with error if unsuccessful</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">accountId</span><span class="dox_type">Number</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">create</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">accountId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;creating transaction&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="s1">&#39;accountId&#39;</span><span class="p">,</span> <span class="nx">accountId</span><span class="p">);</span>
+
+  <span class="nx">db</span><span class="p">.</span><span class="nx">createTransaction</span><span class="p">(</span><span class="nx">accountId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">that</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="s1">&#39;transactionId&#39;</span><span class="p">,</span> <span class="nx">id</span><span class="p">);</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="get-transactionid--callback-">
+  <h3>
+    <a href="#get-transactionid--callback-" class="pilcrow">&#182;</a>
+    get(transactionId, callback)
+  </h3>
+</div>
+
+
+<p>Attempt retreive transaction data from the database for the specified <code>transactionId</code>
+Adds data to transaction object if successful
+Calls back with error if unsuccessful</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">transactionId</span><span class="dox_type">Number</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="c1">// TODO which data?</span>
+<span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">get</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">transactionId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;getting transaction with id: &#39;</span> <span class="o">+</span> <span class="nx">transactionId</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+
+  <span class="nx">db</span><span class="p">.</span><span class="nx">getTransaction</span><span class="p">(</span><span class="nx">transactionId</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">transaction</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;transaction does not exist&#39;</span><span class="p">);</span>
+      <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Transaction does not exist&#39;</span><span class="p">);</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">that</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">transaction</span><span class="p">);</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="update--">
+  <h3>
+    <a href="#update--" class="pilcrow">&#182;</a>
+    update()
+  </h3>
+</div>
+
+
+<p>Update one or a set of keys in the parent transaction object</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">key</span><span class="dox_type">String</span></div><div class="dox_tag_detail"><span class="name">value</span><span class="dox_type">Object</span></div><div class="dox_tag_title"></div><div class="dox_tag_detail"></div><div class="dox_tag_title">Or</div><div class="dox_tag_detail"></div><div class="dox_tag_title"></div><div class="dox_tag_detail"></div><div class="dox_tag_detail"><span class="name">input</span><span class="dox_type">Object</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="c1">// TODO add field validation and callback</span>
+<span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">update</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// update({ key: &#39;value&#39; });</span>
+  <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;object&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">key</span> <span class="k">in</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="nx">key</span><span class="p">];</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="c1">// update(&#39;key&#39;, &#39;value&#39;)</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;string&#39;</span> <span class="o">&amp;&amp;</span> <span class="k">typeof</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;undefined&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">[</span><span class="nx">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nx">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="add-data--callback-">
+  <h3>
+    <a href="#add-data--callback-" class="pilcrow">&#182;</a>
+    add(data, callback)
+  </h3>
+</div>
+
+
+<p>Add a chunk to current transaction</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">data</span><span class="dox_type">Object</span></div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">add</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;adding data to transaction&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+
+  <span class="k">this</span><span class="p">.</span><span class="nx">assertOwnership</span><span class="p">(</span><span class="nx">callback</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">db</span><span class="p">.</span><span class="nx">updateTransaction</span><span class="p">(</span><span class="nx">that</span><span class="p">,</span> <span class="nx">data</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="abort-callback-">
+  <h3>
+    <a href="#abort-callback-" class="pilcrow">&#182;</a>
+    abort(callback)
+  </h3>
+</div>
+
+
+<p>Mark transaction as aborted with database
+Calls back with error if unsuccessful</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">abort</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;aborting transaction&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">assertOwnership</span><span class="p">(</span><span class="nx">callback</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">db</span><span class="p">.</span><span class="nx">abortTransaction</span><span class="p">(</span><span class="nx">that</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="commit-callback-">
+  <h3>
+    <a href="#commit-callback-" class="pilcrow">&#182;</a>
+    commit(callback)
+  </h3>
+</div>
+
+
+<p>Request transaction commital with database
+Calls back with error if request is unsuccessful</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">commit</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;requesting transaction commit&#39;</span><span class="p">);</span>
+
+  <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">assertOwnership</span><span class="p">(</span><span class="nx">callback</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">db</span><span class="p">.</span><span class="nx">requestTransactionCommit</span><span class="p">(</span><span class="nx">that</span><span class="p">.</span><span class="nx">transactionId</span><span class="p">,</span> <span class="nx">that</span><span class="p">.</span><span class="nx">accountId</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span></pre></div></td></tr><tr><td class="docs"><div class="dox"><div class="summary">
+<div class="pilwrap" id="assertownership-callback--next-">
+  <h3>
+    <a href="#assertownership-callback--next-" class="pilcrow">&#182;</a>
+    assertOwnership(callback, next)
+  </h3>
+</div>
+
+
+<p>Determine if transaction's <code>interactingAccount</code> matches <code>accountId</code> from database
+Calls <code>next</code> if successful
+Calls <code>callback</code> with error if unsuccessful</p></div><div class="body"></div><div class="details"><div class="dox_tag_title">Params</div><div class="dox_tag_detail"><span class="name">callback</span><span class="dox_type">Function</span></div><div class="dox_tag_detail"><span class="name">next</span><span class="dox_type">Function</span></div></div></div></td><td class="code highlight"><div class="highlight"><pre><span class="c1">// TODO consider switching argument order</span>
+<span class="nx">Transaction</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">assertOwnership</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">callback</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;asserting transaction ownership&#39;</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">interactingAccount</span> <span class="o">===</span> <span class="k">this</span><span class="p">.</span><span class="nx">accountId</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">next</span><span class="p">();</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;transaction does not belong to account&#39;</span><span class="p">);</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="s1">&#39;Transaction does not belong to account&#39;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</pre></div></td></tr></tbody></table></div></body></html>

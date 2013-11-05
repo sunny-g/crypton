@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = process.app;
 
 app.get('/session', function (req, res) {

@@ -16,9 +16,22 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var datastore = require('./');
 var connect = datastore.connect;
 
+/**!
+ * ### getContainerRecords(containerNameHmac, callback)
+ * Retrieve all records for given `containerNameHmac`
+ *
+ * Calls back with array of records and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerNameHmac
+ * @param {Function} callback
+ */
 exports.getContainerRecords = function (containerNameHmac, callback) {
   connect(function (client, done) {
     var query = {

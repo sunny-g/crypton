@@ -16,12 +16,18 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+'use strict';
+
 var app = process.app || require('../app');
 
+app.log('info', 'loading datastore');
+
+/**!
+ * Attempt to load the configured database driver
+ */
 try {
   module.exports = require('./stores/' + app.config.database.type);
 } catch (e) {
-  console.log('Could not load datastore from config:');
-  console.log(e);
-  process.exit(1);
+  app.log('fatal', 'Could not load datastore from config:');
+  throw e;
 }

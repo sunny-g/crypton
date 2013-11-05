@@ -20,21 +20,30 @@
 
 var fs = require('fs');
 var path = require('path');
+var app = require('../app');
 
 var configFile;
+var env = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase();
+
+app.log('info', 'loading config');
+
+/**!
+ * Attempt to load a provided `config.json` file, falling back to the example file
+ */
+
 if (process.configFile) {
   configFile = path.resolve(process.env.PWD, process.configFile);
-} else if (process.env.NODE_ENV &&
-           process.env.NODE_ENV.toLowerCase() === 'test') {
-  configFile = __dirname + '/../config.test.json';
+} else if (env === 'test') {
+  configFile = __dirname + '/../config/config.test.json';
 } else {
-  configFile = __dirname + '/../config.json';
+  configFile = __dirname + '/../config/config.test.json';
+  app.log('info', 'config file not specified, using example');
 }
 
 try {
-  module.exports = JSON.parse(fs.readFileSync(configFile).toString());
+  var file = fs.readFileSync(configFile).toString();
+  module.exports = JSON.parse(file);
 } catch (e) {
-  console.log('Could not parse config file:');
-  console.log(e);
-  process.exit(1);
+  app.log('fatal', 'could not parse config file');
+  throw e;
 }

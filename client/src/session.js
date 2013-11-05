@@ -108,6 +108,8 @@ Session.prototype.create = function (containerName, callback) {
   var sessionKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(sessionKey), crypton.cipherOptions);
   var hmacKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(hmacKey), crypton.cipherOptions);
 
+  // TODO what are these?
+  // they don't appear to be used below
   var keyshmac = new sjcl.misc.hmac(crypton.randomBytes(8));
   keyshmac = sjcl.codec.hex.fromBits(keyshmac.encrypt(JSON.stringify(sessionKey) + JSON.stringify(hmacKey)));
 
@@ -158,6 +160,42 @@ Session.prototype.create = function (containerName, callback) {
     });
   });
 };
+
+/**!
+ * ### deleteContainer(containerName, callback)
+ * Request the server to delete all records and keys
+ * belonging to `containerName`
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerName
+ * @param {Function} callback
+ */
+Session.prototype.deleteContainer = function (containerName, callback) {
+  var that = this;
+  var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
+  containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac.encrypt(containerName));
+
+  new crypton.Transaction(this, function (err, tx) {
+    var chunk = {
+      type: 'deleteContainer',
+      containerNameHmac: containerNameHmac
+    };
+
+    tx.save(chunk, function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      tx.commit(function (err) {
+        callback(err);
+      });
+    });
+  });
+};
+
 
 /**!
  * ### getContainer(containerName, callback)

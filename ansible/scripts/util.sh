@@ -196,6 +196,11 @@ function prepare_container_host () {
 }
 
 function update_ssh_known_hosts () {
+
+    if [[ ! -e ~/.ssh/known_hosts ]]; then
+        return 0
+    fi
+
     nodes="$1"
     for n in $nodes 
     do

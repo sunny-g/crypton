@@ -187,7 +187,7 @@ function prepare_container_host () {
         if [[ ! -d ~/git ]]; then mkdir ~/git ; fi
         [ -d ~/git/ansible ] || \
             git clone \
-                https:github.com/ansible/ansible.git \
+                https://github.com/ansible/ansible.git \
                 --branch release1.4.1 \
                 ~/git/ansible
         pip install ~/git/ansible

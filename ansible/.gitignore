@@ -1,0 +1,10 @@
+secrets/dev/id_translator.key
+secrets/dev/cookie_secret.key
+secrets/dev/cryptondev.local-wildcard.pass.key
+secrets/dev/cryptondev.local-wildcard.key
+secrets/dev/cryptondev.local-wildcard.csr
+secrets/dev/cryptondev.local-wildcard.crt
+secrets/dev/cryptondev.local-wildcard.pem
+secrets/dev/auto
+secrets/production
+pyenv

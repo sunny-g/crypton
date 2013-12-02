@@ -1,0 +1,77 @@
+# {{ ansible_managed }}
+
+data_directory = '/var/lib/postgresql/{{ pg_ver }}/main'
+hba_file = '/etc/postgresql/{{ pg_ver }}/main/pg_hba.conf'
+ident_file = '/etc/postgresql/{{ pg_ver }}/main/pg_ident.conf'
+external_pid_file = '/var/run/postgresql/{{ pg_ver }}-main.pid'
+
+listen_addresses = 'localhost,{{inventory_hostname}}'
+port = 5432
+
+{% if production and pg_dedicated %}
+# settings for production/dedicated
+max_connections = 2000
+shared_buffers = 4096MB
+work_mem = 4MB
+maintenance_work_mem = 128MB
+effective_cache_size = 8192MB
+{% else  %}
+# settings for dev/node local
+max_connections = 200
+shared_buffers = 24MB
+work_mem = 1MB
+maintenance_work_mem = 16MB
+{% endif %}
+
+{% if development %}
+# dev only
+fsync = off
+{% endif %}
+
+{% if inventory_hostname == (database_master|default("none")) %}
+# master db settings
+wal_level = hot_standby
+wal_buffers = 16MB
+archive_mode = on
+# TODO fixme archive command
+#archive_command = 'rsync -a %p {{
+    database_archive_path|default("/var/lib/posgresql/backups")}}'
+archive_command = '/bin/true %p'
+archive_timeout = 300
+max_wal_senders = 5
+wal_keep_segments = 100
+{% elif inventory_hostname in database_slaves %}
+hot_standby = on
+{% endif %}
+
+autovacuum_max_workers = 1
+commit_delay = 100
+commit_siblings = 5
+checkpoint_segments = 20
+checkpoint_timeout = 15min
+
+unix_socket_directory = '/var/run/postgresql'
+ssl = false
+
+log_directory = '/var/log/postgresql'
+log_destination = csvlog
+logging_collector = on
+log_rotation_age = 1d
+log_rotation_size = 100MB
+client_min_messages = notice
+log_min_messages = notice
+log_min_error_statement = panic
+log_error_verbosity = default
+log_min_duration_statement = 5000
+log_duration = off
+log_hostname = on
+log_connections = on
+log_disconnections = on
+{% if development %}
+# log every statement in dev
+log_min_duration_statement = 0
+log_statement = all # off, ddl, mod, all
+{% endif %}
+log_line_prefix = '%t %a %u'
+
+lo_compat_privileges = on

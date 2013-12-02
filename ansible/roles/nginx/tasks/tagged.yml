@@ -1,0 +1,46 @@
+---
+- name: install nginx on 12.04
+  sudo: True
+  tags: nginx_pkg
+  apt: pkg=nginx-full state=installed
+
+- name: create nginx proxy cache dir
+  sudo: True
+  file: state=directory owner=www-data group=root mode=750
+        path={{ nginx_proxy_cache_path }}
+
+- name: create /var/empty
+  sudo: True
+  file: state=directory owner=root group=root mode=555
+        path=/var/empty
+
+- name: add /etc/nginx subdirectories
+  sudo: True
+  file: path=/etc/nginx/{{ item }} 
+        state=directory owner=root group=root mode=700
+  with_items:
+    - sites-enabled
+    - certs
+    - includes
+    - secrets
+
+- name: get rid of some unwanted stock nginx config files
+  sudo: True
+  file: path=/etc/nginx/{{ item }} state=absent 
+  with_items:
+    - sites-enabled/default
+
+- name: add params conf files
+  sudo: True
+  template: src={{ item }} mode=644 owner=root group=root
+    dest=/etc/nginx/includes/{{ item.split('/')[-1][0:-3] }}
+  with_fileglob:
+    - "../templates/*params*.conf.j2"
+    
+- name: nginx config file
+  sudo: True
+  template: src={{ item }} mode=644 owner=root group=root
+            dest=/etc/nginx/{{ item[0:-3] }}
+  notify: reload nginx
+  with_items:
+    - nginx.conf.j2

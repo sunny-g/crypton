@@ -1,0 +1,15 @@
+# simple example inventory for crypton dev.
+
+# this involves everything (HA, load balancing, ssl termination, crypton
+# node.js servers, postgres and redis databaases, and crypton apps) all on the
+# same machine.)  A production environment would involve separate tiers for
+# each of the above, and horizontally scalable sharded database servers.
+
+[crypton_server]
+crypton1
+
+# this is the dev environment hosts inventory, so make every host also be
+# a member of the dev group, so we pull in group variables from the dev
+# settings.
+[dev:children]
+crypton_server

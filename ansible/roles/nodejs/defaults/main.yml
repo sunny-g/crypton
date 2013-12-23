@@ -1,0 +1,21 @@
+---
+
+nodejs_version: "v0.10.22"
+
+ubuntu_nodejs_build_dependencies: 
+  - bsdmainutils 
+  - debhelper 
+  - dh-apparmor 
+  - gettext 
+  - gettext-base 
+  - groff-base 
+  - html2text
+  - intltool-debian 
+  - libax25 
+  - libax25-dev 
+  - libcroco3 
+  - libgettextpo0 
+  - libpipeline1
+  - libunistring0 
+  - man-db 
+  - po-debconf

@@ -1,0 +1,18 @@
+---
+
+- hosts: all
+  tasks:
+   - include_vars: vars/crypton.yml
+     tags: always
+
+
+- hosts: crypton_server
+  roles:
+   - base
+   - postgresql
+   - nginx
+   - redis
+   - nodejs
+   - crypton_db
+   - crypton_server
+   - dev_proxy

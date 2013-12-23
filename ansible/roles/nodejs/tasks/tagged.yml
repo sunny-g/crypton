@@ -1,0 +1,10 @@
+---
+
+- name: install node.js build dep requirements
+  sudo: True
+  apt: pkg={{ item }} state=installed
+  with_items: $ubuntu_nodejs_build_dependencies
+
+- name: install nodejs from source
+  script: build_nodejs_from_source.sh {{ nodejs_version }}
+          creates=/usr/local/bin/node

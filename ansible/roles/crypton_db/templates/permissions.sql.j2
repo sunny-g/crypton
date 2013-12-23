@@ -1,0 +1,24 @@
+begin;
+
+grant all on account to {{ db.username }};
+grant all on base_keyring to {{ db.username }};
+grant all on commitable_transaction to {{ db.username }};
+grant all on container to {{ db.username }};
+grant all on container_record to {{ db.username }};
+grant all on container_session_key to {{ db.username }};
+grant all on container_session_key_share to {{ db.username }};
+grant all on first_pending_commit_per_avatar to {{ db.username }};
+grant all on message to {{ db.username }};
+grant all on readable_container_records_by_account to {{ db.username }};
+grant all on transaction to {{ db.username }};
+grant all on transaction_add_container to {{ db.username }};
+grant all on transaction_add_container_record to {{ db.username }};
+grant all on transaction_add_container_session_key to {{ db.username }};
+grant all on transaction_add_container_session_key_share to {{ db.username }};
+grant all on transaction_add_message to {{ db.username }};
+grant all on transaction_delete_container to {{ db.username }};
+grant all on transaction_delete_container_session_key_share to {{ db.username }};
+grant all on transaction_delete_message to {{ db.username }};
+grant all on version_identifier to {{ db.username }};
+
+commit;

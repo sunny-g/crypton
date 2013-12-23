@@ -30,7 +30,7 @@ Containers
 
 ## Accounts
 
-Each user has an account with optional arbitrary plaintext data up to TODO kb. You can ask `crypton` to generate and account, which creates all necessary keyfiles:
+Each user has an account with optional arbitrary plaintext data up to TODO kb. You can ask `crypton` to generate an account, which creates all necessary keyfiles:
 
 ````javascript
 var handle = 'inputFromUser';
@@ -89,7 +89,7 @@ session.serialize(function (err, sessionString) {
 
 ### session.ping(callback)
 
-After resurrecting a cached session, we will want to make sure the server still beleives that it is valid. For example the session may be invalid is the password has been changed since it was saved, if the account has been deleted, or if it has been disabled server-side (such as for non-payment).
+After resurrecting a cached session, we will want to make sure the server still believes that it is valid. For example the session may be invalid is the password has been changed since it was saved, if the account has been deleted, or if it has been disabled server-side (such as for non-payment).
 
 ````javascript
 crypton.resurrect(sessionString, function (err, session) {
@@ -127,7 +127,7 @@ session.load('diary', function (err, diary) {
 
 ### container.get(objectName, callback)
 
-Retreive and object from said container and transparently decrypt it
+Retrieve an object from said container and transparently decrypt it
 
 ````javascript
 container.get('entries', function (err, diaryEntries) {
@@ -161,9 +161,9 @@ diaryDrafts.push(newEntry);
 
 // Atomically save all modified objects back to the container. If we had made
 // changes to either diaryEntries or diaryDrafts, both would be saved. The
-// default parameters for saving objects preserves object history (i.e. previous
-// versions of the object are still reachable) and uses diffing where
-// appropritae to minimize the total size. 
+// default parameters for saving objects preserves object history (i.e.
+// previous versions of the object are still reachable) and uses diffing where
+// appropriate to minimize the total size.
 diaryDrafts.save(function (err) {
   if (err) {
     // alert the user

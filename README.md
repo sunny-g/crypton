@@ -37,6 +37,23 @@ sh ./check_dependencies.sh
 Clone the repository and run `make` to install the rest of the dependencies and
 run the tests.
 
+See the crypton.io [getting-started page](https://crypton.io/getting-started) for more.
+
+### Running the Crypton server locally
+
+To run your own instance of the Crypton server:
+
+* The default configuration (``./server/config/config.test.json``) depends on the [redis](http://redis.io/) (key/value storage service) server running on your host:
+ * Install redis
+ * Start the redis server: ``/usr/local/bin/redis-server &``
+
+* Start the Crypton server:
+
+  ``sudo node ./server/bin/cli.js [ --config configfile ]``
+
+ * Sudo is necessary for access to privileged network sockets
+ * The default config file depends on redis, see above.
+
 ## Documentation
 
 There are files describing the high-level specification in the `client/doc/`
@@ -45,10 +62,13 @@ picture of the Crypton system is by understanding the database schema, in
 `server/lib/stores/postgres/sql/setup.sql`, which has lots of explanatory
 comments.
 
+See also the crypton.io [developer guide](https://crypton.io/developer-guide).
+
+
 ## Getting Help
 
 If you have questions that aren't answered by the provided documentation, you
-may contact us at crypton-discussion@crypton.io
+can contact us at crypton-discussion@crypton.io
 
 ## Contributing
 

@@ -53,7 +53,7 @@ Note that the proxy is configured to ONLY allow connections to the local
 machine, ports 80 and 443.  So if a cryptondev.local site makes references to
 URLs not served by that machine (such as Google fonts, jquery, etc.) the proxy
 will disallow those and the page won't work correctly.  This will remind you
-not to make create references to 3rd party javascript anyway. :)
+not to create references to 3rd party javascript anyway. :)
 
 Sometimes it is helpful to use multiple browsers running with different
 profiles.

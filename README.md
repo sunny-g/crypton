@@ -43,7 +43,7 @@ See the crypton.io [getting-started page](https://crypton.io/getting-started) fo
 
 #### Production deployment and ongoing development:
 
-The facilities in the distribution's ansible subdiretory provides a comprehensive virtual-guest installation of the crypton server and all its dependencies. See ansible/README.md for details.
+The facilities in the distribution's ansible subdirectory provides a comprehensive virtual-guest installation of the crypton server and all its dependencies. See ansible/README.md for details.
 
 
 #### Quick, low-overhead exploration and development:

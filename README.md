@@ -41,7 +41,14 @@ See the crypton.io [getting-started page](https://crypton.io/getting-started) fo
 
 ### Running the Crypton server locally
 
-To run your own instance of the Crypton server:
+#### Production deployment and ongoing development:
+
+The facilities in the distribution's ansible subdiretory provides a comprehensive virtual-guest installation of the crypton server and all its dependencies. See ansible/README.md for details.
+
+
+#### Quick, low-overhead exploration and development:
+
+For a low-overhead avenue to start the server in order to just try crypton, quickly - provided you have all the dependencies; see server/package.json:
 
 * The default configuration (``./server/config/config.test.json``) depends on the [redis](http://redis.io/) (key/value storage service) server running on your host:
  * Install redis
@@ -53,6 +60,18 @@ To run your own instance of the Crypton server:
 
  * Sudo is necessary for access to privileged network sockets
  * The default config file depends on redis, see above.
+
+#### Ongoing development:
+
+For a more lasting setup, but still for development rather than production deployment:
+
+* You will still need to have redis-server running on the crypton host - see above.
+
+* in the ./server package, ``npm link``
+ * This establishes /usr/local/bin/crypton script which is a link to server/bin/cli.js, for use from anywhere on your system
+ * It also creates a /usr/local/lib/node_modules/crypton link to the server directory, establishing the server package as a system wide node module.
+
+Then, if you npm link crypton in other software that has a node_modules directory, the crypton server package will be included there, via a symlink.
 
 ## Documentation
 

@@ -6,7 +6,7 @@ deployment_environment: dev
 crypton_server_domain: cryptondev.local
 crypton_server_local_port: 40087
 
-database_master: crypton1
+database_master: "{{ inventory_hostname }}"
 # no db slaves present
 database_slaves: []
 

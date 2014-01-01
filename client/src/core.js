@@ -87,6 +87,9 @@ crypton.randomBytes = randomBytes;
 // TODO consider moving non-callback arguments to single object
 crypton.generateAccount = function (username, passphrase, callback, options) {
   options = options || {};
+  if (typeof options.paranoia === 'undefined') {
+    options.paranoia = 6;   // 256 bits of entropy from prng
+  }
   var keypairCurve = options.keypairCurve || 384;
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
@@ -94,7 +97,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var containerNameHmacKey = randomBytes(8);
   var hmacKey = randomBytes(8);
   var keypairSalt = randomBytes(8);
-  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
+  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, options.paranoia);
   var symkey = keypair.pub.kem(0);
   var challengeKeySalt = randomBytes(8);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);

@@ -155,11 +155,16 @@ crypton.authorize = function (username, passphrase, callback) {
           var sessionIdentifier = res.body.sessionIdentifier;
           var session = new crypton.Session(sessionIdentifier);
           session.account = new crypton.Account();
+          session.account.username = username;
           session.account.passphrase = passphrase;
-
-          for (var i in res.body.account) {
-            session.account[i] = res.body.account[i];
-          }
+          session.account.challengeKey = res.body.account.challengeKey;
+          session.account.containerNameHmacKeyCiphertext = res.body.account.containerNameHmacKeyCiphertext;
+          session.account.hmacKeyCiphertext = res.body.account.hmacKeyCiphertext;
+          session.account.keypairCiphertext = res.body.account.keypairCiphertext;
+          session.account.pubKey = res.body.account.pubKey;
+          session.account.challengeKeySalt = res.body.account.challengeKeySalt;
+          session.account.keypairSalt = res.body.account.keypairSalt;
+          session.account.symKeyCiphertext = res.body.account.symKeyCiphertext;
 
           session.account.unravel(function () {
             callback(null, session);

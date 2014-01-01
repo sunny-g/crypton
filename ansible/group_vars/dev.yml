@@ -3,6 +3,9 @@ development: True
 production: False
 deployment_environment: dev
 
+crypton_source_repository: https://github.com/SpiderOak/crypton.git
+crypton_checkout: "/home/{{ ansible_user_id }}/crypton"
+
 crypton_server_domain: cryptondev.local
 crypton_server_local_port: 40087
 

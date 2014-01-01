@@ -4,36 +4,36 @@
         system=yes shell=/bin/false state=present
 
 - name: clone source code
-  sudo: True
-  git: repo=https://github.com/SpiderOak/crypton.git
-    dest=/home/crypton_server/crypton.git
+  sudo: "{{ production }}"
+  git: repo={{ crypton_source_repository }}
+    dest={{ crypton_checkout }}
     version=master
 
 - name: install server node modules
-  sudo: yes
+  sudo: "{{ production }}"
   command: npm install
-    chdir=/home/crypton_server/crypton.git/server
-    creates=/home/crypton_server/crypton.git/server/node_modules
+    chdir={{ crypton_checkout }}/server
+    creates={{ crypton_checkout }}/server/node_modules
 
 - name: build client dist files
-  sudo: yes
+  sudo: "{{ production }}"
   command: make dist/crypton.js
-    chdir=/home/crypton_server/crypton.git/client
-    creates=/home/crypton_server/crypton.git/client/dist/crypton.js
+    chdir={{ crypton_checkout }}/client
+    creates={{ crypton_checkout }}/client/dist/crypton.js
 
 - name: copy server secret files
   sudo: yes
-  copy: src={{item.src}} dest={{item.dest}} 
-        mode={{item.mode|default(400)}} 
-        owner={{item.owner|default("root")}}
-        group={{item.group|default("root")}}
+  copy: src={{ item.src }} dest={{ item.dest }}
+        mode={{ item.mode|default(400) }}
+        owner={{ item.owner|default("root") }}
+        group={{ item.group|default("root") }}
   with_items:
    - src: secrets/{{ deployment_environment }}/id_translator.key
-     dest: /home/crypton_server/id_translator.key 
+     dest: /home/crypton_server/id_translator.key
      owner: crypton_server
      group: crypton_server
    - src: secrets/{{ deployment_environment }}/cookie_secret.key
-     dest: /home/crypton_server/cookie_secret.key 
+     dest: /home/crypton_server/cookie_secret.key
      owner: crypton_server
      group: crypton_server
    - src: secrets/{{ deployment_environment }}/{{ crypton_server_domain }}-wildcard.pem
@@ -54,10 +54,12 @@
 - name: make vendor dir for upstream static items
   sudo: True
   file: state=directory
-   path=/home/crypton_server/vendor/jquery/1.8.3
-   owner=crypton_server
-   group=www-data
-   mode=555
+   path=/home/crypton_server/{{ item }}
+   owner=crypton_server group=www-data mode=555
+  with_items:
+    - vendor
+    - vendor/jquery
+    - vendor/jquery/1.8.3
 
 - name: fetch jquery so we can serve it locally
   sudo: True
@@ -71,8 +73,8 @@
   sudo: True
   lineinfile: >
    dest=/etc/hosts
-   line="{{ ansible_default_ipv4.address }} server.{{crypton_server_domain}}"
-   regexp=server.{{crypton_server_domain}}
+   line="{{ ansible_default_ipv4.address }} server.{{ crypton_server_domain }}"
+   regexp=server.{{ crypton_server_domain }}
 
 - include: runsv_services.yml tags=runit,role_crypton_server
 

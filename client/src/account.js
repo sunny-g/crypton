@@ -96,7 +96,6 @@ Account.prototype.serialize = function () {
   return {
     challengeKey: this.challengeKey,
     containerNameHmacKeyCiphertext: this.containerNameHmacKeyCiphertext,
-    hmacKey: this.hmacKey,
     hmacKeyCiphertext: this.hmacKeyCiphertext,
     keypairCiphertext: this.keypairCiphertext,
     pubKey: this.pubKey,

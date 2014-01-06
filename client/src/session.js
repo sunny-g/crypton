@@ -116,7 +116,13 @@ Session.prototype.create = function (containerName, callback) {
   var signature = 'hello'; // TODO sign with private key
   var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
   containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac.encrypt(containerName));
-  var payloadCiphertext = sjcl.encrypt(hmacKey, JSON.stringify({}), crypton.cipherOptions);
+
+  // TODO why is a session object generating container payloads? creating the
+  // initial container state should be done in container.js
+  var payloadCiphertext = sjcl.encrypt(hmacKey, JSON.stringify({
+    recordIndex: 0,
+    delta: {}
+  }), crypton.cipherOptions);
 
   var that = this;
   new crypton.Transaction(this, function (err, tx) {

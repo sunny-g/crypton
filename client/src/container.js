@@ -32,6 +32,7 @@
 var Container = crypton.Container = function (session) {
   this.keys = {};
   this.session = session;
+  this.recordCount = 1;
   this.versions = {};
   this.version = +new Date();
   this.name = null;
@@ -98,11 +99,17 @@ Container.prototype.save = function (callback, options) {
       return;
     }
 
+    var payload = {
+      recordIndex: that.recordCount,
+      delta: diff
+    };
+
     var now = +new Date();
     that.versions[now] = JSON.parse(JSON.stringify(that.keys));
     that.version = now;
+    that.recordCount++;
 
-    var payloadCiphertext = sjcl.encrypt(that.hmacKey, JSON.stringify(diff), crypton.cipherOptions);
+    var payloadCiphertext = sjcl.encrypt(that.hmacKey, JSON.stringify(payload), crypton.cipherOptions);
 
     var chunk = {
       type: 'addContainerRecord',
@@ -234,26 +241,29 @@ Container.prototype.parseHistory = function (records, callback) {
   var keys = {};
   var versions = {};
 
+  var recordIndex = 0;
   for (var i in records) {
-    var record = this.decryptRecord(records[i]);
+    var record = this.decryptRecord(recordIndex++, records[i]);
     keys = crypton.diff.apply(record.delta, keys);
     versions[record.time] = JSON.parse(JSON.stringify(keys));
   }
 
-  callback(null, keys, versions);
+  callback(null, keys, versions, recordIndex);
 };
 
 /**!
- * ### decryptRecord(record)
+ * ### decryptRecord(recordIndex, record)
  * Use symkey to extract session and HMAC keys,
- * decrypt record ciphertext with HMAC key
- * 
+ * decrypt record ciphertext with HMAC key,
+ * verify record index
+ *
+ * @param {Object} recordIndex
  * @param {Object} record
  * @record {Object} decryptedRecord
  */
 // TODO consider new scheme for extracting keys
 // TODO handle potential JSON.parse errors here
-Container.prototype.decryptRecord = function (record) {
+Container.prototype.decryptRecord = function (recordIndex, record) {
   var sessionKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.sessionKeyCiphertext, crypton.cipherOptions));
 
   var hmacKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.hmacKeyCiphertext, crypton.cipherOptions));
@@ -263,9 +273,13 @@ Container.prototype.decryptRecord = function (record) {
 
   var payload = JSON.parse(sjcl.decrypt(hmacKey, record.payloadCiphertext, crypton.cipherOptions));
 
+  if (payload.recordIndex !== recordIndex) {
+    throw new RangeError('Unexpected recordIndex');
+  }
+
   return {
     time: +new Date(record.creationTime),
-    delta: payload
+    delta: payload.delta
   };
 };
 
@@ -288,10 +302,11 @@ Container.prototype.sync = function (callback) {
       return;
     }
 
-    that.parseHistory(records, function (err, keys, versions) {
+    that.parseHistory(records, function (err, keys, versions, recordCount) {
       that.keys = keys;
       that.versions = versions;
       that.version = Math.max.apply(Math, Object.keys(versions));
+      that.recordCount = recordCount;
       callback(err);
     });
   });

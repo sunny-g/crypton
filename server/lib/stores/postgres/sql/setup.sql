@@ -65,8 +65,8 @@ CREATE TABLE base_keyring (
     base_keyring_id int8 not null primary key default nextval('version_identifier'),
     account_id int8 not null references account,
     creation_time timestamp not null default current_timestamp,
-    challenge_key_hash bytea,
-    challenge_key_salt bytea,
+    srp_verifier bytea,
+    srp_salt bytea,
     keypair_salt bytea,
     keypair bytea,
     pubkey bytea,
@@ -81,10 +81,10 @@ COMMENT ON TABLE base_keyring IS
 Some of these change whenever an account changes the passphrase.
 These are stored separately from account, even though only one base_keyring
 should be active at any given time.';
-COMMENT ON COLUMN base_keyring.challenge_key_salt IS
-'Salt used with KDF and passphrase to create challenge_key';
-COMMENT ON COLUMN base_keyring.challenge_key_hash IS
-'A key the server can use to issue auth challenges to the client';
+COMMENT ON COLUMN base_keyring.srp_verifier IS
+'SRP verifier data used to authenticate the client';
+COMMENT ON COLUMN base_keyring.srp_salt IS
+'Salt used for SRP authentication';
 COMMENT ON COLUMN base_keyring.keypair_salt IS
 'Salt used with KDF and passphrase to create AES256 key used to encrypt keypair';
 COMMENT ON COLUMN base_keyring.keypair IS

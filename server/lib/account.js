@@ -21,6 +21,7 @@
 var app = require('../app');
 var db = app.datastore;
 var bcrypt = require('bcrypt');
+var srp = require('srp');
 
 /**!
  * # Account()
@@ -86,80 +87,45 @@ Account.prototype.getById = function (id, callback) {
 };
 
 /**!
- * ### hashChallengeKey(challengeKey, callback)
- * Hash an encoded version of the supplied `challengeKey` and store it in the parent account object
+ * ### beginSrp()
+ * Generate SRP B value from stored verifier.
+ * Calls back with the server's B value.
  *
- * Calls back without error if successful
- *
- * Calls back with error if unsuccessful
- * 
- * @param {String} challengeKey
+ * @param {String} srpA
  * @param {Function} callback
  */
-Account.prototype.hashChallengeKey = function (challengeKey, callback) {
-  app.log('debug', 'hashing challenge key');
-
-  if (!challengeKey) {
-    app.log('warn', 'challenge key not supplied to hashChallengeKey');
-    callback('Must supply challengeKey');
-    return;
-  }
-
+Account.prototype.beginSrp = function(srpA, callback) {
   var that = this;
-  var rounds = 12; // TODO make this configurable
-  var challengeKeyEncoded = new Buffer(challengeKey).toString('hex');
-
-  app.log('trace', 'generating bcrypt salt');
-
-  bcrypt.genSalt(rounds, function (err, salt) {
-    if (err) {
-      app.log('warn', err);
-      callback(err);
-      return;
-    }
-
-    app.log('trace', 'hashing encoded challenge key with generated salt');
-
-    bcrypt.hash(challengeKeyEncoded, salt, function (err, hash) {
-      if (err) {
-        app.log('warn', err);
-        callback(err);
-        return;
-      }
-
-      that.challengeKeyHash = hash;
-      callback(null);
-    });
-  });
+  srp.genKey(function(srpSecret2) {
+    var verifier = new Buffer(that.srpVerifier, 'hex');
+    that.srpServer = new srp.Server(srp.params[2048], verifier, srpSecret2);
+    that.srpServer.setA(new Buffer(srpA, 'hex'));
+    var srpB = that.srpServer.computeB();
+    callback(srpB.toString('hex'));
+  })
 };
 
 /**!
- * ### verifyChallenge(challengeKeyReponse, callback)
- * Compare `challengeKeyResponse` with stored `challengeKeyHash`
+ * ### checkSrp()
+ * Finishes SRP verification with client's M1 value.
  *
- * Calls back without error if successful
+ * Calls back without error on success.
+ * Calls back with an error on failure.
  *
- * Calls back with error if unsuccessful
- * 
- * @param {String} challengeKeyResponse
+ * @param {String} srpM1
  * @param {Function} callback
  */
-Account.prototype.verifyChallenge = function (challengeKeyResponse, callback) {
-  app.log('debug', 'verifying challenge');
-
-  var challengeKeyResponseEncoded = new Buffer(challengeKeyResponse).toString('hex');
-
-  app.log('trace', 'comparing encoded challengeKeyResponse with challengeKeyHash');
-
-  bcrypt.compare(challengeKeyResponseEncoded, this.challengeKeyHash, function (err, success) {
-    if (err || !success) {
-      callback('Incorrect password');
-      return;
-    }
-
+Account.prototype.checkSrp = function(srpM1, callback) {
+  try {
+    this.srpServer.checkM1(new Buffer(srpM1, 'hex'));
+    // Don't need this right now. Maybe later?
+    //var srpK = this.srpServer.computeK();
     callback(null);
-  });
-};
+  } catch(e) {
+    callback('SRP verification failed');
+  }
+  delete this.srpServer;
+}
 
 /**!
  * ### update(key, value)

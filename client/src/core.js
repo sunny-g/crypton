@@ -136,7 +136,15 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  * @param {Function} callback
  */
 crypton.authorize = function (username, passphrase, callback) {
+  var srp = new SRPClient('username', 'password', 2048, 'sha-256');
+  var srpSecret1 = srp.srpRandom();
+  var srpA = srp.calculateA(srpSecret1);
+  var response = {
+    srpA: srpA.toString(16)
+  };
+
   superagent.post(crypton.url() + '/account/' + username)
+    .send(response)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -144,8 +152,16 @@ crypton.authorize = function (username, passphrase, callback) {
       }
 
       var body = res.body;
-      var response = {};
-      response.challengeKey = sjcl.misc.pbkdf2(passphrase, body.challengeKeySalt);
+      var srpSalt = body.srpSalt;
+      var srpB = new BigInteger(body.srpB, 16);
+
+      var srpU = srp.calculateU(srpA, srpB);
+      var srpS = srp.calculateS(srpB, srpSalt, srpU, srpSecret1);
+      var srpK = srp.calculateK(srpS);
+      var srpM1 = srp.calculateM(srpA, srpB, srpK);
+      response = {
+        srpM1: srpM1.toString(16)
+      };
 
       superagent.post(crypton.url() + '/account/' + username + '/answer')
         .send(response)

@@ -53,10 +53,9 @@ app.post('/account', function (req, res) {
 /**!
  * ### POST /account/:username
  * Retrieve account belonging to `username`,
- * send challengeKeySalt so client can generate
- * a challengeKeyReponse
+ * send srpSalt so client can set up its SRP
+ * state.
 */
-// TODO this could just be a GET?
 app.post('/account/:username', function (req, res) {
   app.log('debug', 'handling POST /account/:username');
 
@@ -73,9 +72,12 @@ app.post('/account/:username', function (req, res) {
       return;
     }
 
-    res.send({
-      success: true,
-      challengeKeySalt: account.challengeKeySalt
+    account.beginSrp(req.body.srpA, function(srpB) {
+      res.send({
+        success: true,
+        srpB: srpB,
+        srpSalt: account.srpSalt
+      });
     });
   });
 });
@@ -83,14 +85,13 @@ app.post('/account/:username', function (req, res) {
 /**!
  * ### POST /account/:username/answer
  * Retrieve account belonging to `username`,
- * verify that posted challengeKeyReponse matches
- * stored challengeKeyHash.
+ * verify that the SRP M parameter is valid.
  * If successful, start a session.
 */
 app.post('/account/:username/answer', function (req, res) {
   app.log('debug', 'handling POST /account/:username/answer');
 
-  var challengeKeyResponse = req.body.challengeKey;
+  var srpM1 = req.body.srpM1;
   var account = new Account();
 
   account.get(req.params.username, function (err) {
@@ -103,14 +104,9 @@ app.post('/account/:username/answer', function (req, res) {
       return;
     }
 
-    if (typeof challengeKeyResponse != 'string') {
-      app.log('debug', 'challengeKeyResponse was not string');
-      challengeKeyResponse = JSON.stringify(challengeKeyResponse);
-    }
-
-    account.verifyChallenge(challengeKeyResponse, function (err) {
+    account.checkSrp(srpM1, function (err) {
       if (err) {
-        app.log('debug', 'challenge verification failed: ' + err);
+        app.log('debug', 'SRP verification failed: ' + err);
         res.send({
           success: false,
           error: err
@@ -119,7 +115,7 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-      app.log('debug', 'challenge verification succcess');
+      app.log('debug', 'SRP verification succcess');
       req.session.accountId = account.accountId;
 
       res.send({

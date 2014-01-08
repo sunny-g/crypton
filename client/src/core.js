@@ -98,7 +98,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var symkey = keypair.pub.kem(0);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
 
-  var srp = new SRPClient(username, passphrase, 2048);
+  var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var srpSalt = srp.randomHexSalt();
   var srpVerifier = srp.calculateV(srpSalt);
 

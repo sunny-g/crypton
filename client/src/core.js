@@ -96,12 +96,15 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var keypairSalt = randomBytes(8);
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, 0);
   var symkey = keypair.pub.kem(0);
-  var challengeKeySalt = randomBytes(8);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
 
+  var srp = new SRPClient(username, passphrase, 2048);
+  var srpSalt = srp.randomHexSalt();
+  var srpVerifier = srp.calculateV(srpSalt);
+
   account.username = username;
-  account.challengeKeySalt = JSON.stringify(challengeKeySalt);
-  account.challengeKey = JSON.stringify(sjcl.misc.pbkdf2(passphrase, challengeKeySalt));
+  account.srpVerifier = srpVerifier.toString(16);
+  account.srpSalt = srpSalt;
   account.keypairSalt = JSON.stringify(keypairSalt);
   account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
   account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(containerNameHmacKey), crypton.cipherOptions);

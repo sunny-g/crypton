@@ -562,11 +562,11 @@ commit.finish = function (transactionId) {
 var garbage = {};
 
 /**!
- * ### garbage.troll()
+ * ### garbage.trollContainers()
  * Searches for containers marked with deletion_time
- * and passes them to garbage.destroy()
+ * and passes them to garbage.destroyContainer()
  */
-garbage.troll = function () {
+garbage.trollContainers = function () {
   connect(function (client, done) {
     var query = {
       text: 'select container_id, name_hmac from container where deletion_time is not null',
@@ -587,26 +587,81 @@ garbage.troll = function () {
       app.log('debug', result.rows.length + ' containers need deletion');
 
       for (var i = 0; i < result.rows.length; i++) {
-        garbage.destroy(result.rows[i].container_id);
+        garbage.destroyContainer(result.rows[i].container_id);
       }
     });
   });
 };
 
 /**!
- * ### garbage.destroy(containerId)
+ * ### garbage.trollMessages()
+ * Searches for messages marked with deletion_time
+ * and passes them to garbage.destroyMessage()
+ */
+garbage.trollMessages = function () {
+  connect(function (client, done) {
+    var query = {
+      text: 'select message_id from message where deletion_time is not null',
+      values: []
+    };
+
+    client.query(query, function (err, result) {
+      done();
+
+      if (err) {
+        app.log('warn', err);
+      }
+
+      if (!result.rows.length) {
+        return;
+      }
+
+      app.log('debug', result.rows.length + ' containers need deletion');
+
+      for (var i = 0; i < result.rows.length; i++) {
+        garbage.destroyMessage(result.rows[i].message_id);
+      }
+    });
+  });
+};
+
+/**!
+ * ### garbage.destroyContainer(containerId)
  * Execute deletion SQL for given `containerId`
  */
-garbage.destroy = function (containerId) {
+garbage.destroyContainer = function (containerId) {
   app.log('debug', 'destroying container with id ' + containerId);
 
   connect(function (client, done) {
-    var containerQuery = {
+    var containerDeletionQuery = {
       text: 'delete from container where container_id = $1',
       values: [ containerId ]
     };
 
-    client.query(containerQuery, function (err, result) {
+    client.query(containerDeletionQuery, function (err, result) {
+      done();
+
+      if (err) {
+        app.log('warn', err);
+      }
+    });
+  });
+};
+
+/**!
+ * ### garbage.destroyMessage(messageId)
+ * Execute deletion SQL for given `messageId`
+ */
+garbage.destroyMessage = function (messageId) {
+  app.log('debug', 'destroying message with id ' + messageId);
+
+  connect(function (client, done) {
+    var messageDeletionQuery = {
+      text: 'delete from message where message_id = $1',
+      values: [ messageId ]
+    };
+
+    client.query(messageDeletionQuery, function (err, result) {
       done();
 
       if (err) {
@@ -622,4 +677,5 @@ garbage.destroy = function (containerId) {
  */
 // TODO should we make this configurable?
 setInterval(commit.troll, 100);
-setInterval(garbage.troll, 1000);
+setInterval(garbage.trollContainers, 1000);
+setInterval(garbage.trollMessages, 1000);

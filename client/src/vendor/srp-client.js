@@ -1,4 +1,4 @@
-SRPClient = (function() {
+BigInteger = (function() {
 // Copyright (c) 2005  Tom Wu
 // All Rights Reserved.
 // See "LICENSE" for details.
@@ -1205,7 +1205,13 @@ BigInteger.prototype.gcd = bnGCD;
 BigInteger.prototype.isProbablePrime = bnIsProbablePrime;
 
 // JSBN-specific extension
-BigInteger.prototype.square = bnSquare;/*
+BigInteger.prototype.square = bnSquare;
+
+return BigInteger;
+})();
+
+SRPClient = (function() {
+/*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
  * in FIPS PUB 180-1
  * Copyright (C) Paul Johnston 2000.

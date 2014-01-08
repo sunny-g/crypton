@@ -143,7 +143,7 @@ exports.getAccount = function getAccount(username, callback) {
       text:
         "select username, " +
         "account.account_id, base_keyring_id, " +
-        "challenge_key_hash, challenge_key_salt, " +
+        "srp_verifier, srp_salt, " +
         "keypair, keypair_salt, " +
         "pubkey, symkey, " +
         "container_name_hmac_key, hmac_key " +
@@ -175,8 +175,8 @@ exports.getAccount = function getAccount(username, callback) {
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
         symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
-        challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
-        challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
+        srpVerifier: result.rows[0].srp_verifier.toString(),
+        srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
         hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
       });
@@ -201,7 +201,7 @@ exports.getAccountById = function getAccountById(accountId, callback) {
       text:
         "select account.account_id, " +
         "account.username, base_keyring_id, " +
-        "challenge_key_hash, challenge_key_salt, " +
+        "srp_verifier, srp_salt, " +
         "keypair, keypair_salt, " +
         "pubkey, symkey, " +
         "container_name_hmac_key, hmac_key " +
@@ -233,8 +233,8 @@ exports.getAccountById = function getAccountById(accountId, callback) {
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
         symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
-        challengeKeySalt: JSON.parse(result.rows[0].challenge_key_salt.toString()),
-        challengeKeyHash: result.rows[0].challenge_key_hash.toString(),
+        srpVerifier: result.rows[0].srp_verifier.toString(),
+        srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
         hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
       });

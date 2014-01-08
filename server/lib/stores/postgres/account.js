@@ -41,8 +41,8 @@ exports.saveAccount = function saveAccount(account, callback) {
     'symKeyCiphertext',
     'containerNameHmacKeyCiphertext',
     'hmacKeyCiphertext',
-    'challengeKeySalt',
-    'challengeKeyHash'
+    'srpVerifier',
+    'srpSalt'
   ];
 
   for (var i in requiredFields) {
@@ -86,7 +86,7 @@ exports.saveAccount = function saveAccount(account, callback) {
           "  base_keyring_id, account_id," +
           "  keypair, keypair_salt, pubkey, symkey," +
           "  container_name_hmac_key," +
-          "  hmac_key, challenge_key_salt, challenge_key_hash" +
+          "  hmac_key, srp_verifier, srp_salt" +
           ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
         values: [
           result.rows[0].base_keyring_id,
@@ -97,8 +97,8 @@ exports.saveAccount = function saveAccount(account, callback) {
           account.symKeyCiphertext,
           account.containerNameHmacKeyCiphertext,
           account.hmacKeyCiphertext,
-          account.challengeKeySalt,
-          account.challengeKeyHash
+          account.srpVerifier,
+          account.srpSalt
         ]
       };
 

@@ -26,37 +26,26 @@ var Account = require('../lib/account');
 /**!
  * ### POST /account
  * Translate posted body to an account object,
- * hashe and delete `account.challengeKey`,
  * then save the resulting account object to the server
 */
 app.post('/account', function (req, res) {
   app.log('debug', 'handling POST /account');
 
   var account = new Account();
-  var challengeKey = req.body.challengeKey;
   account.update(req.body);
 
-  account.hashChallengeKey(challengeKey, function (err) {
+  account.save(function (err) {
     if (err) {
       res.send({
         success: false,
         error: err
       });
+
+      return;
     }
 
-    account.save(function (err) {
-      if (err) {
-        res.send({
-          success: false,
-          error: err
-        });
-
-        return;
-      }
-
-      res.send({
-        success: true
-      });
+    res.send({
+      success: true
     });
   });
 });

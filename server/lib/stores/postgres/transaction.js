@@ -423,6 +423,48 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
   });
 };
 
+/**!
+ * ### transaction.deleteMessage(data, transaction, callback)
+ * Add deleteMessage chunk to given `transaction`
+ * via transaction_delete_message table
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} data
+ * @param {Object} transaction
+ * @param {Function} callback
+ */
+datastore.transaction.deleteMessage = function (data, transaction, callback) {
+  connect(function (client, done) {
+    var query = {
+      /*jslint multistr: true*/
+      text: "\
+        insert into transaction_delete_message \
+        (transaction_id, message_id) \
+        values ($1, $2)",
+      /*jslint multistr: false*/
+      values: [
+        transaction.transactionId,
+        data.messageId,
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      done();
+
+      if (err) {
+        app.log('warn', err);
+        callback('Invalid chunk data');
+        return;
+      }
+
+      callback();
+    });
+  });
+};
+
 var commit = {};
 
 /**!

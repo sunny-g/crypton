@@ -63,15 +63,20 @@ app.get('/peer/:username', verifySession, function (req, res) {
 app.post('/peer', verifySession, function (req, res) {
   app.log('debug', 'handling POST /peer');
 
-  var from = req.session.accountId;
-  var to = req.body.toAccount;
-  var headers = req.body.headers;
-  var body = req.body.body;
+  // TODO verify non-null values
+  var options = {
+    toAccountId: req.body.toAccountId,
+    fromAccountId: req.session.accountId,
+    headerCiphertext: req.body.headerCiphertext,
+    payloadCiphertext: req.body.payloadCiphertext,
+    keyCiphertext: req.body.keyCiphertext,
+    keyCiphertextHmacSignature: req.body.keyCiphertextHmacSignature
+  };
 
   var account = new Account();
-  account.accountId = to;
+  account.accountId = options.toAccountId;
 
-  account.sendMessage(from, headers, body, function (err, messageId) {
+  account.sendMessage(options, function (err, messageId) {
     if (err) {
       res.send({
         success: false,

@@ -221,41 +221,30 @@ Account.prototype.save = function (callback) {
 };
 
 /**!
- * ### sendMessage(from. headers, body, callback)
+ * ### sendMessage(options, callback)
  * Send a message from current account
  *
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
  * 
- * @param {Number} from
- * @param {Object} headers
- * @param {Object} body
+ * @param {Object} options
  * @param {Function} callback
  */
 // TODO consider moving from, headers, body to single argument object
-Account.prototype.sendMessage = function (from, headers, body, callback) {
+Account.prototype.sendMessage = function (options, callback) {
+  // TODO is this necessary if we just pass in options?
   if (!this.accountId) {
     app.log('warn', 'accountId was not supplied');
     callback('Recipient account object must have accountId');
     return;
   }
 
-  var to = this.accountId;
+  var toAccountId = this.accountId;
 
-  app.log('info', 'saving message for account id: ' + to);
+  app.log('info', 'saving message for account id: ' + toAccountId);
 
-
-  // we should be also make sure there are headers and body arguments
-  // and maybe be smart about making one/both of them optional
-  // but this works for now
-
-  db.saveMessage({
-    fromAccount: from,
-    toAccount: to,
-    headers: headers,
-    body: body
-  }, function (err, messageId) {
+  db.saveMessage(options, function (err, messageId) {
     if (err) {
       callback('Database error');
       return;
@@ -263,11 +252,11 @@ Account.prototype.sendMessage = function (from, headers, body, callback) {
 
     // there is definitely a better way to get the username to the receipient
     var sender = new Account();
-    sender.getById(from, function (err) {
-      if (app.clients[to]) {
+    sender.getById(options.fromAccountId, function (err) {
+      if (app.clients[toAccountId]) {
         app.log('debug', 'sending message over websocket');
 
-        app.clients[to].emit('message', {
+        app.clients[toAccountId].emit('message', {
           messageId: messageId
         });
       }

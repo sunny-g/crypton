@@ -255,18 +255,22 @@ exports.getAccountById = function getAccountById(accountId, callback) {
  */
 exports.saveMessage = function (options, callback) {
   connect(function (client, done) {
+console.log(options);
     var messageQuery = {
       text:
         "insert into message " +
         "(to_account_id, from_account_id, " +
-        "header_ciphertext, payload_ciphertext) " +
-        "values ($1, $2, $3, $4) " +
+        "header_ciphertext, payload_ciphertext, " +
+        "key_ciphertext, key_ciphertext_hmac_signature) " +
+        "values ($1, $2, $3, $4, $5, $6) " +
         "returning message_id",
       values: [
-        options.toAccount,
-        options.fromAccount,
-        options.headers,
-        options.body
+        options.toAccountId,
+        options.fromAccountId,
+        options.headerCiphertext,
+        options.payloadCiphertext,
+        options.keyCiphertext,
+        options.keyCiphertextHmacSignature
       ]
     };
 

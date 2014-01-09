@@ -362,10 +362,10 @@ create table message (
     ttl interval,
     from_account_id int8 not null references account (account_id),
     to_account_id int8 not null references account (account_id),
-    key_ciphertext bytea not null,
+    key_ciphertext varchar not null,
     key_ciphertext_hmac_signature bytea not null,
-    header_ciphertext bytea not null,
-    payload_ciphertext bytea not null,
+    header_ciphertext varchar not null,
+    payload_ciphertext varchar not null,
     deletion_time timestamp
     constraint deleted_after_created 
         check (deletion_time is null or deletion_time >= creation_time)
@@ -394,7 +394,7 @@ COMMENT ON COLUMN message.key_ciphertext IS
 In the future, we may reuse the data key for the length of the session
 but for now we are generating a new key per-message for simplicity';
 COMMENT ON COLUMN message.key_ciphertext_hmac_signature IS
-'signature made by HMACSHA256(key_ciphertext)';
+'signature made by HMACSHA256(key_ciphertext), key=data key';
 COMMENT ON COLUMN message.header_ciphertext IS 
 'AES-GCM of header, key=hash(data key)';
 COMMENT ON COLUMN message.payload_ciphertext IS 

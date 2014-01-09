@@ -22,21 +22,46 @@
 
 var Message = crypton.Message = function Message (session, raw) {
   this.session = session;
+  this.headers = {};
+  this.payload = {};
 
+  raw = raw || {};
   for (var i in raw) {
     this[i] = raw[i];
   }
+};
 
-  // id
-  // to
-  // from
-  // ttl
-  // created
-  // headers
-  // payload
+Message.prototype.encrypt = function (peer, callback) {
+  var messageKey = crypton.randomBytes(8);
+  var hMessageKey = sjcl.hash.sha256.hash(messageKey);
+
+  var headerCiphertext = sjcl.encrypt(hMessageKey, JSON.stringify(this.headers), crypton.cipherOptions);
+  var payloadCiphertext = sjcl.encrypt(hMessageKey, JSON.stringify(this.payload), crypton.cipherOptions);
+
+  var keyCiphertext = sjcl.encrypt(peer.pubKey, messageKey, crypton.cipherOptions);
+  var hmac = new sjcl.misc.hmac(hMessageKey);
+  var keySignature = hmac.encrypt(keyCiphertext);
+
+  this.encrypted = {
+    headerCiphertext: JSON.stringify(headerCiphertext),
+    payloadCiphertext: JSON.stringify(payloadCiphertext),
+    keyCiphertext: JSON.stringify(keyCiphertext),
+    keyCiphertextHmacSignature: sjcl.codec.hex.fromBits(keySignature),
+    toAccountId: peer.accountId
+  };
+
+  callback && callback(null);
 };
 
 Message.prototype.decrypt = function (callback) {
+  // messageKey = decrypt(private, keyCiphertext)
+  // generate keySignature
+  // verify keySignature
+  // decrypt headers with messageKey
+  // decrypt payload with messageKey
+console.log(this);
+return;
+
   var secretKey = this.session.account.secretKey;
 
   var headers = sjcl.decrypt(secretKey, this.headerCiphertext, crypton.cipherOptions);
@@ -59,6 +84,28 @@ Message.prototype.decrypt = function (callback) {
     this.created = new Date(this.creationTime);
     callback(null, this);
   }
+};
+
+Message.prototype.send = function (callback) {
+  if (!this.encrypted) {
+console.log('!encrypted');
+    return callback('You must encrypt the message to a peer before sending!');
+  }
+
+console.log('sending');
+  var url = crypton.url() + '/peer';
+  superagent.post(url)
+    .send(this.encrypted)
+    .set('x-session-identifier', this.session.id)
+    .end(function (res) {
+    if (!res.body || res.body.success !== true) {
+      callback(res.body.error);
+      return;
+    }
+
+console.log(res.body);
+    callback(null, res.body.messageId);
+  });
 };
 
 })();

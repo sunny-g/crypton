@@ -1561,7 +1561,30 @@ SRPClient.prototype = {
     return this.paddedHash(array);
     
   },
-  
+
+  /*
+   * Calculate match M1 = H(A | B | S)
+   * As seen in Mozilla's node-srp
+   */
+  calculateMozillaM1: function (A, B, S) {
+
+    // Verify presence of parameters.
+    if (!A || !B || !S)
+      throw 'Missing parameter(s).';
+
+    // Verify value of A and B.
+    if (A.mod(this.N).toString() == '0' ||
+        B.mod(this.N).toString() == '0')
+      throw 'ABORT: illegal_parameter';
+
+    var aHex = A.toString(16);
+    var bHex = B.toString(16);
+    var sHex = S.toString(16);
+
+    return this.hexHash(aHex + bHex + sHex);
+
+  },
+
   /*
    * Calculate the client's premaster secret 
    * S = (B - (k * g^x)) ^ (a + (u * x)) % N

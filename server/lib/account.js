@@ -96,7 +96,7 @@ Account.prototype.getById = function (id, callback) {
  */
 Account.prototype.beginSrp = function(srpA, callback) {
   var that = this;
-  srp.genKey(function(srpSecret2) {
+  srp.genKey(function(err, srpSecret2) {
     var verifier = new Buffer(that.srpVerifier, 'hex');
     that.srpServer = new srp.Server(srp.params[2048], verifier, srpSecret2);
     that.srpServer.setA(new Buffer(srpA, 'hex'));

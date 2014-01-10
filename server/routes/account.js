@@ -72,10 +72,11 @@ app.post('/account/:username', function (req, res) {
       return;
     }
 
-    account.beginSrp(req.body.srpA, function(srpB) {
+    account.beginSrp(req.body.srpA, function(srpParams) {
+      req.session.srpParams = srpParams;
       res.send({
         success: true,
-        srpB: srpB,
+        srpB: srpParams.B,
         srpSalt: account.srpSalt
       });
     });
@@ -91,6 +92,15 @@ app.post('/account/:username', function (req, res) {
 app.post('/account/:username/answer', function (req, res) {
   app.log('debug', 'handling POST /account/:username/answer');
 
+  if (typeof req.session.srpParams == 'undefined') {
+    res.send({
+      success: false,
+      error: "Session invalid"
+    });
+
+    return;
+  }
+
   var srpM1 = req.body.srpM1;
   var account = new Account();
 
@@ -104,7 +114,8 @@ app.post('/account/:username/answer', function (req, res) {
       return;
     }
 
-    account.checkSrp(srpM1, function (err) {
+    account.checkSrp(req.session.srpParams, srpM1, function (err) {
+      delete req.session.srpParams;
       if (err) {
         app.log('debug', 'SRP verification failed: ' + err);
         res.send({

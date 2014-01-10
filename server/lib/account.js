@@ -96,12 +96,15 @@ Account.prototype.getById = function (id, callback) {
  */
 Account.prototype.beginSrp = function(srpA, callback) {
   var that = this;
-  srp.genKey(function(err, srpSecret2) {
+  srp.genKey(function(err, b) {
     var verifier = new Buffer(that.srpVerifier, 'hex');
-    that.srpServer = new srp.Server(srp.params[2048], verifier, srpSecret2);
-    that.srpServer.setA(new Buffer(srpA, 'hex'));
-    var srpB = that.srpServer.computeB();
-    callback(srpB.toString('hex'));
+    var srpServer = new srp.Server(srp.params[2048], verifier, b);
+    srpServer.setA(new Buffer(srpA, 'hex'));
+    callback({
+      b: b.toString('hex'),
+      B: srpServer.computeB().toString('hex'),
+      A: srpA
+    });
   })
 };
 
@@ -115,16 +118,23 @@ Account.prototype.beginSrp = function(srpA, callback) {
  * @param {String} srpM1
  * @param {Function} callback
  */
-Account.prototype.checkSrp = function(srpM1, callback) {
+Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
+  // Revivify srpServer
+  var verifier = new Buffer(this.srpVerifier, 'hex');
+  var b = new Buffer(srpParams.b, 'hex');
+  var srpServer = new srp.Server(srp.params[2048], verifier, b);
+  srpServer.setA(new Buffer(srpParams.A, 'hex'));
+
   try {
-    this.srpServer.checkM1(new Buffer(srpM1, 'hex'));
-    // Don't need this right now. Maybe later?
-    //var srpK = this.srpServer.computeK();
-    callback(null);
+    srpServer.checkM1(new Buffer(srpM1, 'hex'));
   } catch(e) {
     callback('SRP verification failed');
+    app.log('debug', 'SRP verification error: ' + e.toString());
+    return;
   }
-  delete this.srpServer;
+  // Don't need this right now. Maybe later?
+  //var srpK = srpServer.computeK();
+  callback(null);
 }
 
 /**!

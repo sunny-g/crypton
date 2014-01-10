@@ -136,9 +136,9 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  * @param {Function} callback
  */
 crypton.authorize = function (username, passphrase, callback) {
-  var srp = new SRPClient('username', 'password', 2048, 'sha-256');
-  var srpSecret1 = srp.srpRandom();
-  var srpA = srp.calculateA(srpSecret1);
+  var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
+  var a = srp.srpRandom();
+  var srpA = srp.calculateA(a);
   var response = {
     srpA: srpA.toString(16)
   };
@@ -156,7 +156,7 @@ crypton.authorize = function (username, passphrase, callback) {
       var srpB = new BigInteger(body.srpB, 16);
 
       var srpU = srp.calculateU(srpA, srpB);
-      var srpS = srp.calculateS(srpB, srpSalt, srpU, srpSecret1);
+      var srpS = srp.calculateS(srpB, srpSalt, srpU, a);
       var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS);
       response = {
         srpM1: srpM1.toString(16)

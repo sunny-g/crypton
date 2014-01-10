@@ -362,10 +362,10 @@ create table message (
     ttl interval,
     from_account_id int8 not null references account (account_id),
     to_account_id int8 not null references account (account_id),
-    key_ciphertext varchar not null,
-    key_ciphertext_hmac_signature bytea not null,
-    header_ciphertext varchar not null,
+    headers_ciphertext varchar not null,
     payload_ciphertext varchar not null,
+    headers_ciphertext_hmac_signature bytea,
+    payload_ciphertext_hmac_signature bytea,
     deletion_time timestamp
     constraint deleted_after_created 
         check (deletion_time is null or deletion_time >= creation_time)
@@ -388,17 +388,14 @@ may be automatically deleted by the server after this interval.';
 COMMENT ON COLUMN message.deletion_time IS 
 'the time the server marks a message as having been deleted by the recipient.
 rows for deleted messages may optionally also be deleted entirely.';
-COMMENT ON COLUMN message.key_ciphertext IS
-'AES-GCM of data key, key=to_account_id public
-
-In the future, we may reuse the data key for the length of the session
-but for now we are generating a new key per-message for simplicity';
-COMMENT ON COLUMN message.key_ciphertext_hmac_signature IS
-'signature made by HMACSHA256(key_ciphertext), key=data key';
-COMMENT ON COLUMN message.header_ciphertext IS 
+COMMENT ON COLUMN message.headers_ciphertext IS
 'AES-GCM of header, key=hash(data key)';
 COMMENT ON COLUMN message.payload_ciphertext IS 
 'AES-GCM of payload, key=hash(data key)';
+COMMENT ON COLUMN message.headers_ciphertext_hmac_signature IS
+'signature of HMACSHA256(headers_ciphertext)';
+COMMENT ON COLUMN message.payload_ciphertext_hmac_signature IS
+'signature of HMACSHA256(payload_ciphertext)';
 
 create table transaction (
     transaction_id int8 not null primary key default nextval('version_identifier'),

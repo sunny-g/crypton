@@ -231,9 +231,8 @@ Account.prototype.save = function (callback) {
  * @param {Object} options
  * @param {Function} callback
  */
-// TODO consider moving from, headers, body to single argument object
 Account.prototype.sendMessage = function (options, callback) {
-  // TODO is this necessary if we just pass in options?
+  // TODO is this necessary if we're just passing `options` into db.saveMessage?
   if (!this.accountId) {
     app.log('warn', 'accountId was not supplied');
     callback('Recipient account object must have accountId');

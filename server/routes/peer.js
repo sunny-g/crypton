@@ -64,13 +64,14 @@ app.post('/peer', verifySession, function (req, res) {
   app.log('debug', 'handling POST /peer');
 
   // TODO verify non-null values
+  // TODO there is a more eloquent way to write this
   var options = {
     toAccountId: req.body.toAccountId,
     fromAccountId: req.session.accountId,
-    headerCiphertext: req.body.headerCiphertext,
+    headersCiphertext: req.body.headersCiphertext,
     payloadCiphertext: req.body.payloadCiphertext,
-    keyCiphertext: req.body.keyCiphertext,
-    keyCiphertextHmacSignature: req.body.keyCiphertextHmacSignature
+    headersCiphertextHmacSignature: req.body.headersCiphertextHmacSignature,
+    payloadCiphertextHmacSignature: req.body.payloadCiphertextHmacSignature
   };
 
   var account = new Account();

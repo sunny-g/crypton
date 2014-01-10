@@ -260,17 +260,18 @@ console.log(options);
       text:
         "insert into message " +
         "(to_account_id, from_account_id, " +
-        "header_ciphertext, payload_ciphertext, " +
-        "key_ciphertext, key_ciphertext_hmac_signature) " +
+        "headers_ciphertext, payload_ciphertext, " +
+        "headers_ciphertext_hmac_signature, " +
+        "payload_ciphertext_hmac_signature) " +
         "values ($1, $2, $3, $4, $5, $6) " +
         "returning message_id",
       values: [
         options.toAccountId,
         options.fromAccountId,
-        options.headerCiphertext,
+        options.headersCiphertext,
         options.payloadCiphertext,
-        options.keyCiphertext,
-        options.keyCiphertextHmacSignature
+        options.headersCiphertextHmacSignature,
+        options.payloadCiphertextHmacSignature
       ]
     };
 

@@ -32,21 +32,20 @@ var Message = crypton.Message = function Message (session, raw) {
 };
 
 Message.prototype.encrypt = function (peer, callback) {
-  var messageKey = crypton.randomBytes(8);
-  var hMessageKey = sjcl.hash.sha256.hash(messageKey);
+  var headersCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.headers), crypton.cipherOptions);
+  var payloadCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.payload), crypton.cipherOptions);
 
-  var headerCiphertext = sjcl.encrypt(hMessageKey, JSON.stringify(this.headers), crypton.cipherOptions);
-  var payloadCiphertext = sjcl.encrypt(hMessageKey, JSON.stringify(this.payload), crypton.cipherOptions);
+  var headersHmac = new sjcl.misc.hmac('');
+  var headersSignature = headersHmac.encrypt(headersCiphertext);
 
-  var keyCiphertext = sjcl.encrypt(peer.pubKey, messageKey, crypton.cipherOptions);
-  var hmac = new sjcl.misc.hmac(hMessageKey);
-  var keySignature = hmac.encrypt(keyCiphertext);
+  var payloadHmac = new sjcl.misc.hmac('');
+  var payloadSignature = payloadHmac.encrypt(payloadCiphertext);
 
   this.encrypted = {
-    headerCiphertext: JSON.stringify(headerCiphertext),
+    headersCiphertext: JSON.stringify(headersCiphertext),
     payloadCiphertext: JSON.stringify(payloadCiphertext),
-    keyCiphertext: JSON.stringify(keyCiphertext),
-    keyCiphertextHmacSignature: sjcl.codec.hex.fromBits(keySignature),
+    headersCiphertextHmacSignature: sjcl.codec.hex.fromBits(headersSignature),
+    payloadCiphertextHmacSignature: sjcl.codec.hex.fromBits(payloadSignature),
     toAccountId: peer.accountId
   };
 
@@ -54,18 +53,28 @@ Message.prototype.encrypt = function (peer, callback) {
 };
 
 Message.prototype.decrypt = function (callback) {
-  // messageKey = decrypt(private, keyCiphertext)
-  // generate keySignature
-  // verify keySignature
-  // decrypt headers with messageKey
-  // decrypt payload with messageKey
-console.log(this);
-return;
-
   var secretKey = this.session.account.secretKey;
+  var headersCiphertext = JSON.parse(this.headersCiphertext);
+  var payloadCiphertext = JSON.parse(this.payloadCiphertext);
 
-  var headers = sjcl.decrypt(secretKey, this.headerCiphertext, crypton.cipherOptions);
-  var payload = sjcl.decrypt(secretKey, this.payloadCiphertext, crypton.cipherOptions);
+  var headers = sjcl.decrypt(secretKey, headersCiphertext, crypton.cipherOptions);
+  var payload = sjcl.decrypt(secretKey, payloadCiphertext, crypton.cipherOptions);
+
+  var headersHmac = new sjcl.misc.hmac('');
+  var headersSignature = headersHmac.encrypt(headersCiphertext);
+  var headersSignatureHex = sjcl.codec.hex.fromBits(headersSignature);
+
+  var payloadHmac = new sjcl.misc.hmac('');
+  var payloadSignature = payloadHmac.encrypt(payloadCiphertext);
+  var payloadSignatureHex = sjcl.codec.hex.fromBits(payloadSignature);
+
+  if (headersSignatureHex !== this.headersCiphertextHmacSignature) {
+    return callback('Headers signature does not match');
+  }
+
+  if (payloadSignatureHex !== this.payloadCiphertextHmacSignature) {
+    return callback('Payload signature does not match');
+  }
 
   var err;
   try {
@@ -88,11 +97,9 @@ return;
 
 Message.prototype.send = function (callback) {
   if (!this.encrypted) {
-console.log('!encrypted');
     return callback('You must encrypt the message to a peer before sending!');
   }
 
-console.log('sending');
   var url = crypton.url() + '/peer';
   superagent.post(url)
     .send(this.encrypted)
@@ -103,7 +110,6 @@ console.log('sending');
       return;
     }
 
-console.log(res.body);
     callback(null, res.body.messageId);
   });
 };

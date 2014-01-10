@@ -157,8 +157,7 @@ crypton.authorize = function (username, passphrase, callback) {
 
       var srpU = srp.calculateU(srpA, srpB);
       var srpS = srp.calculateS(srpB, srpSalt, srpU, srpSecret1);
-      var srpK = srp.calculateK(srpS);
-      var srpM1 = srp.calculateM(srpA, srpB, srpK);
+      var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS);
       response = {
         srpM1: srpM1.toString(16)
       };

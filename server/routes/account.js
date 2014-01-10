@@ -72,7 +72,16 @@ app.post('/account/:username', function (req, res) {
       return;
     }
 
-    account.beginSrp(req.body.srpA, function(srpParams) {
+    account.beginSrp(req.body.srpA, function(err, srpParams) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+
+        return;
+      }
+
       req.session.srpParams = srpParams;
       res.send({
         success: true,

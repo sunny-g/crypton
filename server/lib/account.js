@@ -89,18 +89,24 @@ Account.prototype.getById = function (id, callback) {
 /**!
  * ### beginSrp()
  * Generate SRP B value from stored verifier.
- * Calls back with the server's B value.
+ * Calls back with a possible error and an 
+ * object with SRP parameters.
  *
  * @param {String} srpA
  * @param {Function} callback
  */
 Account.prototype.beginSrp = function(srpA, callback) {
+  if (typeof srpA != 'string' || srpA.length != 512) {
+    callback('Invalid SRP A value.');
+    return;
+  }
+
   var that = this;
   srp.genKey(function(err, b) {
     var verifier = new Buffer(that.srpVerifier, 'hex');
     var srpServer = new srp.Server(srp.params[2048], verifier, b);
     srpServer.setA(new Buffer(srpA, 'hex'));
-    callback({
+    callback(null, {
       b: b.toString('hex'),
       B: srpServer.computeB().toString('hex'),
       A: srpA
@@ -119,6 +125,16 @@ Account.prototype.beginSrp = function(srpA, callback) {
  * @param {Function} callback
  */
 Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
+  if (typeof srpParams != 'object' || !srpParams.b || !srpParams.A) {
+    callback('Invalid srpParams.');
+    return;
+  }
+
+  if (typeof srpM1 != 'string' || srpM1.length != 64) {
+    callback('Invalid SRP M1.');
+    return;
+  }
+
   // Revivify srpServer
   var verifier = new Buffer(this.srpVerifier, 'hex');
   var b = new Buffer(srpParams.b, 'hex');

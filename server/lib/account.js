@@ -88,9 +88,8 @@ Account.prototype.getById = function (id, callback) {
 
 /**!
  * ### beginSrp()
- * Generate SRP B value from stored verifier.
- * Calls back with a possible error and an 
- * object with SRP parameters.
+ * Generate SRP b value, then continue calculation
+ * in continueSrp()
  *
  * @param {String} srpA
  * @param {Function} callback
@@ -102,17 +101,36 @@ Account.prototype.beginSrp = function(srpA, callback) {
   }
 
   var that = this;
-  srp.genKey(function(err, b) {
-    var verifier = new Buffer(that.srpVerifier, 'hex');
-    var srpServer = new srp.Server(srp.params[2048], verifier, b);
-    srpServer.setA(new Buffer(srpA, 'hex'));
-    callback(null, {
-      b: b.toString('hex'),
-      B: srpServer.computeB().toString('hex'),
-      A: srpA
-    });
+  srp.genKey(function(err, srpb) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    that.continueSrp(srpA, srpb, callback));
   })
 };
+
+/**!
+ * ### continueSrp()
+ * Continue initial SRP calculation with supplied A
+ * and generated b parameters.  This is split from
+ * beginSrp() to allow testing with a supplied b
+ * parameter.
+ *
+ * @param {String} A
+ * @param {Buffer} b
+ * @param {Function} callback
+ */
+Account.prototype.continueSrp = function(srpA, srpb, callback) {
+  var verifier = new Buffer(that.srpVerifier, 'hex');
+  var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
+  srpServer.setA(new Buffer(srpA, 'hex'));
+  callback(null, {
+    b: srpb.toString('hex'),
+    B: srpServer.computeB().toString('hex'),
+    A: srpA
+  })
+}
 
 /**!
  * ### checkSrp()
@@ -144,7 +162,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
   try {
     srpServer.checkM1(new Buffer(srpM1, 'hex'));
   } catch(e) {
-    callback('SRP verification failed');
+    callback('Incorrect password');
     app.log('debug', 'SRP verification error: ' + e.toString());
     return;
   }

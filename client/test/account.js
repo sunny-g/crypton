@@ -60,7 +60,6 @@ describe('Account', function () {
       var expected = [
         'challengeKey',
         'containerNameHmacKeyCiphertext',
-        'hmacKey',
         'hmacKeyCiphertext',
         'keypairCiphertext',
         'pubKey',
@@ -79,7 +78,6 @@ describe('Account', function () {
       var ret = account.serialize();
       assert.deepEqual(ret.challengeKey, account.challengeKey);
       assert.deepEqual(ret.containerNameHmacKeyCiphertext, account.containerNameHmacKeyCiphertext);
-      assert.deepEqual(ret.hmacKey, account.hmacKey);
       assert.deepEqual(ret.hmacKeyCiphertext, account.hmacKeyCiphertext);
       assert.deepEqual(ret.keypairCiphertext, account.keypairCiphertext);
       assert.deepEqual(ret.pubKey, account.pubKey);

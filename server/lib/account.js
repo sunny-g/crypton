@@ -106,7 +106,7 @@ Account.prototype.beginSrp = function(srpA, callback) {
       callback(err);
       return;
     }
-    that.continueSrp(srpA, srpb, callback));
+    that.continueSrp(srpA, srpb, callback);
   })
 };
 
@@ -122,7 +122,7 @@ Account.prototype.beginSrp = function(srpA, callback) {
  * @param {Function} callback
  */
 Account.prototype.continueSrp = function(srpA, srpb, callback) {
-  var verifier = new Buffer(that.srpVerifier, 'hex');
+  var verifier = new Buffer(this.srpVerifier, 'hex');
   var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
   srpServer.setA(new Buffer(srpA, 'hex'));
   callback(null, {

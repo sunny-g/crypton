@@ -54,6 +54,11 @@ app.init = function (session) {
     app.session.inbox.get(data.messageId, function (err, message) {
       if (message.headers.app == 'chatExample') {
         app.processMessage(message);
+        app.session.inbox.delete(data.messageId, function (err) {
+          if (err) {
+            alert(err);
+          }
+        });
       }
     });
   });

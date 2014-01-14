@@ -109,6 +109,11 @@ create temp table txtmp_delete_container on commit drop as
         where tdc.transaction_id = {{transactionId}}
      );
 
+create temp table txtmp_delete_message on commit drop as
+    select message_id
+      from transaction_delete_message
+     where transaction_id = {{transactionId}};
+
 /* now, we can finally calculate the latest_record_id value for new containers
  * we're adding */
 update txtmp_add_container set latest_record_id=(
@@ -163,6 +168,12 @@ update container
   set deletion_time = current_timestamp
   where container_id in (
     select container_id from txtmp_delete_container
+  );
+
+update message
+  set deletion_time = current_timestamp
+  where message_id in (
+    select message_id from txtmp_delete_message
   );
 
 commit;

@@ -362,10 +362,10 @@ create table message (
     ttl interval,
     from_account_id int8 not null references account (account_id),
     to_account_id int8 not null references account (account_id),
-    keys_ciphertext bytea,/* not null, */
-    keys_signature bytea,/* not null, */
-    header_ciphertext bytea not null,
-    payload_ciphertext bytea not null,
+    headers_ciphertext varchar not null,
+    payload_ciphertext varchar not null,
+    headers_ciphertext_hmac_signature bytea,
+    payload_ciphertext_hmac_signature bytea,
     deletion_time timestamp
     constraint deleted_after_created 
         check (deletion_time is null or deletion_time >= creation_time)
@@ -388,34 +388,14 @@ may be automatically deleted by the server after this interval.';
 COMMENT ON COLUMN message.deletion_time IS 
 'the time the server marks a message as having been deleted by the recipient.
 rows for deleted messages may optionally also be deleted entirely.';
-COMMENT ON COLUMN message.keys_ciphertext IS 
-'2 keys, each 32 bytes, a data key and a hmac key, concatenated together for a
-total of 64 bytes, and encrypted using to_account_id''s public RSA key using
-PKCS#1 padding.
-
-Note that message key generation, key encryption, key decryption, and key
-verification between peers may be cached by both sender and receiver.  In other
-words, the same set of keys (and thus the same keys_ciphertext) may be memoized
-and used repeatedly for sending many messages.  Each message sent with the same
-keys MUST have unique IVs though.
-
-Similar caching can be used on the receiving side.  In other words, decrypting
-keys_ciphertext and verifying keys_signtature can be memoized by the message
-receiver, such that same inputs give same AES and HMAC key outputs w/o
-repeating the RSA operations.
-
-It''s not important that this memoization be persisted anywhere, because it can
-always be recalculated and/or the conversation can switch to new keys.  
-
-The intention is just that two peers frequently exchanging messages with
-eachother would have to perform the RSA operations infrequently.
-';
-COMMENT ON COLUMN message.keys_signature IS
-'signature made by from_account_id''s private RSA key of keys_ciphertext';
-COMMENT ON COLUMN message.header_ciphertext IS 
-'AES256CFB of header, key=data key, segment_width=128, PKCS1 padding';
+COMMENT ON COLUMN message.headers_ciphertext IS
+'AES-GCM of header, key=hash(data key)';
 COMMENT ON COLUMN message.payload_ciphertext IS 
-'AES256CFB of payload, key=data key, segment_width=128, PKCS1 padding';
+'AES-GCM of payload, key=hash(data key)';
+COMMENT ON COLUMN message.headers_ciphertext_hmac_signature IS
+'signature of HMACSHA256(headers_ciphertext)';
+COMMENT ON COLUMN message.payload_ciphertext_hmac_signature IS
+'signature of HMACSHA256(payload_ciphertext)';
 
 create table transaction (
     transaction_id int8 not null primary key default nextval('version_identifier'),

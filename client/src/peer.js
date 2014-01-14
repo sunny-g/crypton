@@ -99,43 +99,29 @@ Peer.prototype.encrypt = function (payload) {
 };
 
 /**!
- * ### sendMessage(headers, body, callback)
- * Encrypt `headers` and `body` and send them to peer in one logical `message`
+ * ### sendMessage(headers, payload, callback)
+ * Encrypt `headers` and `payload` and send them to peer in one logical `message`
  * 
  * Calls back with message id and without error if successful
  *
  * Calls back with error if unsuccessful
  * 
  * @param {Object} headers
- * @param {Object} body
+ * @param {Object} payload
  */
-Peer.prototype.sendMessage = function (headers, body, callback) {
+Peer.prototype.sendMessage = function (headers, payload, callback) {
   if (!this.session) {
     callback('Must supply session to peer object');
     return;
   }
 
-  var headerCiphertext = this.encrypt(headers);
-  var bodyCiphertext = this.encrypt(body);
-
-  var message = {
-    headers: headerCiphertext,
-    body: bodyCiphertext,
-    toAccount: this.accountId,
-  };
-
-  var url = crypton.url() + '/peer';
-  superagent.post(url)
-    .send(message)
-    .set('x-session-identifier', this.session.id)
-    .end(function (res) {
-    if (!res.body || res.body.success !== true) {
-      callback(res.body.error);
-      return;
-    }
-
-    callback(null, res.body.messageId);
-  });
+  var message = new crypton.Message(this.session);
+  message.headers = headers;
+  message.payload = payload;
+  message.fromAccount = this.session.accountId;
+  message.toAccount = this.accountId;
+  message.encrypt(this);
+  message.send(callback);
 };
 
 })();

@@ -17,10 +17,12 @@
 */
 
 describe('Container functionality', function () {
+  this.timeout(5000);
+
   var session;
 
   before(function (done) {
-    crypton.authorize('notSoSmart', '', function (err, rawSession) {
+    crypton.authorize('notSoSmart', 'pass', function (err, rawSession) {
       if (err) throw err;
       session = rawSession;
       done();
@@ -38,7 +40,7 @@ describe('Container functionality', function () {
             setTimeout(function () { // hack to get around commit poll race condition
               container.save(function (err) {
                 setTimeout(function () {
-                crypton.authorize('notSoSmart', '', function (err, session2) {
+                crypton.authorize('notSoSmart', 'pass', function (err, session2) {
                   session2.load('tupperware', function (err, container2) {
                     container2.get('properties', function (err, properties2) {
                       assert.equal(err, null);

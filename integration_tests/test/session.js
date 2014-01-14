@@ -17,10 +17,12 @@
 */
 
 describe('Session functionality', function () {
+  this.timeout(5000);
+
   describe('create()', function () {
     before(function (done) {
       var that = this;
-      crypton.authorize('notSoSmart', '', function (err, session) {
+      crypton.authorize('notSoSmart', 'pass', function (err, session) {
         if (err) throw err;
         that.session = session;
         done();
@@ -38,7 +40,7 @@ describe('Session functionality', function () {
   describe('load()', function () {
     before(function (done) {
       var that = this;
-      crypton.authorize('notSoSmart', '', function (err, session) {
+      crypton.authorize('notSoSmart', 'pass', function (err, session) {
         if (err) throw err;
         that.session = session;
         done();
@@ -55,15 +57,18 @@ describe('Session functionality', function () {
     it('should load an existing container', function (done) {
       this.session.load('myContainer', function (err, container) {
         assert.equal(err, null);
+
         var expectedKeys = [
           'keys',
           'session',
+          'recordCount',
           'versions',
           'version',
           'name',
           'sessionKey',
           'hmacKey'
         ];
+
         assert.deepEqual(Object.keys(container), expectedKeys);
         done();
       });

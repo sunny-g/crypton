@@ -17,6 +17,8 @@
 */
 
 describe('Transaction functionality', function () {
+  this.timeout(5000);
+
   var session;
   var tx;
 

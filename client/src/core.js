@@ -105,7 +105,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   account.username = username;
   // Pad verifier to 512 bytes
   // TODO: This length will change when a different SRP group is used
-  account.srpVerifier = srp.nZeros(512 - srpVerifier) + srpVerifier;
+  account.srpVerifier = srp.nZeros(512 - srpVerifier.length) + srpVerifier;
   account.srpSalt = srpSalt;
   account.keypairSalt = JSON.stringify(keypairSalt);
   account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);

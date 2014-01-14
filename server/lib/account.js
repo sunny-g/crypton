@@ -95,6 +95,7 @@ Account.prototype.getById = function (id, callback) {
  * @param {Function} callback
  */
 Account.prototype.beginSrp = function(srpA, callback) {
+  // TODO: 512 byte length will change when a different SRP group is used
   if (typeof srpA != 'string' || srpA.length != 512) {
     callback('Invalid SRP A value.');
     return;

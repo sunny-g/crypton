@@ -100,10 +100,12 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var srpSalt = srp.randomHexSalt();
-  var srpVerifier = srp.calculateV(srpSalt);
+  var srpVerifier = srp.calculateV(srpSalt).toString(16);
 
   account.username = username;
-  account.srpVerifier = srpVerifier.toString(16);
+  // Pad verifier to 512 bytes
+  // TODO: This length will change when a different SRP group is used
+  account.srpVerifier = srp.nZeros(512 - srpVerifier) + srpVerifier;
   account.srpSalt = srpSalt;
   account.keypairSalt = JSON.stringify(keypairSalt);
   account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
@@ -139,8 +141,13 @@ crypton.authorize = function (username, passphrase, callback) {
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var a = srp.srpRandom();
   var srpA = srp.calculateA(a);
+  // Pad A out to 512 bytes
+  // TODO: This length will change when a different SRP group is used
+  var srpAstr = srpA.toString(16);
+  srpAstr = srp.nZeros(512 - srpAstr.length) + srpAstr;
+
   var response = {
-    srpA: srpA.toString(16)
+    srpA: srpAstr
   };
 
   superagent.post(crypton.url() + '/account/' + username)

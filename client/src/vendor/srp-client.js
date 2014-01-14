@@ -1581,7 +1581,7 @@ SRPClient.prototype = {
     var bHex = B.toString(16);
     var sHex = S.toString(16);
 
-    return this.hexHash(aHex + bHex + sHex);
+    return this.paddedHash([aHex, bHex, sHex]);
 
   },
 

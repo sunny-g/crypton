@@ -1,12 +1,5 @@
 ;(function(){
 
-
-/**
- * hasOwnProperty.
- */
-
-var has = Object.prototype.hasOwnProperty;
-
 /**
  * Require the given path.
  *
@@ -34,10 +27,14 @@ function require(path, parent, orig) {
   // perform real require()
   // by invoking the module's
   // registered function
-  if (!module.exports) {
-    module.exports = {};
-    module.client = module.component = true;
-    module.call(this, module.exports, require.relative(resolved), module);
+  if (!module._resolving && !module.exports) {
+    var mod = {};
+    mod.exports = {};
+    mod.client = mod.component = true;
+    module._resolving = true;
+    module.call(this, mod.exports, require.relative(resolved), mod);
+    delete module._resolving;
+    module.exports = mod.exports;
   }
 
   return module.exports;
@@ -70,7 +67,7 @@ require.aliases = {};
  */
 
 require.resolve = function(path) {
-  var index = path + '/index.js';
+  if (path.charAt(0) === '/') path = path.slice(1);
 
   var paths = [
     path,
@@ -82,11 +79,8 @@ require.resolve = function(path) {
 
   for (var i = 0; i < paths.length; i++) {
     var path = paths[i];
-    if (has.call(require.modules, path)) return path;
-  }
-
-  if (has.call(require.aliases, index)) {
-    return require.aliases[index];
+    if (require.modules.hasOwnProperty(path)) return path;
+    if (require.aliases.hasOwnProperty(path)) return require.aliases[path];
   }
 };
 
@@ -139,7 +133,7 @@ require.register = function(path, definition) {
  */
 
 require.alias = function(from, to) {
-  if (!has.call(require.modules, from)) {
+  if (!require.modules.hasOwnProperty(from)) {
     throw new Error('Failed to alias "' + from + '", it does not exist');
   }
   require.aliases[to] = from;
@@ -182,17 +176,18 @@ require.relative = function(parent) {
    */
 
   localRequire.resolve = function(path) {
+    var c = path.charAt(0);
+    if ('/' == c) return path.slice(1);
+    if ('.' == c) return require.normalize(p, path);
+
     // resolve deps by returning
     // the dep in the nearest "deps"
     // directory
-    if ('.' != path.charAt(0)) {
-      var segs = parent.split('/');
-      var i = lastIndexOf(segs, 'deps') + 1;
-      if (!i) i = 0;
-      path = segs.slice(0, i + 1).join('/') + '/deps/' + path;
-      return path;
-    }
-    return require.normalize(p, path);
+    var segs = parent.split('/');
+    var i = lastIndexOf(segs, 'deps') + 1;
+    if (!i) i = 0;
+    path = segs.slice(0, i + 1).join('/') + '/deps/' + path;
+    return path;
   };
 
   /**
@@ -200,7 +195,7 @@ require.relative = function(parent) {
    */
 
   localRequire.exists = function(path) {
-    return has.call(require.modules, localRequire.resolve(path));
+    return require.modules.hasOwnProperty(localRequire.resolve(path));
   };
 
   return localRequire;
@@ -215,7 +210,7 @@ module.exports = Emitter;
 
 /**
  * Initialize a new `Emitter`.
- * 
+ *
  * @api public
  */
 
@@ -247,7 +242,8 @@ function mixin(obj) {
  * @api public
  */
 
-Emitter.prototype.on = function(event, fn){
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
   this._callbacks = this._callbacks || {};
   (this._callbacks[event] = this._callbacks[event] || [])
     .push(fn);
@@ -273,7 +269,7 @@ Emitter.prototype.once = function(event, fn){
     fn.apply(this, arguments);
   }
 
-  fn._off = on;
+  on.fn = fn;
   this.on(event, on);
   return this;
 };
@@ -288,8 +284,19 @@ Emitter.prototype.once = function(event, fn){
  * @api public
  */
 
-Emitter.prototype.off = function(event, fn){
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
   this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
   var callbacks = this._callbacks[event];
   if (!callbacks) return this;
 
@@ -300,8 +307,14 @@ Emitter.prototype.off = function(event, fn){
   }
 
   // remove specific handler
-  var i = callbacks.indexOf(fn._off || fn);
-  if (~i) callbacks.splice(i, 1);
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
   return this;
 };
 
@@ -310,7 +323,7 @@ Emitter.prototype.off = function(event, fn){
  *
  * @param {String} event
  * @param {Mixed} ...
- * @return {Emitter} 
+ * @return {Emitter}
  */
 
 Emitter.prototype.emit = function(event){
@@ -353,7 +366,6 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-
 });
 require.register("RedVentures-reduce/index.js", function(exports, require, module){
 
@@ -382,13 +394,12 @@ module.exports = function(arr, fn, initial){
 };
 });
 require.register("superagent/lib/client.js", function(exports, require, module){
-
 /**
  * Module dependencies.
  */
 
-var Emitter = require('emitter')
-  , reduce = require('reduce');
+var Emitter = require('emitter');
+var reduce = require('reduce');
 
 /**
  * Root reference for iframes.
@@ -403,6 +414,30 @@ var root = 'undefined' == typeof window
  */
 
 function noop(){};
+
+/**
+ * Check if `obj` is a host object,
+ * we don't want to serialize these :)
+ *
+ * TODO: future proof, move to compoent land
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
+ */
+
+function isHost(obj) {
+  var str = {}.toString.call(obj);
+
+  switch (str) {
+    case '[object File]':
+    case '[object Blob]':
+    case '[object FormData]':
+      return true;
+    default:
+      return false;
+  }
+}
 
 /**
  * Determine XHR.
@@ -457,8 +492,10 @@ function serialize(obj) {
   if (!isObject(obj)) return obj;
   var pairs = [];
   for (var key in obj) {
-    pairs.push(encodeURIComponent(key)
-      + '=' + encodeURIComponent(obj[key]));
+    if (null != obj[key]) {
+      pairs.push(encodeURIComponent(key)
+        + '=' + encodeURIComponent(obj[key]));
+    }
   }
   return pairs.join('&');
 }
@@ -508,6 +545,7 @@ request.parseString = parseString;
 request.types = {
   html: 'text/html',
   json: 'application/json',
+  xml: 'application/xml',
   urlencoded: 'application/x-www-form-urlencoded',
   'form': 'application/x-www-form-urlencoded',
   'form-data': 'application/x-www-form-urlencoded'
@@ -648,15 +686,34 @@ function params(str){
  * @api private
  */
 
-function Response(xhr, options) {
+function Response(req, options) {
   options = options || {};
-  this.xhr = xhr;
-  this.text = xhr.responseText;
-  this.setStatusProperties(xhr.status);
-  this.header = parseHeader(xhr.getAllResponseHeaders());
+  this.req = req;
+  this.xhr = this.req.xhr;
+  this.text = this.xhr.responseText;
+  this.setStatusProperties(this.xhr.status);
+  this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
+  // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
+  // getResponseHeader still works. so we get content-type even if getting
+  // other headers fails.
+  this.header['content-type'] = this.xhr.getResponseHeader('content-type');
   this.setHeaderProperties(this.header);
-  this.body = this.parseBody(this.text);
+  this.body = this.req.method != 'HEAD'
+    ? this.parseBody(this.text)
+    : null;
 }
+
+/**
+ * Get case-insensitive `field` value.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+Response.prototype.get = function(field){
+  return this.header[field.toLowerCase()];
+};
 
 /**
  * Set header related properties:
@@ -753,9 +810,16 @@ Response.prototype.setStatusProperties = function(status){
  */
 
 Response.prototype.toError = function(){
-  var msg = 'got ' + this.status + ' response';
+  var req = this.req;
+  var method = req.method;
+  var path = req.path;
+
+  var msg = 'cannot ' + method + ' ' + path + ' (' + this.status + ')';
   var err = new Error(msg);
   err.status = this.status;
+  err.method = method;
+  err.path = path;
+
   return err;
 };
 
@@ -780,20 +844,19 @@ function Request(method, url) {
   this.method = method;
   this.url = url;
   this.header = {};
-  this.set('X-Requested-With', 'XMLHttpRequest');
+  this._header = {};
   this.on('end', function(){
-    var res = new Response(self.xhr);
+    var res = new Response(self);
     if ('HEAD' == method) res.text = null;
     self.callback(null, res);
   });
 }
 
 /**
- * Inherit from `Emitter.prototype`.
+ * Mixin `Emitter`.
  */
 
-Request.prototype = new Emitter;
-Request.prototype.constructor = Request;
+Emitter(Request.prototype);
 
 /**
  * Set timeout to `ms`.
@@ -864,8 +927,21 @@ Request.prototype.set = function(field, val){
     }
     return this;
   }
-  this.header[field.toLowerCase()] = val;
+  this._header[field.toLowerCase()] = val;
+  this.header[field] = val;
   return this;
+};
+
+/**
+ * Get case-insensitive header `field` value.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api private
+ */
+
+Request.prototype.getHeader = function(field){
+  return this._header[field.toLowerCase()];
 };
 
 /**
@@ -896,6 +972,46 @@ Request.prototype.type = function(type){
 };
 
 /**
+ * Set Accept to `type`, mapping values from `request.types`.
+ *
+ * Examples:
+ *
+ *      superagent.types.json = 'application/json';
+ *
+ *      request.get('/agent')
+ *        .accept('json')
+ *        .end(callback);
+ *
+ *      request.get('/agent')
+ *        .accept('application/json')
+ *        .end(callback);
+ *
+ * @param {String} accept
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.accept = function(type){
+  this.set('Accept', request.types[type] || type);
+  return this;
+};
+
+/**
+ * Set Authorization field value with `user` and `pass`.
+ *
+ * @param {String} user
+ * @param {String} pass
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.auth = function(user, pass){
+  var str = btoa(user + ':' + pass);
+  this.set('Authorization', 'Basic ' + str);
+  return this;
+};
+
+/**
 * Add query-string `val`.
 *
 * Examples:
@@ -911,7 +1027,7 @@ Request.prototype.type = function(type){
 
 Request.prototype.query = function(val){
   if ('string' != typeof val) val = serialize(val);
-  this._query.push(val);
+  if (val) this._query.push(val);
   return this;
 };
 
@@ -968,7 +1084,7 @@ Request.prototype.query = function(val){
 
 Request.prototype.send = function(data){
   var obj = isObject(data);
-  var type = this.header['content-type'];
+  var type = this.getHeader('Content-Type');
 
   // merge
   if (obj && isObject(this._data)) {
@@ -977,7 +1093,7 @@ Request.prototype.send = function(data){
     }
   } else if ('string' == typeof data) {
     if (!type) this.type('form');
-    type = this.header['content-type'];
+    type = this.getHeader('Content-Type');
     if ('application/x-www-form-urlencoded' == type) {
       this._data = this._data
         ? this._data + '&' + data
@@ -1070,9 +1186,6 @@ Request.prototype.end = function(fn){
   // store callback
   this._callback = fn || noop;
 
-  // CORS
-  if (this._withCredentials) xhr.withCredentials = true;
-
   // state change
   xhr.onreadystatechange = function(){
     if (4 != xhr.readyState) return;
@@ -1082,6 +1195,14 @@ Request.prototype.end = function(fn){
     }
     self.emit('end');
   };
+
+  // progress
+  if (xhr.upload) {
+    xhr.upload.onprogress = function(e){
+      e.percent = e.loaded / e.total * 100;
+      self.emit('progress', e);
+    };
+  }
 
   // timeout
   if (timeout && !this._timer) {
@@ -1101,15 +1222,19 @@ Request.prototype.end = function(fn){
   // initiate request
   xhr.open(this.method, this.url, true);
 
+  // CORS
+  if (this._withCredentials) xhr.withCredentials = true;
+
   // body
-  if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data) {
+  if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !isHost(data)) {
     // serialize stuff
-    var serialize = request.serialize[this.header['content-type']];
+    var serialize = request.serialize[this.getHeader('Content-Type')];
     if (serialize) data = serialize(data);
   }
 
   // set header fields
   for (var field in this.header) {
+    if (null == this.header[field]) continue;
     xhr.setRequestHeader(field, this.header[field]);
   }
 
@@ -1172,7 +1297,7 @@ request.get = function(url, data, fn){
 };
 
 /**
- * GET `url` with optional callback `fn(res)`.
+ * HEAD `url` with optional callback `fn(res)`.
  *
  * @param {String} url
  * @param {Mixed|Function} data or fn
@@ -1265,16 +1390,20 @@ request.put = function(url, data, fn){
 module.exports = request;
 
 });
+
+
+
+
 require.alias("component-emitter/index.js", "superagent/deps/emitter/index.js");
+require.alias("component-emitter/index.js", "emitter/index.js");
 
 require.alias("RedVentures-reduce/index.js", "superagent/deps/reduce/index.js");
+require.alias("RedVentures-reduce/index.js", "reduce/index.js");
 
-require.alias("superagent/lib/client.js", "superagent/index.js");
-
-if (typeof exports == "object") {
+require.alias("superagent/lib/client.js", "superagent/index.js");if (typeof exports == "object") {
   module.exports = require("superagent");
 } else if (typeof define == "function" && define.amd) {
-  define(require("superagent"));
+  define(function(){ return require("superagent"); });
 } else {
-  window["superagent"] = require("superagent");
+  this["superagent"] = require("superagent");
 }})();

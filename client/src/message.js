@@ -103,7 +103,7 @@ Message.prototype.send = function (callback) {
   var url = crypton.url() + '/peer';
   superagent.post(url)
     .send(this.encrypted)
-    .set('x-session-identifier', this.session.id)
+    .withCredentials()
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);

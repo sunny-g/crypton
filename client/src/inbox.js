@@ -34,7 +34,7 @@ Inbox.prototype.poll = function (callback) {
   callback = callback || function () {};
 
   superagent.get(url)
-    .set('x-session-identifier', this.session.id)
+    .withCredentials()
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -82,7 +82,7 @@ Inbox.prototype.get = function (messageId, callback) {
   callback = callback || function () {};
 
   superagent.get(url)
-    .set('x-session-identifier', this.session.id)
+    .withCredentials()
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);

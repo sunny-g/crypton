@@ -31,27 +31,16 @@ var middleware = module.exports = {};
  * @param {Function} next
  */
 middleware.verifySession = function (req, res, next) {
-  var id = req.headers['x-session-identifier'];
-  app.log('debug', 'verifying session ' + id);
+  var session = req.session;
 
-  req.sessionStore.get(id, function (err, session) {
-    if (err || !session || !session.accountId) {
-      app.log('debug', 'session ' + id + ' invalid');
-      res.send({
-        success: false,
-        error: 'Invalid session'
-      });
-      return;
-    }
+  if (!session || !session.accountId) {
+    app.log('debug', 'session ' + req.sessionId + ' invalid');
 
-    // TODO this may be a leak but it's the only
-    // way to get around CORS without implementing our
-    // own sessionStore
-    Object.keys(session).forEach(function (i) {
-      if (i == 'cookie') return;
-      req.session[i] = session[i];
+    return res.send({
+      success: false,
+      error: 'Invalid session'
     });
+  }
 
-    next();
-  });
+  next();
 };

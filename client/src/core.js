@@ -167,6 +167,7 @@ crypton.authorize = function (username, passphrase, callback) {
   };
 
   superagent.post(crypton.url() + '/account/' + username)
+    .withCredentials()
     .send(response)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
@@ -188,6 +189,7 @@ crypton.authorize = function (username, passphrase, callback) {
       };
 
       superagent.post(crypton.url() + '/account/' + username + '/answer')
+        .withCredentials()
         .send(response)
         .end(function (res) {
           if (!res.body || res.body.success !== true) {

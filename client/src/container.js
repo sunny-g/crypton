@@ -213,6 +213,7 @@ Container.prototype.getHistory = function (callback) {
 
   var url = crypton.url() + '/container/' + containerNameHmac;
   superagent.get(url)
+    .withCredentials()
     .set('x-session-identifier', this.session.id)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {

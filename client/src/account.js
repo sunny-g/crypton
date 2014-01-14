@@ -41,6 +41,7 @@ var Account = crypton.Account = function Account () {};
  */
 Account.prototype.save = function (callback) {
   superagent.post(crypton.url() + '/account')
+    .withCredentials()
     .send(this.serialize())
     .end(function (res) {
       if (res.body.success !== true) {

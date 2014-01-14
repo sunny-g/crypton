@@ -19,6 +19,7 @@
 'use strict';
 
 var fs = require('fs');
+var cors = require('cors');
 var path = require('path');
 var https = require('https');
 var connect = require('connect');
@@ -34,15 +35,6 @@ app.id_translator = require('id_translator')
     .load_id_translator(app.config.id_translator.key_file);
 /*jslint camelcase: true*/
 
-var allowCrossDomain = function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods',
-             'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers',
-             'x-requested-with,content-type,x-session-identifier');
-  next();
-};
-
 app.log('info', 'configuring server');
 
 app.secret = util.readFileSync(
@@ -52,15 +44,22 @@ app.secret = util.readFileSync(
   app.config.defaultKeySize
 );
 
-app.use(allowCrossDomain);
 app.use(express.limit('20mb'));
 app.use(express.bodyParser());
 app.use(express.cookieParser());
+app.use(cors({
+  credentials: true,
+  origin: function (origin, callback) {
+    callback(null, true);
+  }
+}));
 
 var redis = require('redis').createClient(
   app.config.redis.port,
   app.config.redis.host, {
+    /*jslint camelcase: false*/
     auth_pass: app.config.redis.pass
+    /*jslint camelcase: true*/
   }
 );
 

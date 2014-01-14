@@ -98,13 +98,13 @@ app.post('/account/:username', function (req, res) {
  * verify that the SRP M parameter is valid.
  * If successful, start a session.
 */
-app.post('/account/:username/answer', function (req, res) {
+app.post('/account/:username/answer', middleware.verifySession, function (req, res) {
   app.log('debug', 'handling POST /account/:username/answer');
 
   if (typeof req.session.srpParams == 'undefined') {
     res.send({
       success: false,
-      error: "Session invalid"
+      error: 'Session invalid'
     });
 
     return;

@@ -21,7 +21,7 @@ describe('Transaction functionality', function () {
   var tx;
 
   before(function (done) {
-    crypton.authorize('notSoSmart', '', function (err, rawSession) {
+    crypton.authorize('notSoSmart', 'pass', function (err, rawSession) {
       session = rawSession;
       done();
     });

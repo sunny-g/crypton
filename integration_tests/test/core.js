@@ -17,23 +17,32 @@
 */
 
 describe('Core functionality', function () {
+  this.timeout(5000);
+
   describe('Account generation', function () {
     it('should refuse registrations without a username', function (done) {
       crypton.generateAccount('', '', function (err, account) {
-        assert.equal(err, 'Missing field: username');
+        assert.equal(err, 'Must supply username and passphrase');
         done();
       });
     });
 
-    it('should accept registrations without a passphrase', function (done) {
+    it('should refuse registrations without a passphrase', function (done) {
       crypton.generateAccount('notSoSmart', '', function (err, account) {
+        assert.equal(err, 'Must supply username and passphrase');
+        done();
+      });
+    });
+
+    it('should accept registrations without an existing username', function (done) {
+      crypton.generateAccount('notSoSmart', 'pass', function (err, account) {
         assert.equal(err, null);
         done();
       });
     });
 
-    it('should not accept registrations without an existing username', function (done) {
-      crypton.generateAccount('notSoSmart', '', function (err, account) {
+    it('should not accept registrations with an existing username', function (done) {
+      crypton.generateAccount('notSoSmart', 'pass', function (err, account) {
         assert.equal(err, 'Username already taken.');
         done();
       });
@@ -42,7 +51,7 @@ describe('Core functionality', function () {
 
   describe('Authorization', function () {
     it('should accept correct username/passphrase combinations', function (done) {
-      crypton.authorize('notSoSmart', '', function (err, session) {
+      crypton.authorize('notSoSmart', 'pass', function (err, session) {
         assert.equal(err, null);
         assert.equal(session.account.username, 'notSoSmart');
         done();
@@ -50,7 +59,7 @@ describe('Core functionality', function () {
     });
 
     it('should refuse invalid usernames', function (done) {
-      crypton.authorize('iDontExist', '', function (err, session) {
+      crypton.authorize('iDontExist', 'neitherDoI', function (err, session) {
         assert.equal(err, 'Account not found.');
         done();
       });

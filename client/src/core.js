@@ -87,9 +87,15 @@ crypton.randomBytes = randomBytes;
 // TODO consider moving non-callback arguments to single object
 crypton.generateAccount = function (username, passphrase, callback, options) {
   options = options || {};
+
   if (typeof options.paranoia === 'undefined') {
     options.paranoia = 6;   // 256 bits of entropy from prng
   }
+
+  if (!username || !passphrase) {
+    return callback('Must supply username and passphrase');
+  }
+
   var keypairCurve = options.keypairCurve || 384;
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
@@ -141,6 +147,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  * @param {Function} callback
  */
 crypton.authorize = function (username, passphrase, callback) {
+  if (!username || !passphrase) {
+    return callback('Must supply username and passphrase');
+  }
+
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var a = srp.srpRandom();
   var srpA = srp.calculateA(a);

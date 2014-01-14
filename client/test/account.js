@@ -28,8 +28,8 @@ describe('Account', function () {
   account.containerNameHmacKeyCiphertext = {"iv":"+DGWzgQLX5JrDn3YnQin4g","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"Sz6fxXyupBBSxwVA5a4DE0c6iRJjQMJWM8aoAkvO5YdkiNAP9IdUZw2uj4qhtL6hBTvtOfbyRTizoHWxWW9A44WUr0kV+DcPyvFJrSy6gzALn5DsgflGF3yreQsGNGvI"};
   account.hmacKeyCiphertext = {"iv":"scJ0FirBeCraOTIp2v+WDg","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"N+OCBvmA9Go8zp7M5kxeaSNnd5CYey/F/Bzh7x5mHjUXbX4+0MDSWmsb8b3QbJ3rZcgb5xBfimeMNOkXwKJdZD4qS2fAeOF+EleIHG9J0OWKnXE2fZi00cTbqQrl5A1lTQ"};
   account.username = 'user';
-  account.challengeKey = 'hold';
-  account.challengeKeySalt = 'hold';
+  account.srpVerifier = 'verifier';
+  account.srpSalt = 'salt';
 
   describe('save()', function () {
     // TODO should we just test this in the integration tests?
@@ -39,6 +39,8 @@ describe('Account', function () {
     it('should generate the correct fields from given values', function (done) {
       account.unravel(function () {
         var fields = [
+          'srpVerifier',
+          'srpSalt',
           'secretKey',
           'pubKey',
           'symkey',
@@ -58,12 +60,12 @@ describe('Account', function () {
   describe('serialize()', function () {
     it('should return the correct fields', function (done) {
       var expected = [
-        'challengeKey',
+        'srpVerifier',
+        'srpSalt',
         'containerNameHmacKeyCiphertext',
         'hmacKeyCiphertext',
         'keypairCiphertext',
         'pubKey',
-        'challengeKeySalt',
         'keypairSalt',
         'symKeyCiphertext',
         'username'
@@ -76,8 +78,9 @@ describe('Account', function () {
 
     it('should return the correct values', function () {
       var ret = account.serialize();
-      assert.deepEqual(ret.challengeKey, account.challengeKey);
       assert.deepEqual(ret.containerNameHmacKeyCiphertext, account.containerNameHmacKeyCiphertext);
+      assert.deepEqual(ret.srpVerifier, account.srpVerifier);
+      assert.deepEqual(ret.srpSalt, account.srpSalt);
       assert.deepEqual(ret.hmacKeyCiphertext, account.hmacKeyCiphertext);
       assert.deepEqual(ret.keypairCiphertext, account.keypairCiphertext);
       assert.deepEqual(ret.pubKey, account.pubKey);

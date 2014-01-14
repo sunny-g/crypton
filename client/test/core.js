@@ -74,15 +74,15 @@ describe('Core', function () {
     it('should exist', function () {
       assert(typeof crypton.generateAccount == 'function');
     });
-    
+
     it('should generate the correct data', function (done) {
       assert(err == null);
       assert(user !== undefined);
 
       var fields = [
         'username',
-        'challengeKeySalt',
-        'challengeKey',
+        'srpSalt',
+        'srpVerifier',
         'keypairSalt',
         'keypairCiphertext',
         'containerNameHmacKeyCiphertext',

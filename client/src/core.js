@@ -157,9 +157,11 @@ crypton.authorize = function (username, passphrase, callback) {
 
       var srpU = srp.calculateU(srpA, srpB);
       var srpS = srp.calculateS(srpB, srpSalt, srpU, a);
-      var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS);
+      var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS).toString(16);
+      // Pad srpM1 to the full SHA-256 length
+      srpM1 = srp.nZeros(64 - srpM1.length) + srpM1;
       response = {
-        srpM1: srpM1.toString(16)
+        srpM1: srpM1
       };
 
       superagent.post(crypton.url() + '/account/' + username + '/answer')

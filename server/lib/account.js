@@ -91,6 +91,9 @@ Account.prototype.getById = function (id, callback) {
  * Generate SRP b value, then continue calculation
  * in continueSrp()
  *
+ * SRP variables are named as defined in RFC 5054
+ * and RFC 2945, prefixed with 'srp'
+ *
  * @param {String} srpA
  * @param {Function} callback
  */
@@ -156,9 +159,10 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
 
   // Revivify srpServer
   var verifier = new Buffer(this.srpVerifier, 'hex');
-  var b = new Buffer(srpParams.b, 'hex');
-  var srpServer = new srp.Server(srp.params[2048], verifier, b);
-  srpServer.setA(new Buffer(srpParams.A, 'hex'));
+  var srpb = new Buffer(srpParams.b, 'hex');
+  var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
+  var srpA = new Buffer(srpParams.A, 'hex');
+  srpServer.setA(srpA);
 
   try {
     srpServer.checkM1(new Buffer(srpM1, 'hex'));

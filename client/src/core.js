@@ -132,7 +132,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  * Calls back with session and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
+ * SRP variables are named as defined in RFC 5054
+ * and RFC 2945, prefixed with 'srp'
+ *
  * @param {String} username
  * @param {String} passphrase
  * @param {Function} callback
@@ -162,8 +165,8 @@ crypton.authorize = function (username, passphrase, callback) {
       var srpSalt = body.srpSalt;
       var srpB = new BigInteger(body.srpB, 16);
 
-      var srpU = srp.calculateU(srpA, srpB);
-      var srpS = srp.calculateS(srpB, srpSalt, srpU, a);
+      var srpu = srp.calculateU(srpA, srpB);
+      var srpS = srp.calculateS(srpB, srpSalt, srpu, a);
       var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS).toString(16);
       // Pad srpM1 to the full SHA-256 length
       srpM1 = srp.nZeros(64 - srpM1.length) + srpM1;

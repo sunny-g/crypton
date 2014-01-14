@@ -163,7 +163,7 @@ describe('Account model', function () {
         assert.equal(srpParams.B, '7bc17cdb11c1b76af3969c210bf3ecaecf27164da0d8ad4f775e3757e2cc743fada866e969e2a334356db0f2f1993ce0d71a03fc563e4db9784283fe5336f1a17dfe5dc174f0c16d3f3cc951d87026e7c3554fb361ceb7cf4ec57252706efce44b8444ecb43e82c36172e8e29f35aedc32dd9b7b02c71003eeb85cc3961d920b2a0c1478b4bf1d1bd77f7d5130345123485da76c8de57fe8d18f6c6f08c578370bb972c76c6caf98f586072bcafd9794eb890273f29c0b7e1cc16a19b81760b64b4810039aed814865fc8fcbf5c83493fa2fafc696861fce9d1c85345f9ce0fd56c7814d32a6dabfe7fdb714c6e42554ae975d621aeded45f9fe12784bad5ac3');
         // We've now generated our B value and sent it back to the client. They
         // give us back an M1 verification message.
-        var srpM1 = '5ecd187a97bb27fb3aa6500227096d157419c51cf79caa3d55c517c81674fbcf';
+        var srpM1 = '14824a6b7e6d68399db75e9d4c48079587607a425033c574592c002a9f3ba7ff';
         account.checkSrp(srpParams, srpM1, function (err) {
           if (err) throw err;
           done();

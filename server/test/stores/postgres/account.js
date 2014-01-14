@@ -32,8 +32,8 @@ describe('Postgres driver', function () {
       symKeyCiphertext: '[1,2,3]',
       containerNameHmacKeyCiphertext: { "containerNameHmacKey": "ciphertext" },
       hmacKeyCiphertext: { "hmacKey": "ciphertext" },
-      challengeKeySalt: '[1,2,3]',
-      challengeKeyHash: 'bcrypt hash'
+      srpVerifier: 'verifierstring',
+      srpSalt: 'saltstring'
     };
 
     var expectedAccount = {
@@ -44,8 +44,8 @@ describe('Postgres driver', function () {
       keypairCiphertext: { keypair: 'ciphertext' },
       pubKey: { pubkey: 'ciphertext' },
       symKeyCiphertext: [ 1, 2, 3 ],
-      challengeKeySalt: [ 1, 2, 3 ],
-      challengeKeyHash: 'bcrypt hash',
+      srpVerifier: 'verifierstring',
+      srpSalt: 'saltstring',
       containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
       hmacKeyCiphertext: { hmacKey: 'ciphertext' }
     }

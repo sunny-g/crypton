@@ -99,12 +99,17 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var keypairSalt = randomBytes(8);
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, options.paranoia);
   var symkey = keypair.pub.kem(0);
-  var challengeKeySalt = randomBytes(8);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
 
+  var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
+  var srpSalt = srp.randomHexSalt();
+  var srpVerifier = srp.calculateV(srpSalt).toString(16);
+
   account.username = username;
-  account.challengeKeySalt = JSON.stringify(challengeKeySalt);
-  account.challengeKey = JSON.stringify(sjcl.misc.pbkdf2(passphrase, challengeKeySalt));
+  // Pad verifier to 512 bytes
+  // TODO: This length will change when a different SRP group is used
+  account.srpVerifier = srp.nZeros(512 - srpVerifier) + srpVerifier;
+  account.srpSalt = srpSalt;
   account.keypairSalt = JSON.stringify(keypairSalt);
   account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
   account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(containerNameHmacKey), crypton.cipherOptions);
@@ -136,7 +141,20 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  * @param {Function} callback
  */
 crypton.authorize = function (username, passphrase, callback) {
+  var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
+  var a = srp.srpRandom();
+  var srpA = srp.calculateA(a);
+  // Pad A out to 512 bytes
+  // TODO: This length will change when a different SRP group is used
+  var srpAstr = srpA.toString(16);
+  srpAstr = srp.nZeros(512 - srpAstr.length) + srpAstr;
+
+  var response = {
+    srpA: srpAstr
+  };
+
   superagent.post(crypton.url() + '/account/' + username)
+    .send(response)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -144,8 +162,17 @@ crypton.authorize = function (username, passphrase, callback) {
       }
 
       var body = res.body;
-      var response = {};
-      response.challengeKey = sjcl.misc.pbkdf2(passphrase, body.challengeKeySalt);
+      var srpSalt = body.srpSalt;
+      var srpB = new BigInteger(body.srpB, 16);
+
+      var srpU = srp.calculateU(srpA, srpB);
+      var srpS = srp.calculateS(srpB, srpSalt, srpU, a);
+      var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS).toString(16);
+      // Pad srpM1 to the full SHA-256 length
+      srpM1 = srp.nZeros(64 - srpM1.length) + srpM1;
+      response = {
+        srpM1: srpM1
+      };
 
       superagent.post(crypton.url() + '/account/' + username + '/answer')
         .send(response)

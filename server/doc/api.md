@@ -19,8 +19,8 @@ Required body:
 ````javascript
 {
   username: "...",
-  challengeKeySalt: "...",  // 32-byte salt for challenge key, base64
-  challengeKey: "...",      // challenge key ciphertext, base64
+  srpVerifier: "...",       // verifier for SRP, hex
+  srpSalt: "...",           // 16-byte salt for SRP key, hex
   keypairSalt: "...",       // 32-byte salt for keypair, base64
   keypairIv: "...",         // 16-byte IV for keypair, base64
   keypair: "...",           // AES ciphertext of serialized keypair, base64
@@ -55,8 +55,8 @@ Required body:
 
 ````javascript
 {
-  challengeKeySalt: "...",  // 32-byte salt for challenge key, base64
-  challengeKey: "...",      // challenge key ciphertext, base64
+  srpVerifier: "...",       // verifier for SRP, hex
+  srpSalt: "...",           // 16-byte salt for SRP key, hex
   keypairSalt: "...",       // 32-byte salt for keypair, base64
   keypairIv: "...",         // 16-byte IV for keypair, base64
   keypair: "...",           // AES ciphertext of serialized keypair, base64

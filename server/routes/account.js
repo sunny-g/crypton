@@ -26,37 +26,26 @@ var Account = require('../lib/account');
 /**!
  * ### POST /account
  * Translate posted body to an account object,
- * hashe and delete `account.challengeKey`,
  * then save the resulting account object to the server
 */
 app.post('/account', function (req, res) {
   app.log('debug', 'handling POST /account');
 
   var account = new Account();
-  var challengeKey = req.body.challengeKey;
   account.update(req.body);
 
-  account.hashChallengeKey(challengeKey, function (err) {
+  account.save(function (err) {
     if (err) {
       res.send({
         success: false,
         error: err
       });
+
+      return;
     }
 
-    account.save(function (err) {
-      if (err) {
-        res.send({
-          success: false,
-          error: err
-        });
-
-        return;
-      }
-
-      res.send({
-        success: true
-      });
+    res.send({
+      success: true
     });
   });
 });
@@ -64,10 +53,9 @@ app.post('/account', function (req, res) {
 /**!
  * ### POST /account/:username
  * Retrieve account belonging to `username`,
- * send challengeKeySalt so client can generate
- * a challengeKeyReponse
+ * send srpSalt so client can set up its SRP
+ * state.
 */
-// TODO this could just be a GET?
 app.post('/account/:username', function (req, res) {
   app.log('debug', 'handling POST /account/:username');
 
@@ -84,9 +72,22 @@ app.post('/account/:username', function (req, res) {
       return;
     }
 
-    res.send({
-      success: true,
-      challengeKeySalt: account.challengeKeySalt
+    account.beginSrp(req.body.srpA, function(err, srpParams) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+
+        return;
+      }
+
+      req.session.srpParams = srpParams;
+      res.send({
+        success: true,
+        srpB: srpParams.B,
+        srpSalt: account.srpSalt
+      });
     });
   });
 });
@@ -94,14 +95,22 @@ app.post('/account/:username', function (req, res) {
 /**!
  * ### POST /account/:username/answer
  * Retrieve account belonging to `username`,
- * verify that posted challengeKeyReponse matches
- * stored challengeKeyHash.
+ * verify that the SRP M parameter is valid.
  * If successful, start a session.
 */
 app.post('/account/:username/answer', function (req, res) {
   app.log('debug', 'handling POST /account/:username/answer');
 
-  var challengeKeyResponse = req.body.challengeKey;
+  if (typeof req.session.srpParams == 'undefined') {
+    res.send({
+      success: false,
+      error: "Session invalid"
+    });
+
+    return;
+  }
+
+  var srpM1 = req.body.srpM1;
   var account = new Account();
 
   account.get(req.params.username, function (err) {
@@ -114,14 +123,10 @@ app.post('/account/:username/answer', function (req, res) {
       return;
     }
 
-    if (typeof challengeKeyResponse != 'string') {
-      app.log('debug', 'challengeKeyResponse was not string');
-      challengeKeyResponse = JSON.stringify(challengeKeyResponse);
-    }
-
-    account.verifyChallenge(challengeKeyResponse, function (err) {
+    account.checkSrp(req.session.srpParams, srpM1, function (err) {
+      delete req.session.srpParams;
       if (err) {
-        app.log('debug', 'challenge verification failed: ' + err);
+        app.log('debug', 'SRP verification failed: ' + err);
         res.send({
           success: false,
           error: err
@@ -130,7 +135,7 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-      app.log('debug', 'challenge verification succcess');
+      app.log('debug', 'SRP verification succcess');
       req.session.accountId = account.accountId;
 
       res.send({

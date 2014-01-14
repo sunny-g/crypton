@@ -23,8 +23,8 @@ insert into account (username, base_keyring_id) values(
 insert into base_keyring (
     base_keyring_id,
     account_id, 
-    challenge_key, 
-    challenge_key_salt,
+    srp_verifier, 
+    srp_salt,
     keypair_salt, 
     keypair_iv, 
     keypair, 
@@ -36,8 +36,8 @@ insert into base_keyring (
     hmac_key) values (
     (select base_keyring_id from account where username='test_username'),
     (select account_id from account where username='test_username'),
-    'challenge_key3456789012345678901',
-    'challenge_key_salt89012345678901',
+    'srp_verifier23456789012345678901',
+    'srp_salt000123456789012345678901',
     'keypair_salt23456789012345678901',
     'keypair_iv012345',
     'keypair_fake2345',

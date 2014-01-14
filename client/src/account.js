@@ -94,12 +94,12 @@ Account.prototype.unravel = function (callback) {
 // TODO rename to toJSON
 Account.prototype.serialize = function () {
   return {
-    challengeKey: this.challengeKey,
+    srpVerifier: this.srpVerifier,
+    srpSalt: this.srpSalt,
     containerNameHmacKeyCiphertext: this.containerNameHmacKeyCiphertext,
     hmacKeyCiphertext: this.hmacKeyCiphertext,
     keypairCiphertext: this.keypairCiphertext,
     pubKey: this.pubKey,
-    challengeKeySalt: this.challengeKeySalt,
     keypairSalt: this.keypairSalt,
     symKeyCiphertext: this.symKeyCiphertext,
     username: this.username

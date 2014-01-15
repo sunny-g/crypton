@@ -42,9 +42,8 @@ var Session = crypton.Session = function (id) {
   });
 
   this.socket.on('message', function (data) {
-    that.inbox.poll();
-    that.emit('message', {
-      messageId: data.messageId
+    that.inbox.get(data.messageId, function (err, message) {
+      that.emit('message', message);
     });
   });
 };

@@ -105,13 +105,8 @@ Session.prototype.create = function (containerName, callback) {
 
   var sessionKey = crypton.randomBytes(8);
   var hmacKey = crypton.randomBytes(8);
-  var sessionKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(sessionKey), crypton.cipherOptions);
-  var hmacKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(hmacKey), crypton.cipherOptions);
-
-  // TODO what are these?
-  // they don't appear to be used below
-  var keyshmac = new sjcl.misc.hmac(crypton.randomBytes(8));
-  keyshmac = sjcl.codec.hex.fromBits(keyshmac.encrypt(JSON.stringify(sessionKey) + JSON.stringify(hmacKey)));
+  var sessionKeyCiphertext = sjcl.encrypt(this.account.pubKey, JSON.stringify(sessionKey), crypton.cipherOptions);
+  var hmacKeyCiphertext = sjcl.encrypt(this.account.pubKey, JSON.stringify(hmacKey), crypton.cipherOptions);
 
   var signature = 'hello'; // TODO sign with private key
   var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
@@ -119,7 +114,7 @@ Session.prototype.create = function (containerName, callback) {
 
   // TODO why is a session object generating container payloads? creating the
   // initial container state should be done in container.js
-  var payloadCiphertext = sjcl.encrypt(hmacKey, JSON.stringify({
+  var payloadCiphertext = sjcl.encrypt(sessionKey, JSON.stringify({
     recordIndex: 0,
     delta: {}
   }), crypton.cipherOptions);

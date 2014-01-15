@@ -109,7 +109,7 @@ Container.prototype.save = function (callback, options) {
     that.version = now;
     that.recordCount++;
 
-    var payloadCiphertext = sjcl.encrypt(that.hmacKey, JSON.stringify(payload), crypton.cipherOptions);
+    var payloadCiphertext = sjcl.encrypt(that.sessionKey, JSON.stringify(payload), crypton.cipherOptions);
 
     var chunk = {
       type: 'addContainerRecord',
@@ -214,7 +214,6 @@ Container.prototype.getHistory = function (callback) {
   var url = crypton.url() + '/container/' + containerNameHmac;
   superagent.get(url)
     .withCredentials()
-    .set('x-session-identifier', this.session.id)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -264,15 +263,15 @@ Container.prototype.parseHistory = function (records, callback) {
  */
 // TODO consider new scheme for extracting keys
 // TODO handle potential JSON.parse errors here
+// TODO why are we decrypting and storing session keys every record iteration?
 Container.prototype.decryptRecord = function (recordIndex, record) {
-  var sessionKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.sessionKeyCiphertext, crypton.cipherOptions));
-
-  var hmacKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.hmacKeyCiphertext, crypton.cipherOptions));
+  var sessionKey = JSON.parse(sjcl.decrypt(this.session.account.secretKey, record.sessionKeyCiphertext, crypton.cipherOptions));
+  var hmacKey = JSON.parse(sjcl.decrypt(this.session.account.secretKey, record.hmacKeyCiphertext, crypton.cipherOptions));
 
   this.sessionKey = sessionKey;
   this.hmacKey = hmacKey;
 
-  var payload = JSON.parse(sjcl.decrypt(hmacKey, record.payloadCiphertext, crypton.cipherOptions));
+  var payload = JSON.parse(sjcl.decrypt(sessionKey, record.payloadCiphertext, crypton.cipherOptions));
 
   if (payload.recordIndex !== recordIndex) {
     throw new RangeError('Unexpected recordIndex');

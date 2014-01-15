@@ -254,7 +254,7 @@ Container.prototype.parseHistory = function (records, callback) {
 /**!
  * ### decryptRecord(recordIndex, record)
  * Use symkey to extract session and HMAC keys,
- * decrypt record ciphertext with HMAC key,
+ * decrypt record ciphertext with session key,
  * verify record index
  *
  * @param {Object} recordIndex

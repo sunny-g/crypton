@@ -616,7 +616,7 @@ garbage.trollMessages = function () {
         return;
       }
 
-      app.log('debug', result.rows.length + ' containers need deletion');
+      app.log('debug', result.rows.length + ' messages need deletion');
 
       for (var i = 0; i < result.rows.length; i++) {
         garbage.destroyMessage(result.rows[i].message_id);

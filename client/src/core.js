@@ -51,7 +51,7 @@ crypton.cipherOptions = {
 /**!
  * ### url()
  * Generate URLs for server calls
- * 
+ *
  * @return {String} url
  */
 crypton.url = function () {
@@ -61,7 +61,7 @@ crypton.url = function () {
 /**!
  * ### randomBytes()
  * Generate `nbytes` bytes of random data
- * 
+ *
  * @param {Number} nbytes
  */
 function randomBytes (nbytes) {
@@ -78,7 +78,7 @@ crypton.randomBytes = randomBytes;
  * Calls back with account and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} username
  * @param {String} passphrase
  * @param {Function} callback
@@ -111,6 +111,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var srpSalt = srp.randomHexSalt();
   var srpVerifier = srp.calculateV(srpSalt).toString(16);
 
+  var signingKeys = sjcl.ecc.ecdsa.generateKeys(192, options.paranoia);
+
+  console.log(signingKeys);
+
   account.username = username;
   // Pad verifier to 512 bytes
   // TODO: This length will change when a different SRP group is used
@@ -122,6 +126,9 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(hmacKey), crypton.cipherOptions);
   account.pubKey = JSON.stringify(keypair.pub.serialize());
   account.symKeyCiphertext = JSON.stringify(symkey.tag);
+  account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
+  account.signKeyPrivateCiphertext =
+    sjcl.encrypt(symkey.key, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
 
   if (save) {
     account.save(function (err) {
@@ -210,7 +217,8 @@ crypton.authorize = function (username, passphrase, callback) {
           session.account.challengeKeySalt = res.body.account.challengeKeySalt;
           session.account.keypairSalt = res.body.account.keypairSalt;
           session.account.symKeyCiphertext = res.body.account.symKeyCiphertext;
-
+          session.account.signKeyPub = res.body.account.signKeyPub;
+          session.account.signKeyPrivateCiphertext = res.body.account.signKeyPrivateCiphertext;
           session.account.unravel(function () {
             callback(null, session);
           });
@@ -220,4 +228,3 @@ crypton.authorize = function (username, passphrase, callback) {
 };
 
 })();
-

@@ -30,6 +30,10 @@ describe('Account', function () {
   account.username = 'user';
   account.srpVerifier = 'verifier';
   account.srpSalt = 'salt';
+  account.signKeyPub = '{"point":[1744388526,-385387337,-560096753,-213682959,218774481,-816819128,1399389656,-465952384,-602448112,1252879409,814858193,-603139239],"curve":192}';
+  // account.signKeyPrivateCiphertext = '{"exponent":[38,-1661063178,273209381,-148364164,1349029527,-576306908,26386273172736],"curve":192}';
+
+  account.signKeyPrivateCiphertext = ''; // XXX: I think I need real, working ciphertext here
 
   describe('save()', function () {
     // TODO should we just test this in the integration tests?
@@ -45,7 +49,9 @@ describe('Account', function () {
           'pubKey',
           'symkey',
           'containerNameHmacKey',
-          'hmacKey'
+          'hmacKey',
+          'signKeyPub',
+          'signKeyPrivateCiphertext'
         ];
 
         for (var i in fields) {
@@ -68,7 +74,9 @@ describe('Account', function () {
         'pubKey',
         'keypairSalt',
         'symKeyCiphertext',
-        'username'
+        'username',
+        'signKeyPub',
+        'signKeyPrivateCiphertext'
       ];
       var serialized = account.serialize();
       assert.deepEqual(Object.keys(serialized), expected);
@@ -88,6 +96,8 @@ describe('Account', function () {
       assert.deepEqual(ret.keypairSalt, account.keypairSalt);
       assert.deepEqual(ret.symkeyCiphertext, account.symkeyCiphertext);
       assert.deepEqual(ret.username, account.username);
+      assert.deepEqual(ret.signKeyPub, account.signKeyPub);
+      assert.deepEqual(ret.signKeyPrivateCiphertext, account.signKeyPrivateCiphertext);
     });
   });
 });

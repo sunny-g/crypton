@@ -33,7 +33,9 @@ describe('Postgres driver', function () {
       containerNameHmacKeyCiphertext: { "containerNameHmacKey": "ciphertext" },
       hmacKeyCiphertext: { "hmacKey": "ciphertext" },
       srpVerifier: 'verifierstring',
-      srpSalt: 'saltstring'
+      srpSalt: 'saltstring',
+      signKeyPub: { "pub": "key" },
+      signKeyPrivateCiphertext: '[1,2,3]'
     };
 
     var expectedAccount = {
@@ -47,7 +49,9 @@ describe('Postgres driver', function () {
       srpVerifier: 'verifierstring',
       srpSalt: 'saltstring',
       containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
-      hmacKeyCiphertext: { hmacKey: 'ciphertext' }
+      hmacKeyCiphertext: { hmacKey: 'ciphertext' },
+      signKeyPub: { "pub": "key" },
+      signKeyPrivateCiphertext: [ 1, 2, 3 ]
     }
 
     describe('saveAccount', function () {
@@ -59,6 +63,8 @@ describe('Postgres driver', function () {
 
           crypton.account.getAccount(newAccount.username, function (err, account) {
             assert.equal(err, null);
+            console.log(account);
+            console.log(expectedAccount);
             assert.deepEqual(account, expectedAccount);
             done();
           });

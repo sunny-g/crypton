@@ -33,7 +33,9 @@ describe('Account model', function () {
         srpVerifier: 'verifierstring',
         symKeyCiphertext: { sym: 'key' },
         containerNameHmacKeyCiphertext: '[1,2,3]',
-        hmacKeyCiphertext: '[1,2,3]'
+        hmacKeyCiphertext: '[1,2,3]',
+        signKeyPub: { pub: 'key' },
+        signKeyPrivateCiphertext: '[1,2,3]'
       };
 
       account.update(requestedAccount);
@@ -68,10 +70,14 @@ describe('Account model', function () {
         'srpVerifier',
         'srpSalt',
         'containerNameHmacKeyCiphertext',
-        'hmacKeyCiphertext'
+        'hmacKeyCiphertext',
+        'signKeyPub',
+        'signKeyPrivateCiphertext'
       ];
 
       account.get('pizza', function (err) {
+        console.log(err);
+        console.log(account);
         if (err) throw err;
         assert.deepEqual(expectedProperties, Object.keys(account.toJSON()));
         done();
@@ -204,4 +210,3 @@ describe('Account model', function () {
     });
   });
 });
-

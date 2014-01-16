@@ -36,7 +36,7 @@ var Account = crypton.Account = function Account () {};
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Account.prototype.save = function (callback) {
@@ -60,7 +60,7 @@ Account.prototype.save = function (callback) {
  * Calls back without error if successful
  *
  * __Throws__ if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Account.prototype.unravel = function (callback) {
@@ -82,6 +82,23 @@ Account.prototype.unravel = function (callback) {
   // decrypt hmac keys
   this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext), crypton.cipherOptions);
   this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext), crypton.cipherOptions);
+  console.log(JSON.stringify(this.signKeyPub));
+  console.log(JSON.stringify(this.signKeyPrivateCiphertext));
+  var signKeyPubObj = this.signKeyPub;
+  var signKeyPrivateObj =
+    JSON.parse(sjcl.decrypt(symKey, this.signKeyPrivateCiphertext,
+                 crypton.cipherOptions));
+
+  // Convert serialized Signing Keys to key objects:
+  var signPoint =
+    sjcl.ecc.curves['c' + signKeyPubObj.curve].fromBits(signKeyPubObj.point);
+  this.signPubKey =
+      new sjcl.ecc.ecdsa.publicKey(signKeyPubObj.curve, signPoint.curve, signPoint);
+  // Descrypt private key
+  var signKeySecret =
+    JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.signKeyCiphertext), crypton.cipherOptions));
+  var signExponent = sjcl.bn.fromBits(signKeySecret.exponent);
+  this.signKeyPrivate = new sjcl.ecc.ecdsa.secretKey(signKeySecret.curve, sjcl.ecc.curves['c' + signKeySecret.curve], signExponent);
 
   callback();
 };
@@ -89,7 +106,7 @@ Account.prototype.unravel = function (callback) {
 /**!
  * ### serialize()
  * Pakcage and return a JSON representation of the current account
- * 
+ *
  * @return {Object}
  */
 // TODO rename to toJSON
@@ -103,9 +120,10 @@ Account.prototype.serialize = function () {
     pubKey: this.pubKey,
     keypairSalt: this.keypairSalt,
     symKeyCiphertext: this.symKeyCiphertext,
-    username: this.username
+    username: this.username,
+    signKeyPub: this.signKeyPub,
+    signKeyPrivateCiphertext: this.signKeyPrivateCiphertext
   };
 };
 
 })();
-

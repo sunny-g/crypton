@@ -143,4 +143,27 @@ Account.prototype.serialize = function () {
   };
 };
 
+/**!
+ * ### verifyAndDecrypt()
+ * Convienence function to verify and decrypt public key encrypted & signed data
+ *
+ * @return {Object}
+ */
+
+Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
+  // hash the message
+  var hash = sjcl.hash.sha256.hash(JSON.stringify(signedCiphertext.ciphertext));
+  // verify the signature
+  var verified = peer.signKeyPub.verify(hash, signedCiphertext.signature );
+  // try to decrypt regardless of verification failure
+  try {
+    var message = sjcl.decrypt(this.secretKey,
+                               JSON.stringify(signedCiphertext.ciphertext),
+                               crypton.cipherOptions);
+    return message;
+  } catch (ex) {
+    return { error: "Cannot verify ciphertext" };
+  }
+};
+
 })();

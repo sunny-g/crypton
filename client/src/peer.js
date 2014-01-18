@@ -40,6 +40,7 @@ var Peer = crypton.Peer = function (options) {
   this.session = options.session;
   this.username = options.username;
   this.pubKey = options.pubKey;
+  this.signKeyPub = options.signKeyPub;
 };
 
 /**!
@@ -49,7 +50,7 @@ var Peer = crypton.Peer = function (options) {
  * Calls back with peer data and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Peer.prototype.fetch = function (callback) {
@@ -88,7 +89,7 @@ Peer.prototype.fetch = function (callback) {
 /**!
  * ### encrypt(payload)
  * Encrypt `message` with peer's public key
- * 
+ *
  * @param {Object} payload
  * @return {Object} ciphertext
  */
@@ -99,13 +100,30 @@ Peer.prototype.encrypt = function (payload) {
 };
 
 /**!
+ * ### encryptAndSign(payload)
+ * Encrypt `message` with peer's public key, sign the message with own signing key
+ *
+ * @param {Object} payload
+ * @return {Object} signed ciphertext
+ */
+Peer.prototype.encryptAndSign = function (payload, session) {
+  // should this be async to callback with an error if there is no pubkey?
+  var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(payload), crypton.cipherOptions);
+  // sign this message:
+  var hash = sjcl.hash.sha256.hash(JSON.stringify(ciphertext));
+  var signature = session.account.signKeyPrivate.sec.sign(hash, 0);
+
+  return { ciphertext: ciphertext, signature: signature };
+};
+
+/**!
  * ### sendMessage(headers, payload, callback)
  * Encrypt `headers` and `payload` and send them to peer in one logical `message`
- * 
+ *
  * Calls back with message id and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Object} headers
  * @param {Object} payload
  */
@@ -125,4 +143,3 @@ Peer.prototype.sendMessage = function (headers, payload, callback) {
 };
 
 })();
-

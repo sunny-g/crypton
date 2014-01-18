@@ -30,10 +30,10 @@ describe('Account', function () {
   account.username = 'user';
   account.srpVerifier = 'verifier';
   account.srpSalt = 'salt';
-  account.signKeyPub = '{"point":[1744388526,-385387337,-560096753,-213682959,218774481,-816819128,1399389656,-465952384,-602448112,1252879409,814858193,-603139239],"curve":192}';
-  // account.signKeyPrivateCiphertext = '{"exponent":[38,-1661063178,273209381,-148364164,1349029527,-576306908,26386273172736],"curve":192}';
+  account.signKeyPub = {"point":[1744388526,-385387337,-560096753,-213682959,218774481,-816819128,1399389656,-465952384,-602448112,1252879409,814858193,-603139239],"curve":192};
 
-  account.signKeyPrivateCiphertext = ''; // XXX: I think I need real, working ciphertext here
+account.signKeyPrivateCiphertext = {"iv":"dP8Pi+zbo9E3VZ2KneSu8g","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"8jbHw569SIdNMei+uwOF2FY4mOXJVV+CLtqALTTO4oBoH6tBEpTZDJKd1ebK2PmNCPZB2lfXAW8SQLLcGPPMmKef7rMs2qh6x2j0B36cf5mqfe/Ph5Emfx+KB9m7xd3S55BaFDW90gvdf44"};
+
 
   describe('save()', function () {
     // TODO should we just test this in the integration tests?
@@ -51,7 +51,7 @@ describe('Account', function () {
           'containerNameHmacKey',
           'hmacKey',
           'signKeyPub',
-          'signKeyPrivateCiphertext'
+          'signKeyPrivate'
         ];
 
         for (var i in fields) {

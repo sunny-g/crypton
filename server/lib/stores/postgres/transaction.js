@@ -345,7 +345,6 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
  * @param {Function} callback
  */
 datastore.transaction.addContainerSessionKeyShare = function (data, transaction, callback) {
-console.log(data);
   connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
@@ -356,14 +355,13 @@ console.log(data);
       values: [
         transaction.transactionId,
         data.containerNameHmac,
-        data.toAccount,
         data.sessionKeyCiphertext,
-        data.hmacKeyCiphertext
+        data.hmacKeyCiphertext,
+        data.toAccount
       ]
     };
 
     client.query(query, function (err, result) {
-console.log(query, arguments);
       done();
 
       if (err) {

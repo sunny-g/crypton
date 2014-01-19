@@ -36,7 +36,7 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
 
   var container = new Container();
   container.update('accountId', accountId);
-console.log(container);
+
   container.get(containerNameHmac, function (err) {
     if (err) {
       res.send({

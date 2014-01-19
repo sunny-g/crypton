@@ -74,6 +74,16 @@ app.boot = function () {
       });
     });
   });
+
+  app.session.on('message', function (message) {
+    if (message.headers.action == 'containerShare') {
+      // assuming the shared container is meant for this application
+      var containerNameHmac = message.payload.containerNameHmac;
+      app.session.loadWithHmac(containerNameHmac, function () {
+        console.log(arguments);
+      });
+    }
+  });
 };
 
 app.getConversations = function (callback) {

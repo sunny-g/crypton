@@ -83,6 +83,40 @@ Session.prototype.load = function (containerName, callback) {
 };
 
 /**!
+ * ### loadWithHmac(containerNameHmac, callback)
+ * Retieve container with given `containerNameHmac`,
+ * either from local cache or server
+ *
+ * Calls back with container and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerNameHmac
+ * @param {Function} callback
+ */
+Session.prototype.loadWithHmac = function (containerNameHmac, callback) {
+  // check for a locally stored container
+  for (var i in this.containers) {
+    if (this.containers[i].nameHmac == containerNameHmac) {
+      callback(null, this.containers[i]);
+      return;
+    }
+  }
+
+  // check for a container on the server
+  var that = this;
+  this.getContainerWithHmac(containerNameHmac, function (err, container) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.containers.push(container);
+    callback(null, container);
+  });
+};
+
+/**!
  * ### create(containerName, callback)
  * Create container with given platintext `containerName`,
  * save it to server
@@ -213,6 +247,26 @@ Session.prototype.deleteContainer = function (containerName, callback) {
 Session.prototype.getContainer = function (containerName, callback) {
   var container = new crypton.Container(this);
   container.name = containerName;
+  container.sync(function (err) {
+    callback(err, container);
+  });
+};
+
+/**!
+ * ### getContainerWithHmac(containerNameHmac, callback)
+ * Retrieve container with given `containerNameHmac`
+ * specifically from the server
+ *
+ * Calls back with container and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerNameHmac
+ * @param {Function} callback
+ */
+Session.prototype.getContainerWithHmac = function (containerNameHmac, callback) {
+  var container = new crypton.Container(this);
+  container.nameHmac = containerNameHmac;
   container.sync(function (err) {
     callback(err, container);
   });

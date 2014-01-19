@@ -317,6 +317,12 @@ Container.prototype.share = function (peer, callback) {
     return callback('Container must be initialized to share');
   }
 
+  // get the containerNameHmac
+  // TODO this won't work if you aren't original sharer
+  // because you won't have the original containerNameHmacKey.
+  // we will have to mark containers as origin or remote
+  var containerNameHmac = this.getPublicName();
+
   // encrypt sessionKey and hmacKey to peer's pubKey
   var sessionKeyCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.sessionKey), crypton.cipherOptions);
   var hmacKeyCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.hmacKey), crypton.cipherOptions);
@@ -350,10 +356,7 @@ Container.prototype.share = function (peer, callback) {
           type: 'internal',
           action: 'containerShare'
         }, {
-          // TODO this won't work if you aren't original sharer
-          // because you won't have the original containerNameHmacKey.
-          // we will have to mark containers as origin or remote
-          containerNameHmac: that.getPublicName()
+          containerNameHmac: containerNameHmac
         }, function (err) {
           callback(err);
         });

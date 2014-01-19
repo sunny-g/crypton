@@ -81,12 +81,8 @@ app.getConversations = function (callback) {
     console.log(arguments);
     if (err == 'Container does not exist') {
       return app.session.create('conversations', function (err, container) {
-        container.keys['conversations'] = [];
-        container.save(function () {
-          console.log(arguments);
-          app.conversations = container;
-          callback();
-        });
+        app.conversations = container;
+        callback();
       });
     }
 

@@ -46,7 +46,7 @@ Container.prototype.get = function (containerNameHmac, callback) {
 
   var that = this;
 
-  db.getContainerRecords(containerNameHmac, function (err, records) {
+  db.getContainerRecords(containerNameHmac, that.accountId, function (err, records) {
     if (err) {
       callback(err);
       return;

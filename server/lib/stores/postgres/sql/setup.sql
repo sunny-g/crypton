@@ -298,6 +298,7 @@ COMMENT ON COLUMN container_record.transaction_id IS
 CREATE OR REPLACE VIEW readable_container_records_by_account AS
     SELECT container_record.*,
            container_session_key.signature,
+           container_session_key_share.to_account_id,
            container_session_key_share.session_key_ciphertext,
            container_session_key_share.hmac_key_ciphertext
       FROM container_record

@@ -32,7 +32,7 @@ var connect = datastore.connect;
  * @param {String} containerNameHmac
  * @param {Function} callback
  */
-exports.getContainerRecords = function (containerNameHmac, callback) {
+exports.getContainerRecords = function (containerNameHmac, accountId, callback) {
   connect(function (client, done) {
     var query = {
       // TODO limit to to_account_id
@@ -41,10 +41,11 @@ exports.getContainerRecords = function (containerNameHmac, callback) {
         select * from readable_container_records_by_account \
           where container_id=( \
             select container_id from container where name_hmac=$1 \
-          ) order by container_record_id',
+          ) and to_account_id=$2 order by container_record_id',
        /*jslint multistr: false*/
       values: [
-        containerNameHmac
+        containerNameHmac,
+        accountId
       ]
     };
 

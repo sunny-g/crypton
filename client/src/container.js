@@ -337,7 +337,7 @@ Container.prototype.share = function (peer, callback) {
   new crypton.Transaction(this, function (err, tx) {
     var chunk = {
       type: 'addContainerSessionKeyShare',
-      toAccountId: peer.accountId,
+      toAccount: peer.username,
       containerNameHmac: containerNameHmac,
       sessionKeyCiphertext: sessionKeyCiphertext,
       hmacKeyCiphertext: hmacKeyCiphertext

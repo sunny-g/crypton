@@ -312,5 +312,55 @@ Container.prototype.sync = function (callback) {
   });
 };
 
+Container.prototype.share = function (peer, callback) {
+  if (!this.sessionKey || !this.hmacKey) {
+    return callback('Container must be initialized to share');
+  }
+
+  // encrypt sessionKey and hmacKey to peer's pubKey
+  var sessionKeyCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.sessionKey), crypton.cipherOptions);
+  var hmacKeyCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.hmacKey), crypton.cipherOptions);
+
+  // create new addContainerSessionKeyShare chunk
+  var that = this;
+  new crypton.Transaction(this, function (err, tx) {
+    var chunk = {
+      type: 'addContainerSessionKeyShare',
+      toAccountId: peer.accountId,
+      containerNameHmac: containerNameHmac,
+      sessionKeyCiphertext: sessionKeyCiphertext,
+      hmacKeyCiphertext: hmacKeyCiphertext
+    };
+
+    tx.save(chunk, function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      tx.commit(function (err) {
+        if (err) {
+          return callback(err);
+        }
+
+        // send a message informing peer
+        // TODO we will have to add the ability to mark which application
+        // this container belongs to, otherwise an application on the same
+        // crypton server may incorrectly act upon this message
+        peer.sendMessage({
+          type: 'internal',
+          action: 'containerShare'
+        }, {
+          // TODO this won't work if you aren't original sharer
+          // because you won't have the original containerNameHmacKey.
+          // we will have to mark containers as origin or remote
+          containerNameHmac: that.getPublicName()
+        }, function (err) {
+          callback(err);
+        });
+      });
+    });
+  });
+};
+
 })();
 

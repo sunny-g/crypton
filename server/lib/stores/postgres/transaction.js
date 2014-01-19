@@ -345,23 +345,25 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
  * @param {Function} callback
  */
 datastore.transaction.addContainerSessionKeyShare = function (data, transaction, callback) {
+console.log(data);
   connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
       text: 'insert into transaction_add_container_session_key_share \
-        (transaction_id, name_hmac, to_account_id, session_key_ciphertext, hmac_key_ciphertext) \
-        values ($1, $2, $3, $4, $5)',
+        (transaction_id, name_hmac, session_key_ciphertext, hmac_key_ciphertext, to_account_id) \
+        select $1, $2, $3, $4, account_id from account where username = $5',
       /*jslint multistr: false*/
       values: [
         transaction.transactionId,
         data.containerNameHmac,
-        transaction.accountId,
+        data.toAccount,
         data.sessionKeyCiphertext,
         data.hmacKeyCiphertext
       ]
     };
 
     client.query(query, function (err, result) {
+console.log(query, arguments);
       done();
 
       if (err) {

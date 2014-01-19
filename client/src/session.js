@@ -130,6 +130,7 @@ Session.prototype.create = function (containerName, callback) {
         signature: signature
       }, {
         type: 'addContainerSessionKeyShare',
+        toAccount: that.account.username,
         containerNameHmac: containerNameHmac,
         sessionKeyCiphertext: sessionKeyCiphertext,
         hmacKeyCiphertext: hmacKeyCiphertext

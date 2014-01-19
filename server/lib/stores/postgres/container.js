@@ -38,11 +38,22 @@ exports.getContainerRecords = function (containerNameHmac, accountId, callback) 
       // TODO limit to to_account_id
       /*jslint multistr: true*/
       text: '\
-        select * from readable_container_records_by_account \
-          where container_id=( \
-            select container_id from container where name_hmac=$1 \
-          ) and to_account_id=$2 order by container_record_id',
-       /*jslint multistr: false*/
+        select \
+          container_record.*, \
+          container_session_key.signature, \
+          container_session_key_share.session_key_ciphertext, \
+          container_session_key_share.hmac_key_ciphertext \
+        from container_record \
+          join container_session_key using (container_session_key_id) \
+          join container_session_key_share using (container_session_key_id) \
+        where container_session_key.supercede_time is null \
+          and container_session_key_share.deletion_time is null \
+          and container_record.container_id = ( \
+            select container_id from container where name_hmac = $1 \
+          ) \
+          and container_session_key_share.to_account_id = $2 \
+        order by container_record.creation_time, container_record_id asc',
+      /*jslint multistr: false*/
       values: [
         containerNameHmac,
         accountId

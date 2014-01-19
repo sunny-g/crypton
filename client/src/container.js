@@ -193,9 +193,14 @@ Container.prototype.latestVersion = function () {
  * @return {String} hmac
  */
 Container.prototype.getPublicName = function () {
+  if (this.containerNameHmac) {
+    return this.containerNameHmac;
+  }
+
   var hmac = new sjcl.misc.hmac(this.session.account.containerNameHmacKey);
   var containerNameHmac = hmac.encrypt(this.name);
-  return sjcl.codec.hex.fromBits(containerNameHmac);
+  this.containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac);
+  return this.containerNameHmac;
 };
 
 /**!

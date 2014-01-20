@@ -4,12 +4,12 @@ conversations
     last_message
       timestamp
       text
-    mine_name
+ textA   mine_name
     theirs_hmac
 
 conversation_bob
-  messages
-    array of alice's messages
+  messages (array)
+    { timestamp, action, text }
 
 ----
 
@@ -30,6 +30,19 @@ so on login
 1) load conversations container
 2) loop through keys and render all last_messages
 3) for every theirs_hmac, being polling
+
+when alice hits enter on a message
+1) add message to messages array in conversation_bob
+2) save conversation_bob
+3) render conversation
+
+render a conversation
+1) grab both mine and theirs containers
+2) create conversation array
+3) add both container's messages arrays to conversation array
+4) sort by timestamp
+5) loop through and render to screen
+^ this is naive and slow, we should cache it somewhere but works for now
 */
 
 $(document).ready(function () {
@@ -64,6 +77,7 @@ $(document).ready(function () {
 });
 
 var app = {};
+app.peers = {};
 
 app.setLoginStatus = function (m) {
   $('#login .status').text(m);
@@ -87,7 +101,6 @@ app.register = function (user, pass, callback) {
   app.setLoginStatus('Generating account...');
 
   crypton.generateAccount(user, pass, function (err) {
-    console.log(arguments);
     callback(err);
   });
 };
@@ -97,19 +110,114 @@ app.boot = function () {
     $('#app').addClass('active');
     app.getConversations(function () {
       app.renderConversations(function () {
-        
+        $('#startConversation input').focus();
+        app.bind();
       });
     });
   });
 
   app.session.on('message', function (message) {
-    if (message.headers.action == 'containerShare') {
-      // assuming the shared container is meant for this application
-      var containerNameHmac = message.payload.containerNameHmac;
-      app.session.loadWithHmac(containerNameHmac, function () {
-        console.log(arguments);
+    app.handleMessage(message);
+  });
+};
+
+app.handleMessage = function (message) {
+  console.log(message);
+
+  if (message.headers.action == 'containerShare') {
+    // assuming the shared container is meant for this application
+    var username = message.payload.fromUsername;
+    var containerNameHmac = message.payload.containerNameHmac;
+
+    if (app.conversations.keys[username]) {
+      app.conversations.keys[username].theirs = containerNameHmac;
+      app.conversations.save(function (err) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
+        console.log(username, 'shared conversation container');
+      });
+    } else {
+      // user has initiated a conversation with us
+      app.getPeer(username, function (err, peer) {
+        if (err) {
+          alert(err);
+          return;
+        }
+
+        app.createConversation(peer, function (err) {
+          if (err) {
+            alert(err);
+            return;
+          }
+
+          app.conversations.keys[username].theirs = containerNameHmac;
+          app.conversations.save(function (err) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+
+            app.renderConversations(function () {
+              app.openConversation(username);
+            });
+          });
+        });
       });
     }
+
+    app.session.inbox.delete(message.messageId, function () {
+      console.log(arguments);
+    });
+  }
+};
+
+app.bind = function () {
+  $('#header a').click(function (e) {
+    e.preventDefault();
+    var action = $(this).attr('data-action');
+
+    switch (action) {
+      case 'startConversation':
+        $('#startConversation').removeClass('hidden');
+        $('#startConversation input').focus();
+        break;
+    }
+  });
+
+  $('#startConversation form').submit(function (e) {
+    e.preventDefault(e);
+    var $input = $('#startConversation input');
+    var username = $input.val();
+
+    if (!username) {
+      $input.focus();
+      return;
+    }
+
+    if (app.conversations.keys[username]) {
+      return app.openConversation(username);
+    }
+
+    app.getPeer(username, function (err, peer) {
+      if (err) {
+        alert(err);
+        return;
+      }
+
+      app.createConversation(peer, function (err) {
+        if (err) {
+          alert(err);
+          return;
+        }
+
+        app.renderConversations(function () {
+          app.openConversation(username);
+        });
+      });
+    });
   });
 };
 
@@ -129,5 +237,154 @@ app.getConversations = function (callback) {
 };
 
 app.renderConversations = function (callback) {
-  console.log(app.conversations);
+  var $conversations = $('#sidebar #conversations');
+  var conversations = Object.keys(app.conversations.keys);
+
+  conversations.sort(function (a, b) {
+    return a.lastMessage.timestamp - a.lastMessage.timestamp;
+  });
+
+  $conversations.html('');
+
+  if (!conversations.length) {
+    $('<div />')
+      .addClass('noConversations')
+      .text('No conversations')
+      .appendTo($conversations);
+    return callback();
+  }
+
+  for (var i in conversations) {
+    var username = conversations[i];
+    var lastMessage = app.conversations.keys[username].lastMessage;
+    var $conversation = $('<div />').addClass('conversation');
+    $conversation.attr('data-timestamp', lastMessage.timestamp);
+    $('<span />').addClass('username').text(username).appendTo($conversation);
+    $('<span />').addClass('message').text(lastMessage.text).appendTo($conversation);
+    $conversation.appendTo($conversations);
+  }
+
+  $('#conversations .conversation').click(function (e) {
+    e.preventDefault();
+    var username = $(this).find('.username').text();
+    app.openConversation(username);
+  });
+
+  callback();
 };
+
+app.getPeer = function (username, callback) {
+  if (app.peers[username]) {
+    return callback(null, app.peers[username]);
+  }
+
+  app.session.getPeer(username, function (err, peer) {
+    if (err) {
+      return callback(err);
+    }
+
+    app.peers[username] = peer;
+    callback(null, peer);
+  });
+};
+
+app.createConversation = function (peer, callback) {
+  console.log('startConversation', peer);
+  console.log('creating conversation container');
+
+  app.session.create('conversation_' + peer.username, function (err, container) {
+    if (err) {
+      console.log(err);
+      return callback(err);
+    }
+
+    console.log('adding empty messages array and saving conversation container');
+    container.keys['messages'] = [];
+    container.save(function (err) {
+      if (err) {
+        console.log(err);
+        return callback(err);
+      }
+
+      console.log('adding key to conversations container');
+      app.conversations.keys[peer.username] = {
+        lastMessage: {
+          timestamp: +new Date(),
+          action: 'start',
+          text: app.session.account.username + ' started a conversation'
+        }
+      };
+      
+      console.log('saving conversations container');
+      app.conversations.save(function (err) {
+        if (err) {
+          console.log(err);
+          return callback(err);
+        }
+
+        console.log('sharing conversation container');
+        container.share(peer, function (err) {
+          if (err) {
+            console.log(err);
+            return callback(err);
+          }
+          
+          callback();
+        }); 
+      });
+    });
+  });
+};
+
+app.openConversation = function (username) {
+  $('#startConversation').addClass('hidden');
+
+  console.log('open conversation with', username);
+  app.session.load('conversation_' + username, function (err, ourContainer) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    app.conversation = {
+      mine: ourContainer
+    };
+
+    // grab their messages if we have access
+    var theirsHmac = app.conversations.keys[username].theirs;
+    if (!theirsHmac) {
+      return app.renderConversation();
+    } else {
+      app.session.loadWithHmac(theirsHmac, function (err, theirContainer) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
+        app.conversation.theirs = theirContainer;
+        app.renderConversation();
+      });
+    }
+  });
+};
+
+app.renderConversation = function () {
+  console.log('render conversation', app.conversation);
+  app.conversation.messages = [];
+  app.conversation.messages.concat(app.conversation.mine.keys.messages);
+
+  if (app.conversation.theirs) {
+    app.conversation.messages.concat(app.conversation.theirs.keys.messages);
+  }
+
+  app.conversation.messages.sort(function (a, b) {
+    return a.timestamp - b.timestamp;
+  });
+
+  for (var i in app.conversation.messages) {
+    var message = app.conversation.messages[i];
+    console.log(message);
+  }
+};
+
+

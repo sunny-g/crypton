@@ -26,13 +26,22 @@
   </div>
   <div id="app">
     <div id="header">
-
+      <a href="#" data-action="startConversation">Create conversation</a>
     </div>
     <div id="sidebar">
-
+      <div id="conversations"></div>
     </div>
     <div id="main">
-
+      <div id="startConversation">
+        <form>
+          <input placeholder="Enter a username" /><br />
+          <button>Start conversation</button>
+        </form>
+      </div>
+      <div id="conversation">
+        <div id="messages"></div>
+        <input id="chatInput" placeholder="Type a message here and press enter to send" />
+      </div>
     </div>
   </div>
 </body>

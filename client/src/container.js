@@ -361,6 +361,7 @@ Container.prototype.share = function (peer, callback) {
           type: 'internal',
           action: 'containerShare'
         }, {
+          fromUsername: that.session.account.username,
           containerNameHmac: containerNameHmac
         }, function (err) {
           callback(err);

@@ -100,4 +100,63 @@ account.signKeyPrivateCiphertext = {"iv":"dP8Pi+zbo9E3VZ2KneSu8g","v":1,"iter":1
       assert.deepEqual(ret.signKeyPrivateCiphertext, account.signKeyPrivateCiphertext);
     });
   });
+
+  describe('encryptAndSign+verifyAndDecrypt()', function () {
+    var alice;
+    var aliceErr;
+    var bob;
+    var bobErr;
+    var aliceSession;
+    var bobSession;
+
+    before(function (done) {
+
+      crypton.generateAccount('alice', 'pass', function () {
+        aliceErr = arguments[0];
+        alice = arguments[1];
+
+        crypton.authorize('alice', 'pass', function (err, rawSession) {
+          if (err) throw err;
+          aliceSession = rawSession;
+        });
+
+        crypton.generateAccount('bob', 'pass', function () {
+          bobErr = arguments[0];
+          bob = arguments[1];
+
+          crypton.authorize('bob', 'pass', function (err, rawSession) {
+            if (err) throw err;
+            bobSession = rawSession;
+
+
+            it('should be able to encrypt & sign & verify & decrypt', function (done) {
+              var payload = "This is a secret message and whatnot.";
+
+              // get bob peer
+              aliceSession.getPeer("bob", function (err, peer) {
+                var ret = peer.encryptAndSign(payload, aliceSession);
+                assert(ret.ciphertext && ret.signature);
+
+                var verified = bobSession.account.verifyAndDecrypt(ret, alicePeer);
+                console.log(verified);
+                assert(verified.cleartext && verified.verified);
+                assert(verified.cleartext == payload);
+                done();
+              });
+            });
+
+          });
+
+        }, {
+          save: false
+        });
+
+      }, {
+        save: false
+      });
+
+    });
+
+  });
+
 });

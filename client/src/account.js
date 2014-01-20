@@ -160,7 +160,8 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
     var message = sjcl.decrypt(this.secretKey,
                                JSON.stringify(signedCiphertext.ciphertext),
                                crypton.cipherOptions);
-    return message;
+
+    return { cleartext: message, verified: verified };
   } catch (ex) {
     return { error: "Cannot verify ciphertext" };
   }

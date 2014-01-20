@@ -144,9 +144,9 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
                                JSON.stringify(signedCiphertext.ciphertext),
                                crypton.cipherOptions);
 
-    return { cleartext: message, verified: verified };
+    return { cleartext: message, verified: verified, error: null };
   } catch (ex) {
-    return { error: "Cannot verify ciphertext" };
+    return { cleartext: null, verified: false, error: "Cannot verify ciphertext" };
   }
 };
 

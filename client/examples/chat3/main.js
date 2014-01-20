@@ -122,8 +122,6 @@ app.boot = function () {
 };
 
 app.handleMessage = function (message) {
-  console.log(message);
-
   if (message.headers.action == 'containerShare') {
     // assuming the shared container is meant for this application
     var username = message.payload.fromUsername;
@@ -136,8 +134,6 @@ app.handleMessage = function (message) {
           console.log(err);
           return;
         }
-
-        console.log(username, 'shared conversation container');
       });
     } else {
       // user has initiated a conversation with us
@@ -153,6 +149,8 @@ app.handleMessage = function (message) {
             return;
           }
 
+          // XXX hack for commit race condition
+          setTimeout(function () {
           app.conversations.keys[username].theirs = containerNameHmac;
           app.conversations.save(function (err) {
             if (err) {
@@ -164,12 +162,15 @@ app.handleMessage = function (message) {
               app.openConversation(username);
             });
           });
+          }, 500);
         });
       });
     }
 
-    app.session.inbox.delete(message.messageId, function () {
-      console.log(arguments);
+    app.session.inbox.delete(message.messageId, function (err) {
+      if (err) {
+        console.log(err);
+      }
     });
   }
 };
@@ -181,6 +182,7 @@ app.bind = function () {
 
     switch (action) {
       case 'startConversation':
+        $('#conversation').removeClass('active');
         $('#startConversation').removeClass('hidden');
         $('#startConversation input').focus();
         break;
@@ -219,11 +221,18 @@ app.bind = function () {
       });
     });
   });
+
+  $('#chatInput').keydown(function (e) {
+    if (e.keyCode == 13) { // enter
+      var message = $(this).val();
+      app.sendMessage(message);
+      $(this).val('');
+    }
+  });
 };
 
 app.getConversations = function (callback) {
   app.session.load('conversations', function (err, container) {
-    console.log(arguments);
     if (err == 'Container does not exist') {
       return app.session.create('conversations', function (err, container) {
         app.conversations = container;
@@ -289,24 +298,24 @@ app.getPeer = function (username, callback) {
 };
 
 app.createConversation = function (peer, callback) {
-  console.log('startConversation', peer);
-  console.log('creating conversation container');
-
   app.session.create('conversation_' + peer.username, function (err, container) {
     if (err) {
       console.log(err);
       return callback(err);
     }
 
-    console.log('adding empty messages array and saving conversation container');
     container.keys['messages'] = [];
+
+    // XXX this is a hack
+    // at this point crypton has likely not yet committed the container creation transaction
+    // and this will fail
+    setTimeout(function () {
     container.save(function (err) {
       if (err) {
         console.log(err);
         return callback(err);
       }
 
-      console.log('adding key to conversations container');
       app.conversations.keys[peer.username] = {
         lastMessage: {
           timestamp: +new Date(),
@@ -315,14 +324,12 @@ app.createConversation = function (peer, callback) {
         }
       };
       
-      console.log('saving conversations container');
       app.conversations.save(function (err) {
         if (err) {
           console.log(err);
           return callback(err);
         }
 
-        console.log('sharing conversation container');
         container.share(peer, function (err) {
           if (err) {
             console.log(err);
@@ -333,13 +340,15 @@ app.createConversation = function (peer, callback) {
         }); 
       });
     });
+    }, 500);
   });
 };
 
 app.openConversation = function (username) {
   $('#startConversation').addClass('hidden');
+  $('#conversation').addClass('active');
+  $('#chatInput').val('').focus();
 
-  console.log('open conversation with', username);
   app.session.load('conversation_' + username, function (err, ourContainer) {
     if (err) {
       console.log(err);
@@ -347,7 +356,8 @@ app.openConversation = function (username) {
     }
 
     app.conversation = {
-      mine: ourContainer
+      mine: ourContainer,
+      username: username
     };
 
     // grab their messages if we have access
@@ -366,15 +376,39 @@ app.openConversation = function (username) {
       });
     }
   });
+
+  app.pollInterval = setInterval(function () {
+    if (app.conversation.theirs) {
+      app.conversation.theirs.sync(function (err) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
+        app.renderConversation();
+      });
+    }
+  }, 1000);
 };
 
 app.renderConversation = function () {
-  console.log('render conversation', app.conversation);
+  var $messages = $('#conversation #messages');
+  $messages.html('');
+
   app.conversation.messages = [];
-  app.conversation.messages.concat(app.conversation.mine.keys.messages);
+
+  for (var i in app.conversation.mine.keys.messages) {
+    var message = app.conversation.mine.keys.messages[i];
+    message.username = app.session.account.username;
+    app.conversation.messages.push(message);
+  }
 
   if (app.conversation.theirs) {
-    app.conversation.messages.concat(app.conversation.theirs.keys.messages);
+    for (var i in app.conversation.theirs.keys.messages) {
+      var message = app.conversation.theirs.keys.messages[i];
+      message.username = app.conversation.username;
+      app.conversation.messages.push(message);
+    }
   }
 
   app.conversation.messages.sort(function (a, b) {
@@ -383,8 +417,42 @@ app.renderConversation = function () {
 
   for (var i in app.conversation.messages) {
     var message = app.conversation.messages[i];
-    console.log(message);
+    var $message = $('<div />').addClass('message');
+    $('<span />').addClass('username').text(message.username).appendTo($message);
+    $('<span />').addClass('text').text(message.text).appendTo($message);
+    $message.appendTo($messages);
   }
 };
 
+app.sendMessage = function (text) {
+  if (!text) {
+    console.log('blank message');
+    return;
+  }
+
+  var message = {
+    timestamp: +new Date(),
+    action: 'chat',
+    text: text
+  };
+  
+  var username = app.conversation.username;
+  app.conversations.keys[username].lastMessage = message;
+  app.conversations.save(function (err) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    app.conversation.mine.keys.messages.push(message);
+    app.conversation.mine.save(function (err) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+
+      app.renderConversation();
+    });
+  });
+};
 

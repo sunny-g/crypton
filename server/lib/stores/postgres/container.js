@@ -118,7 +118,7 @@ exports.getContainerCreator = function (containerNameHmac, callback) {
       } else {
         var pendingContainersQuery = {
           text: '\
-            select account_id from transaction where transaction_id = ( \
+            select account_id from transaction where transaction_id in ( \
               select transaction_id from transaction_add_container where name_hmac = $1)',
           values: [
             containerNameHmac

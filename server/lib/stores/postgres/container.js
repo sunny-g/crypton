@@ -107,13 +107,38 @@ exports.getContainerCreator = function (containerNameHmac, callback) {
     };
 
     client.query(query, function (err, result) {
-      done();
-
-      if (err || !result.rows) {
-        return callback('Could not find author');
+      if (err) {
+        done();
+        return callback(err);
       }
 
-      callback(null, result.rows[0].account_id);
+      if (result.rows.length) {
+        done();
+        return callback(null, result.rows[0].account_id);
+      } else {
+        var pendingContainersQuery = {
+          text: '\
+            select account_id from transaction where transaction_id = ( \
+              select transaction_id from transaction_add_container where name_hmac = $1)',
+          values: [
+            containerNameHmac
+          ]
+        };
+
+        client.query(pendingContainersQuery, function (err, result) {
+          done();
+
+          if (err) {
+            return callback(err);
+          }
+
+          if (!result.rows.length) {
+            return callback('Could not find container author');
+          }
+
+          callback(null, result.rows[0].account_id);
+        });
+      }
     });
   });
 };

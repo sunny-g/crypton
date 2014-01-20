@@ -22,14 +22,15 @@ var datastore = require('./');
 var connect = datastore.connect;
 
 /**!
- * ### getContainerRecords(containerNameHmac, callback)
- * Retrieve all records for given `containerNameHmac`
+ * ### getContainerRecords(containerNameHmac, accountId, callback)
+ * Retrieve all records for given `containerNameHmac` accessible by `accountId`
  *
  * Calls back with array of records and without error if successful
  *
  * Calls back with error if unsuccessful
  *
  * @param {String} containerNameHmac
+ * @param {Number} accountId
  * @param {Function} callback
  */
 exports.getContainerRecords = function (containerNameHmac, accountId, callback) {
@@ -57,6 +58,76 @@ exports.getContainerRecords = function (containerNameHmac, accountId, callback) 
       values: [
         containerNameHmac,
         accountId
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      done();
+
+      if (err) {
+        return callback(err);
+      }
+
+      // massage
+      var records = [];
+      result.rows.forEach(function (row) {
+        Object.keys(row).forEach(function (key) {
+          if (Buffer.isBuffer(row[key])) {
+            row[key] = row[key].toString();
+          }
+        });
+
+        row = datastore.util.camelizeObject(row);
+        records.push(row);
+      });
+
+      callback(null, records);
+    });
+  });
+};
+
+/**!
+ * ### getContainerRecordsAfter(containerNameHmac, accountId, timestamp, callback)
+ * Retrieve all records for given `containerNameHmac` accessible by `accountId`
+ * created after `timestamp`
+ *
+ * Calls back with array of records and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerNameHmac
+ * @param {Number} accountId
+ * @param {Number} timestamp
+ * @param {Function} callback
+ */
+exports.getContainerRecordsAfter = function (containerNameHmac, accountId, timestamp, callback) {
+  connect(function (client, done) {
+    var query = {
+      // TODO limit to to_account_id
+      /*jslint multistr: true*/
+      text: '\
+        select \
+          container_record.*, \
+          container_session_key.signature, \
+          container_session_key_share.session_key_ciphertext, \
+          container_session_key_share.hmac_key_ciphertext \
+        from container_record \
+          join container_session_key using (container_session_key_id) \
+          join container_session_key_share using (container_session_key_id) \
+        where container_session_key.supercede_time is null \
+          and container_session_key_share.deletion_time is null \
+          and container_record.container_id = ( \
+            select container_id from container where name_hmac = $1 \
+          ) \
+          and container_session_key_share.to_account_id = $2 \
+          and container_record.creation_time > to_timestamp($3) \
+        order by container_record.creation_time, container_record_id asc',
+      /*jslint multistr: false*/
+      values: [
+        containerNameHmac,
+        accountId,
+        timestamp / 1000
+        // javascript timestamps are millisecond whereas postgres uses second granularity
       ]
     };
 

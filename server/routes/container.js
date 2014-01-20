@@ -33,11 +33,12 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
 
   var accountId = req.session.accountId;
   var containerNameHmac = req.params.containerNameHmac;
+  var after = req.query.after || 0;
 
   var container = new Container();
   container.update('accountId', accountId);
 
-  container.get(containerNameHmac, function (err) {
+  container.getAfter(containerNameHmac, after, function (err) {
     if (err) {
       res.send({
         success: false,

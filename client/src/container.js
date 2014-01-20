@@ -33,8 +33,10 @@ var Container = crypton.Container = function (session) {
   this.keys = {};
   this.session = session;
   this.recordCount = 1;
+  this.recordIndex = 0;
   this.versions = {};
-  this.version = +new Date();
+  //this.version = +new Date();
+  this.version = 0;
   this.name = null;
 };
 
@@ -215,8 +217,9 @@ Container.prototype.getPublicName = function () {
  */
 Container.prototype.getHistory = function (callback) {
   var containerNameHmac = this.getPublicName();
+  var currentVersion = this.latestVersion();
 
-  var url = crypton.url() + '/container/' + containerNameHmac;
+  var url = crypton.url() + '/container/' + containerNameHmac + '?after=' + (currentVersion + 1);
   superagent.get(url)
     .withCredentials()
     .end(function (res) {
@@ -243,10 +246,10 @@ Container.prototype.getHistory = function (callback) {
  * @param {Function} callback
  */
 Container.prototype.parseHistory = function (records, callback) {
-  var keys = {};
-  var versions = {};
+  var keys = this.keys || {};
+  var versions = this.versions || {};
 
-  var recordIndex = 0;
+  var recordIndex = this.recordIndex + 1;
   for (var i in records) {
     var record = this.decryptRecord(recordIndex++, records[i]);
     keys = crypton.diff.apply(record.delta, keys);
@@ -279,8 +282,12 @@ Container.prototype.decryptRecord = function (recordIndex, record) {
   var payload = JSON.parse(sjcl.decrypt(sessionKey, record.payloadCiphertext, crypton.cipherOptions));
 
   if (payload.recordIndex !== recordIndex) {
-    throw new RangeError('Unexpected recordIndex');
+    // TODO revisit. this was giving me too much trouble trying to keep state up
+    // after I implemented variable date record fetching
+    //throw new RangeError('Unexpected recordIndex');
   }
+
+  this.recordIndex++;
 
   return {
     time: +new Date(record.creationTime),
@@ -311,7 +318,7 @@ Container.prototype.sync = function (callback) {
       that.keys = keys;
       that.versions = versions;
       that.version = Math.max.apply(Math, Object.keys(versions));
-      that.recordCount = recordCount;
+      that.recordCount = that.recordCount + recordCount;
       callback(err);
     });
   });

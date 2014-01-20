@@ -64,6 +64,41 @@ Container.prototype.get = function (containerNameHmac, callback) {
 };
 
 /**!
+ * ### getAfter(containerNameHmac, timestamp, callback)
+ * Retrieve all container records from the database for the specified `containerNameHmac`
+ * created after `timestamp`
+ *
+ * Adds records to container object and calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {String} containerNameHmac
+ * @param {Number} timestamp
+ * @param {Function} callback
+ */
+Container.prototype.getAfter = function (containerNameHmac, timestamp, callback) {
+  app.log('debug', 'getting container');
+
+  var that = this;
+
+  db.getContainerRecordsAfter(containerNameHmac, that.accountId, timestamp, function (err, records) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    if (!records.length) {
+      app.log('debug', 'no new records');
+      callback('No new records');
+      return;
+    }
+
+    that.update('records', records);
+    callback(null);
+  });
+};
+
+/**!
  * ### update()
  * Update one or a set of keys in the parent container object
  * 

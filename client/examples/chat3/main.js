@@ -117,11 +117,16 @@ app.boot = function () {
   });
 
   app.session.on('message', function (message) {
+console.log(arguments);
     app.handleMessage(message);
   });
 };
 
 app.handleMessage = function (message) {
+  if (!message) {
+    return;
+  }
+
   if (message.headers.action == 'containerShare') {
     // assuming the shared container is meant for this application
     var username = message.payload.fromUsername;
@@ -233,10 +238,14 @@ app.bind = function () {
 
 app.getConversations = function (callback) {
   app.session.load('conversations', function (err, container) {
-    if (err == 'Container does not exist') {
+    if (err == 'No new records') {
       return app.session.create('conversations', function (err, container) {
         app.conversations = container;
-        callback();
+
+        // XXX hack for race condition again
+        setTimeout(function () {
+          callback();
+        }, 500);
       });
     }
 
@@ -250,7 +259,9 @@ app.renderConversations = function (callback) {
   var conversations = Object.keys(app.conversations.keys);
 
   conversations.sort(function (a, b) {
-    return a.lastMessage.timestamp - a.lastMessage.timestamp;
+    var alms = a.lastMessage && a.lastMessage.timestamp || 0;
+    var blms = b.lastMessage && b.lastMessage.timestamp || 0;
+    return alms - blms;
   });
 
   $conversations.html('');
@@ -265,7 +276,7 @@ app.renderConversations = function (callback) {
 
   for (var i in conversations) {
     var username = conversations[i];
-    var lastMessage = app.conversations.keys[username].lastMessage;
+    var lastMessage = app.conversations.keys[username].lastMessage || {};
     var $conversation = $('<div />').addClass('conversation');
     $conversation.attr('data-timestamp', lastMessage.timestamp);
     $('<span />').addClass('username').text(username).appendTo($conversation);
@@ -279,7 +290,7 @@ app.renderConversations = function (callback) {
     app.openConversation(username);
   });
 
-  callback();
+  callback && callback();
 };
 
 app.getPeer = function (username, callback) {
@@ -380,7 +391,7 @@ app.openConversation = function (username) {
   app.pollInterval = setInterval(function () {
     if (app.conversation.theirs) {
       app.conversation.theirs.sync(function (err) {
-        if (err) {
+        if (err && err != 'No new records') {
           console.log(err);
           return;
         }
@@ -422,6 +433,11 @@ app.renderConversation = function () {
     $('<span />').addClass('text').text(message.text).appendTo($message);
     $message.appendTo($messages);
   }
+
+  app.conversations.keys[app.conversation.username].lastMessage = app.conversation.messages[app.conversation.messages.length - 1];
+  app.conversations.save(function (err) {
+    app.renderConversations();
+  });
 };
 
 app.sendMessage = function (text) {

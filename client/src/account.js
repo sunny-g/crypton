@@ -69,7 +69,6 @@ Account.prototype.unravel = function (callback) {
 
   // decrypt secret key
   var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext), crypton.cipherOptions));
-  console.log("secret: " + JSON.stringify(secret));
   var exponent = sjcl.bn.fromBits(secret.exponent);
   this.secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
 
@@ -83,40 +82,24 @@ Account.prototype.unravel = function (callback) {
   // decrypt hmac keys
   this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext), crypton.cipherOptions);
   this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext), crypton.cipherOptions);
-  // console.log(JSON.stringify(this.signKeyPub));
-  // console.log(JSON.stringify(this.signKeyPrivateCiphertext));
-  var signKeyPubObj = this.signKeyPub;
-  console.log("*** signKeyPub ***");
-  console.log(typeof this.signKeyPub);
-  console.log(this.signKeyPub);
 
+  var signKeyPubObj = this.signKeyPub;
   // Convert serialized Signing Keys to key objects:
   var signPoint =
     sjcl.ecc.curves['c' + signKeyPubObj.curve].fromBits(signKeyPubObj.point);
-  console.log("signPoint: " + signPoint.toString());
   this.signKeyPub =
       new sjcl.ecc.ecdsa.publicKey(signKeyPubObj.curve, signPoint.curve, signPoint);
-  console.log("signKeyPub: " + this.signKeyPub.toString());
   // Decrypt private key
-  console.log("signKeyPrivateCiphertext: " + this.signKeyPrivateCiphertext);
-
-  // XXX: this fails, "CORRUPT: gcm: tag doesn't match"
-  // The ciphertext hard coded in the account test is not the
-  // same as the ciphertext we try to decrypt in the unravel() function
   var signKeySecret =
     JSON.parse(sjcl.decrypt(keypairKey,
                             JSON.stringify(this.signKeyPrivateCiphertext),
                             crypton.cipherOptions));
 
-  console.log("signKeySecret: " + signKeySecret);
   var signExponent = sjcl.bn.fromBits(signKeySecret.exponent);
-  console.log("signExponent: " + signExponent);
   this.signKeyPrivate =
     new sjcl.ecc.ecdsa.secretKey(signKeySecret.curve,
                                  sjcl.ecc.curves['c' + signKeySecret.curve],
                                  signExponent);
-  console.log("signKeyPrivate: ");
-  console.log(this.signKeyPrivate);
   callback();
 };
 

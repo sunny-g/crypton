@@ -86,7 +86,6 @@ crypton.randomBytes = randomBytes;
  */
 // TODO consider moving non-callback arguments to single object
 crypton.generateAccount = function (username, passphrase, callback, options) {
-  console.log("*** generateAccout()");
   options = options || {};
 
   if (typeof options.paranoia === 'undefined') {
@@ -114,8 +113,6 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
   var signingKeys = sjcl.ecc.ecdsa.generateKeys(192, options.paranoia);
 
-  // console.log(signingKeys);
-
   account.username = username;
   // Pad verifier to 512 bytes
   // TODO: This length will change when a different SRP group is used
@@ -128,15 +125,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   account.pubKey = JSON.stringify(keypair.pub.serialize());
   account.symKeyCiphertext = JSON.stringify(symkey.tag);
   account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
-  // console.log("account.signKeyPub:");
-  // console.log(account.signKeyPub);
   account.signKeyPrivateCiphertext =
     sjcl.encrypt(keypairKey,
                  JSON.stringify(signingKeys.sec.serialize()),
                  crypton.cipherOptions);
-  console.log("account.signKeyPrivateCiphertext:");
-  console.log(account.signKeyPrivateCiphertext);
-
 
   if (save) {
     account.save(function (err) {

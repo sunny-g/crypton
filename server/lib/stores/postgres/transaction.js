@@ -389,36 +389,47 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
  * @param {Function} callback
  */
 datastore.transaction.addContainerRecord = function (data, transaction, callback) {
-  connect(function (client, done) {
-    var query = {
-      /*jslint multistr: true*/
-      text: "\
-        insert into transaction_add_container_record \
-        (transaction_id, name_hmac, latest_record_id, \
-        /*hmac, payload_iv, */payload_ciphertext) \
-        values ($1, $2, $3, $4)", // decode($4, 'hex'), \
-        //decode($5, 'hex'), decode($6, 'hex'))",
-      /*jslint multistr: false*/
-      values: [
-        transaction.transactionId,
-        data.containerNameHmac,
-        data.latestRecordId,
-        //data.hmac,
-        //data.payloadIv,
-        data.payloadCiphertext
-      ]
-    };
+  // first, verify that the container was created by interacting account
+  datastore.getContainerCreator(data.containerNameHmac, function (err, containerCreatorId) {
+    if (err) {
+      return callback(err);
+    }
 
-    client.query(query, function (err, result) {
-      done();
+    if (containerCreatorId != transaction.accountId) {
+      return callback('Only container creators may add records to a container');
+    }
 
-      if (err) {
-        app.log('warn', err);
-        callback('Invalid chunk data');
-        return;
-      }
+    connect(function (client, done) {
+      var query = {
+        /*jslint multistr: true*/
+        text: "\
+          insert into transaction_add_container_record \
+          (transaction_id, name_hmac, latest_record_id, \
+          /*hmac, payload_iv, */payload_ciphertext) \
+          values ($1, $2, $3, $4)", // decode($4, 'hex'), \
+          //decode($5, 'hex'), decode($6, 'hex'))",
+        /*jslint multistr: false*/
+        values: [
+          transaction.transactionId,
+          data.containerNameHmac,
+          data.latestRecordId,
+          //data.hmac,
+          //data.payloadIv,
+          data.payloadCiphertext
+        ]
+      };
 
-      callback();
+      client.query(query, function (err, result) {
+        done();
+
+        if (err) {
+          app.log('warn', err);
+          callback('Invalid chunk data');
+          return;
+        }
+
+        callback();
+      });
     });
   });
 };

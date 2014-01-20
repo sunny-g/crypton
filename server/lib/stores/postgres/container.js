@@ -64,8 +64,7 @@ exports.getContainerRecords = function (containerNameHmac, accountId, callback) 
       done();
 
       if (err) {
-        callback(err);
-        return;
+        return callback(err);
       }
 
       // massage
@@ -82,6 +81,39 @@ exports.getContainerRecords = function (containerNameHmac, accountId, callback) 
       });
 
       callback(null, records);
+    });
+  });
+};
+
+/**!
+ * ### getContainerCreator(containerNameHmac, callback)
+ * Retrieve account_id of creator of container
+ * with given `containerNameHmac`
+ *
+ * Calls back with account_id and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerNameHmac
+ * @param {Function} callback
+ */
+exports.getContainerCreator = function (containerNameHmac, callback) {
+  connect(function (client, done) {
+    var query = {
+      text: 'select account_id from container where name_hmac = $1',
+      values: [
+        containerNameHmac
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      done();
+
+      if (err || !result.rows) {
+        return callback('Could not find author');
+      }
+
+      callback(null, result.rows[0].account_id);
     });
   });
 };

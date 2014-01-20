@@ -1,8 +1,35 @@
 /*
-container setup
-  personal_information
-  conversations
-  containersation_1234
+conversations
+  bob:
+    last_message
+      timestamp
+      text
+    mine_name
+    theirs_hmac
+
+conversation_bob
+  messages
+    array of alice's messages
+
+----
+
+let's say alice wants to chat with bob
+1) she creates a container for her messages and actions
+2) she shares the container with bob
+3) she adds "conversation with bob" to her conversation list
+
+4) bob's client parses the message
+5) bob loads the container and adds its hmac to his conversations container
+6) bob creates his own conversation_alice container
+7) bob shares conversation_alice with alice
+
+8) alice loads the container
+9) alice adds the container hmac to her conversations container
+
+so on login
+1) load conversations container
+2) loop through keys and render all last_messages
+3) for every theirs_hmac, being polling
 */
 
 $(document).ready(function () {

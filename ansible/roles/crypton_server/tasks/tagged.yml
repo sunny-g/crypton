@@ -60,13 +60,20 @@
     - vendor
     - vendor/jquery
     - vendor/jquery/1.8.3
+    - vendor/jquery/1.10.2
 
 - name: fetch jquery so we can serve it locally
   sudo: True
-  get_url: url=https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js
-    sha256sum=ba6eda7945ab8d7e57b34cc5a3dd292fa2e4c60a5ced79236ecf1a9e0f0c2d32
-    dest=/home/crypton_server/vendor/jquery/1.8.3/jquery.min.js
+  get_url: 
+    url=https://ajax.googleapis.com/ajax/libs/jquery/{{ item.version }}/jquery.min.js
+    sha256sum={{ item.sha256sum }}
+    dest=/home/crypton_server/vendor/jquery/{{ item.version }}/jquery.min.js
     owner=crypton_server group=www-data mode=444
+  with_items:
+    - version: 1.8.3
+      sha256sum: ba6eda7945ab8d7e57b34cc5a3dd292fa2e4c60a5ced79236ecf1a9e0f0c2d32
+    - version: 1.10.2
+      sha256sum: 89a15e9c40bc6b14809f236ee8cd3ed1ea42393c1f6ca55c7855cd779b3f922e
 
 # note that nginx does not use /etc/hosts for resolution. but squid does.
 - name: add crypton server to /etc/hosts

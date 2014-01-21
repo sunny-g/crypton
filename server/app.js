@@ -28,7 +28,6 @@ var util = require('./lib/util');
 var appsec = require('lusca');
 
 var app = process.app = module.exports = express();
-
 app.log = require('./lib/log');
 app.config = require('./lib/config');
 app.datastore = require('./lib/storage');

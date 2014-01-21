@@ -55,12 +55,31 @@ app.use(cors({
   }
 }));
 
+app.log("info", process.env.CRYPTON_LUSCA_CONF);
+
 if (process.env.CRYPTON_LUSCA_CONF) {
   // Configurable security headers via ENV VAR
   // export CRYPTON_LUSCA_CONF='{csrf: true,csp:{'default-src': 'self'},xframe:'SAMEORIGIN'} //
-  // XXXddahl: p3p not used, should it be?
-  app.use(appsec(JSON.parse(process.env.CRYPTON_LUSCA_CONF)));
+  // P3P is not used by default, but can be used by overriding the defaults
+  try {
+    var luscaObj = JSON.parse(process.env.CRYPTON_LUSCA_CONF);
+    // Note: starting an app like:
+    //  sudo CRYPTON_LUSCA_CONF='{"csp": "foo", "csrf": "woot", "xframe": "blerg"}' crypton
+    // will allow an override.
+
+    // A naive validation check:
+    if ((typeof luscaObj.csp == 'object') && (typeof luscaObj.xframe == "string")
+                                          && (typeof luscaObj.csrf == 'boolean')) {
+      app.use(appsec(luscaObj));
+    } else {
+      throw new Error("Lusca configuration invalid!");
+    }
+  } catch (ex) {
+    app.log("warn", "Cannot parse Lusca security JSON string from ENV var: " + ex);
+    process.exit(1);
+  }
 } else {
+  app.log("info", "ENV VAR not present");
   // A very strict CSP, CSRF enabled and xframe options as sameorigin.
   app.use(appsec({
     csrf: true,

@@ -25,8 +25,10 @@ var https = require('https');
 var connect = require('connect');
 var express = require('express');
 var util = require('./lib/util');
+var appsec = require('lusca');
 
 var app = process.app = module.exports = express();
+
 app.log = require('./lib/log');
 app.config = require('./lib/config');
 app.datastore = require('./lib/storage');
@@ -53,6 +55,26 @@ app.use(cors({
     callback(null, true);
   }
 }));
+
+if (process.env.CRYPTON_LUSCA_CONF) {
+  // Configurable security headers via ENV VAR
+  // export CRYPTON_LUSCA_CONF='{csrf: true,csp:{'default-src': 'self'},xframe:'SAMEORIGIN'} //
+  // XXXddahl: p3p not used, should it be?
+  app.use(appsec(JSON.parse(process.env.CRYPTON_LUSCA_CONF)));
+} else {
+  // A very strict CSP, CSRF enabled and xframe options as sameorigin.
+  app.use(appsec({
+    csrf: true,
+    csp: { 'default-src': 'self',
+           'script-src': 'self',
+           'img-src': 'self',
+           'style-src': 'self',
+           'font-src': 'self',
+           'object-src': 'none'
+         },
+    xframe: 'SAMEORIGIN'
+  }));
+}
 
 var redis = require('redis').createClient(
   app.config.redis.port,
@@ -86,7 +108,7 @@ app.use(express.logger(function (info, req, res) {
   }
 
   var line = res.statusCode.toString()[color] + ' ' + req.method + ' ' + req.url;
-  app.log('info', line); 
+  app.log('info', line);
 }));
 
 if (app.config.appPath) {
@@ -128,4 +150,3 @@ process.on('uncaughtException', function (err) {
   app.log('fatal', err.stack);
   process.exit(1);
 });
-

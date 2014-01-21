@@ -29,7 +29,8 @@
     "connect-redis": "~1.4.5",
     "redis": "~0.8.4",
     "srp": "0.2.x",
-    "cors": "~2.1.1"
+    "cors": "~2.1.1",
+    "lusca": "0.1.x"
   },
   "devDependencies": {
     "mocha": "1.8.x",

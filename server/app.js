@@ -55,8 +55,6 @@ app.use(cors({
   }
 }));
 
-app.log("info", process.env.CRYPTON_LUSCA_CONF);
-
 if (process.env.CRYPTON_LUSCA_CONF) {
   // Configurable security headers via ENV VAR
   // export CRYPTON_LUSCA_CONF='{csrf: true,csp:{'default-src': 'self'},xframe:'SAMEORIGIN'} //
@@ -79,7 +77,6 @@ if (process.env.CRYPTON_LUSCA_CONF) {
     process.exit(1);
   }
 } else {
-  app.log("info", "ENV VAR not present");
   // A very strict CSP, CSRF enabled and xframe options as sameorigin.
   app.use(appsec({
     csrf: true,

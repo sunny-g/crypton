@@ -87,19 +87,11 @@ Account.prototype.unravel = function (callback) {
   // Convert serialized Signing Keys to key objects:
   var signPoint =
     sjcl.ecc.curves['c' + signKeyPubObj.curve].fromBits(signKeyPubObj.point);
-  this.signKeyPub =
-      new sjcl.ecc.ecdsa.publicKey(signKeyPubObj.curve, signPoint.curve, signPoint);
+  this.signKeyPub = new sjcl.ecc.ecdsa.publicKey(signKeyPubObj.curve, signPoint.curve, signPoint);
   // Decrypt private key
-  var signKeySecret =
-    JSON.parse(sjcl.decrypt(keypairKey,
-                            JSON.stringify(this.signKeyPrivateCiphertext),
-                            crypton.cipherOptions));
-
+  var signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.signKeyPrivateCiphertext), crypton.cipherOptions));
   var signExponent = sjcl.bn.fromBits(signKeySecret.exponent);
-  this.signKeyPrivate =
-    new sjcl.ecc.ecdsa.secretKey(signKeySecret.curve,
-                                 sjcl.ecc.curves['c' + signKeySecret.curve],
-                                 signExponent);
+  this.signKeyPrivate = new sjcl.ecc.ecdsa.secretKey(signKeySecret.curve, sjcl.ecc.curves['c' + signKeySecret.curve], signExponent);
   callback();
 };
 
@@ -132,22 +124,17 @@ Account.prototype.serialize = function () {
  *
  * @return {Object}
  */
-
 Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
-  // hash the message
+  // hash the ciphertext
   var hash = sjcl.hash.sha256.hash(JSON.stringify(signedCiphertext.ciphertext));
   // verify the signature
-  var verified = peer.signKeyPub.verify(hash, signedCiphertext.signature );
+  var verified = peer.signKeyPub.verify(hash, signedCiphertext.signature);
   // try to decrypt regardless of verification failure
   try {
-    var message = sjcl.decrypt(this.secretKey,
-                               JSON.stringify(signedCiphertext.ciphertext),
-                               crypton.cipherOptions);
-
-    return { cleartext: message, verified: verified, error: null };
+    var message = sjcl.decrypt(this.secretKey, JSON.stringify(signedCiphertext.ciphertext), crypton.cipherOptions);
+    return { plaintext: message, verified: verified, error: null };
   } catch (ex) {
-    return { cleartext: null, verified: false, error: "Cannot verify ciphertext" };
+    return { plaintext: null, verified: false, error: "Cannot verify ciphertext" };
   }
 };
-
 })();

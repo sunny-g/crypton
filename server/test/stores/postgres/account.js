@@ -63,8 +63,6 @@ describe('Postgres driver', function () {
 
           crypton.account.getAccount(newAccount.username, function (err, account) {
             assert.equal(err, null);
-            console.log(account);
-            console.log(expectedAccount);
             assert.deepEqual(account, expectedAccount);
             done();
           });

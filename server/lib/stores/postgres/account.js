@@ -89,7 +89,8 @@ exports.saveAccount = function saveAccount(account, callback) {
           "  base_keyring_id, account_id," +
           "  keypair, keypair_salt, pubkey, symkey," +
           "  container_name_hmac_key," +
-          "  hmac_key, srp_verifier, srp_salt, sign_key_pub, sign_key_private_ciphertext " +
+          "  hmac_key, srp_verifier, srp_salt, "
+          + "sign_key_pub, sign_key_private_ciphertext " +
           ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
         values: [
           result.rows[0].base_keyring_id,
@@ -205,7 +206,6 @@ exports.getAccount = function getAccount(username, callback) {
  * @param {Function} callback
  */
 exports.getAccountById = function getAccountById(accountId, callback) {
-  console.log("*** " + accountId);
   connect(function (client, done) {
     var accountQuery = {
       text:

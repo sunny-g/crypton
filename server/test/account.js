@@ -76,8 +76,6 @@ describe('Account model', function () {
       ];
 
       account.get('pizza', function (err) {
-        console.log(err);
-        console.log(account);
         if (err) throw err;
         assert.deepEqual(expectedProperties, Object.keys(account.toJSON()));
         done();

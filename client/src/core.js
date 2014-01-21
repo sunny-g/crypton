@@ -96,9 +96,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
     return callback('Must supply username and passphrase');
   }
 
+  var SIGN_KEY_BIT_LENGTH = 384;
+  var SIGN_KEY_PARANOIA = 6;
   var keypairCurve = options.keypairCurve || 384;
   var save = typeof options.save !== 'undefined' ? options.save : true;
-
   var account = new crypton.Account();
   var containerNameHmacKey = randomBytes(8);
   var hmacKey = randomBytes(8);
@@ -106,12 +107,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, options.paranoia);
   var symkey = keypair.pub.kem(0);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
-
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var srpSalt = srp.randomHexSalt();
   var srpVerifier = srp.calculateV(srpSalt).toString(16);
-
-  var signingKeys = sjcl.ecc.ecdsa.generateKeys(192, options.paranoia);
+  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, SIGN_KEY_PARANOIA);
 
   account.username = username;
   // Pad verifier to 512 bytes
@@ -125,10 +124,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   account.pubKey = JSON.stringify(keypair.pub.serialize());
   account.symKeyCiphertext = JSON.stringify(symkey.tag);
   account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
-  account.signKeyPrivateCiphertext =
-    sjcl.encrypt(keypairKey,
-                 JSON.stringify(signingKeys.sec.serialize()),
-                 crypton.cipherOptions);
+  account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
 
   if (save) {
     account.save(function (err) {

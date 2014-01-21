@@ -24,21 +24,13 @@ describe('Account', function () {
   account.username = 'user';
   account.srpVerifier = 'verifier';
   account.srpSalt = 'salt';
-
   account.keypairSalt = [-1601113307,-147606214,-62907260,1664396850,1038241656,596952288,-1676728508,-743835030];
-
   account.keypairCiphertext = {"iv":"5PtD42BLh2N1A/M9KF+l8g","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"Z3+NhRZLZiyFtH0FVFx6sWQWksE5yG7Wsiyjr1RNzf2P3eayWBy+d5DbS417oEC94xgrMEGuc6lp8oKR0MvgS2Rb32US8FNCQIzLg1+kidgz4gJLd0WN+TaERoa6O3W5ARvJyWwkw7vTnk92PbTNQnuo31o7n/FNZCCkXVriBw9iqsrIFYORjSRb8EeAoxecOTK5wW5riphjfr3Scn3Rm9sgD5Ps3R1znQxiRARiv2w"};
-
   account.pubKey = {"point":[-814316318,1020697195,358800030,2142462487,-1630869932,477045498,1093057837,354832449,1063888822,-1054421197,-1933044690,-1955745963,-1020314082,-2106178156,-95968818,1241660716,-314482104,1807577500,1811162725,-1270122694,-377237982,1917786300,1311599981,1075655987],"curve":384};
-
   account.symKeyCiphertext =[1243127374,-874272957,-264228200,-1453158182,438342754,1182255140,884225542,-1204693896,-436097068,563643357,1411388321,-1924282403,-756350478,1643683828,-386465580,2006255534,-627964371,755872376,-725931272,-928801328,-2065686341,-735712476,352918313,388227430];
-
   account.containerNameHmacKeyCiphertext = {"iv":"YFeYPJXn2bztkD1zOFmiFQ","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"6MNWGoSboynaTA1cBVOGhtNXMTF75n6xSs5gdVZqDKkd32CyUnzuNYcJWP2E6qeWC850/I8uC5LFPFa6PTyOMA5rc9KBFv+J4X648nBP+kaxelenK2XnT1d6iETVU7iu"};
-
   account.hmacKeyCiphertext = {"iv":"tqrCZxNtLYXKkU2O96cnpg","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"93FNMpuKSPajTV4z4iJDw806TiNaDxBcM60UiU/vz+yFviPuzJgmVVuF7wf1kUDfPKYSBzKvDX51yOT2h9a4I6C3kgttooU/NOn3nJdb480zVgFjHrTso1/kTTqwaDm6u9DA"};
-
   account.signKeyPub = {"point":[-544178132,115453517,-1912575641,920110764,762420811,2037665175,69508748,-1944972765,-1220788834,-1964704246,-846945090,879724614],"curve":192};
-
   account.signKeyPrivateCiphertext = {"iv":"qgXT725sFea1sK9prEQMPQ","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"u/LY6VUAqjWfySGCgdOYmjpLY1aLpbZjcMqaJIG7EuB5ZMQi4FxXuiyPe4cvgYl03as7LNJuR2vpun0DXmj0/xlIGeux52PYmoGYqXDWk6hLg9W5UM+/wV/MaZ7LPkIml98NAlSes/hGo4rT"};
 
   describe('save()', function () {
@@ -114,55 +106,37 @@ describe('Account', function () {
     var bobErr;
     var aliceSession;
     var bobSession;
-
-    before(function (done) {
-
-      crypton.generateAccount('alice', 'pass', function () {
-        aliceErr = arguments[0];
-        alice = arguments[1];
-
-        crypton.authorize('alice', 'pass', function (err, rawSession) {
+    crypton.generateAccount('alice', 'pass', function () {
+      aliceErr = arguments[0];
+      alice = arguments[1];
+      crypton.authorize('alice', 'pass', function (err, rawSession) {
+        if (err) throw err;
+        aliceSession = rawSession;
+      });
+      crypton.generateAccount('bob', 'pass', function () {
+        bobErr = arguments[0];
+        bob = arguments[1];
+        crypton.authorize('bob', 'pass', function (err, rawSession) {
           if (err) throw err;
-          aliceSession = rawSession;
-        });
-
-        crypton.generateAccount('bob', 'pass', function () {
-          bobErr = arguments[0];
-          bob = arguments[1];
-
-          crypton.authorize('bob', 'pass', function (err, rawSession) {
-            if (err) throw err;
-            bobSession = rawSession;
-
-
-            it('should be able to encrypt & sign & verify & decrypt', function (done) {
-              var payload = "This is a secret message and whatnot.";
-
-              // get bob peer
-              aliceSession.getPeer("bob", function (err, peer) {
-                var ret = peer.encryptAndSign(payload, aliceSession);
-                assert(ret.ciphertext && ret.signature);
-
-                var verified = bobSession.account.verifyAndDecrypt(ret, alicePeer);
-                console.log(verified);
-                assert(verified.cleartext && verified.verified);
-                assert(verified.cleartext == payload);
-                done();
-              });
+          bobSession = rawSession;
+          it('should be able to encrypt & sign & verify & decrypt', function (done) {
+            var payload = "This is a secret message and whatnot.";
+            // get bob peer
+            aliceSession.getPeer("bob", function (err, peer) {
+              var ret = peer.encryptAndSign(payload, aliceSession);
+              assert(ret.ciphertext && ret.signature);
+              var verified = bobSession.account.verifyAndDecrypt(ret, alicePeer);
+              assert(verified.plaintext && verified.verified);
+              assert(verified.plaintext == payload);
+              done();
             });
-
           });
-
-        }, {
-          save: false
         });
-
       }, {
         save: false
       });
-
+    }, {
+      save: false
     });
-
   });
-
 });

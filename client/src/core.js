@@ -97,7 +97,6 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   }
 
   var SIGN_KEY_BIT_LENGTH = 384;
-  var SIGN_KEY_PARANOIA = 6;
   var keypairCurve = options.keypairCurve || 384;
   var save = typeof options.save !== 'undefined' ? options.save : true;
   var account = new crypton.Account();
@@ -110,7 +109,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var srpSalt = srp.randomHexSalt();
   var srpVerifier = srp.calculateV(srpSalt).toString(16);
-  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, SIGN_KEY_PARANOIA);
+  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, options.paranoia);
 
   account.username = username;
   // Pad verifier to 512 bytes

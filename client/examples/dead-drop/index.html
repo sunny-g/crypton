@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title>Crypton DeadDrop</title>
+  <link rel="stylesheet" type="text/css" media="screen" href="/style.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/login.css" />
+  <script type="text/javascript" src="/jquery.js"></script>
+  <script type="text/javascript" src="/crypton.js"></script>
+  <script type="text/javascript" src="/login.js"></script>
+  <script type="text/javascript" src="/dead-drop.js"></script>
+</head>
+<body>
+  <div id="login">
+    <img src="/crypton.png" />
+    <span class="status"></span>
+    <form>
+      <input type="text" name="username" placeholder="Username" />
+      <input type="password" name="password" placeholder="Password" />
+      <input type="submit" value="Login" />
+      <input type="submit" value="Register" />
+    </form>
+  </div>
+  <div id="header">
+    <span class="logo">Crypton DeadDrop</span>
+    <span class="status">Loading...</span>
+    <ul id="nav">
+      <li class="padding">
+        Logged in as <strong class="username"></strong>
+      </li>
+      <li>
+        <a data-action="logout">Logout</a>
+      </li>
+    </ul>
+  </div>
+  <div id="sidebar">
+    <ul id="messages">
+    </ul>
+  </div>
+  <div id="container">
+    <div id="create-message">
+      <div id="directions">
+	<h3>Directions</h3>
+	<ol>
+	  <li>Lookup peer</li>
+	  <li>Type Message</li>
+	  <li>Encrypt, sign and send</li>
+	</ol>
+      </div>
+      <input id="lookup-peer" type="text" placeholder="Enter username" name="username" />
+      <button id="lookup-peer-btn">Lookup Peer</button>
+    </div>
+    <div id="compose">
+      <p id="compose-to"></p>
+      <textarea id="compose-message" placeholder="Enter message here" name="message"></textarea>
+      <button data-action='encryptSend' id="encrypt-send-btn">Encrypt & Send</button>
+    </div>
+    <div id="read-message">
+      <p id="message-from"></p>
+      <pre id="message-content"></pre>
+      <button id="decrypt-read-btn">Decrypt & Read</button>
+    </div>
+  </div>
+</body>
+</html>

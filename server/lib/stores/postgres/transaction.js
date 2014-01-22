@@ -185,6 +185,32 @@ datastore.requestTransactionCommit = function (transactionId, accountId, callbac
   });
 };
 
+/**!
+ * ### transactionIsCommitted(transactionId, callback)
+ * Checks if a given transaction has been fully committed
+ *
+ * Calls back without error and transaction status boolean if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} transactionId
+ * @param {Function} callback
+ */
+datastore.transactionIsCommitted = function (transactionId, callback) {
+  connect(function (client, done) {
+    datastore.getTransaction(transactionId, function (err, transaction) {
+      done();
+
+      if (!transaction.transactionId) {
+        callback('Transaction does not exist');
+        return;
+      }
+
+      callback(null, !!transaction.commitFinishTime);
+    });
+  });
+};
+
 datastore.transaction = {};
 
 /**!

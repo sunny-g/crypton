@@ -104,18 +104,34 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
   tx.update('interactingAccount', accountId);
 
   tx.get(transactionId, function (err) {
-    tx.commit(function (err) {
+    tx.requestCommit(function (err) {
       if (err) {
-        res.send({
+        return res.send({
           success: false,
           error: err
         });
-        return;
       }
 
-      res.send({
-        success: true
-      });
+      checkCommitStatus();
+
+      function checkCommitStatus () {
+        tx.isCommitted(function (err, isCommitted) {
+          if (err) {
+            return res.send({
+              success: false,
+              error: err
+            });
+          }
+
+          if (!isCommitted) {
+            setTimeout(checkCommitStatus, app.config.commitStatusCheckDelay);
+          } else {
+            res.send({
+              success: true
+            });
+          }
+        });
+      }
     });
   });
 });

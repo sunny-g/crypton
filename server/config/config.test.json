@@ -19,5 +19,6 @@
     "host": "localhost",
     "port": 6379,
     "pass": ""
-  }
+  },
+  "commitStatusCheckDelay": 100
 }

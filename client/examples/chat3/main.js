@@ -154,8 +154,6 @@ app.handleMessage = function (message) {
             return;
           }
 
-          // XXX hack for commit race condition
-          setTimeout(function () {
           app.conversations.keys[username].theirs = containerNameHmac;
           app.conversations.save(function (err) {
             if (err) {
@@ -167,7 +165,6 @@ app.handleMessage = function (message) {
               app.openConversation(username);
             });
           });
-          }, 500);
         });
       });
     }
@@ -241,11 +238,7 @@ app.getConversations = function (callback) {
     if (err == 'No new records') {
       return app.session.create('conversations', function (err, container) {
         app.conversations = container;
-
-        // XXX hack for race condition again
-        setTimeout(function () {
-          callback();
-        }, 500);
+        callback();
       });
     }
 
@@ -317,10 +310,6 @@ app.createConversation = function (peer, callback) {
 
     container.keys['messages'] = [];
 
-    // XXX this is a hack
-    // at this point crypton has likely not yet committed the container creation transaction
-    // and this will fail
-    setTimeout(function () {
     container.save(function (err) {
       if (err) {
         console.log(err);
@@ -351,7 +340,6 @@ app.createConversation = function (peer, callback) {
         }); 
       });
     });
-    }, 500);
   });
 };
 

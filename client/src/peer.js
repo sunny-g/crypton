@@ -112,7 +112,8 @@ Peer.prototype.encryptAndSign = function (payload, session) {
     var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(payload), crypton.cipherOptions);
     // hash the ciphertext and sign the hash:
     var hash = sjcl.hash.sha256.hash(JSON.stringify(ciphertext));
-    var signature = session.account.signKeyPrivate.sign(hash, crypton.cipherOptions);
+    var PARANOIA = 6;
+    var signature = session.account.signKeyPrivate.sign(hash, PARANOIA);
     return { ciphertext: ciphertext, signature: signature, error: null };
   } catch (ex) {
     var err = "Error: Could not complete encryptAndSign: " + ex;

@@ -1,5 +1,5 @@
 body {
-  background: #6ab06e;
+  background: #000;
   font-family: 'HelveticaNeue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   transition: all 0.1s ease;
@@ -12,7 +12,7 @@ body {
   right: 0;
   height: 50px;
   line-height: 50px;
-  background: #59a75e;
+  background: #000;
   transition: all 0.2s ease;
 }
 
@@ -46,7 +46,7 @@ body {
 }
 
 #nav a:hover {
-  background: #1c6220;
+  background: #AAA;
   cursor: pointer;
 }
 
@@ -54,9 +54,9 @@ body {
   background: #f5f5f5;
   position: fixed;
   top: 50px;
-  left: -350px;
+  left: -250px;
   bottom: 0;
-  width: 300px;
+  width: 200px;
   transition: all 0.2s ease;
   padding: 1px;
 }

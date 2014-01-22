@@ -20,13 +20,13 @@
 
 #login input[type="text"]:focus,
 #login input[type="password"]:focus {
-  box-shadow: 0 0 10px #1c6220;
+  box-shadow: 0 0 10px #AAA;
 }
 
 #login input[type="submit"] {
   border: 0;
   padding: 10px;
-  background: #1c6220;
+  background: #222;
   color: #fff;
   opacity: 0.7;
   outline: 0;

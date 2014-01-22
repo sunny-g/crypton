@@ -19,6 +19,8 @@ app.init = function (session) {
   app.setUsername();
   app.setStatus(" ");
   app.session.on('message', function (data) {
+    console.log("incoming message!");
+    console.log(data);
     app.session.inbox.get(data.messageId, function (err, message) {
       if (message.headers.app == 'deadDrop') {
         app.processMessage(message);
@@ -51,14 +53,27 @@ app.bindActions = function () {
 
 app.processMessage = function (message) {
   // add message to messages list:
-  var html = '<ul>' + message + '</ul>';
+  app.incomingMessages[message.messageId] = message;
+
+  console.log(message);
+  var html = '<option id="'
+           + message.messageId
+           + '">'
+           + message.headers.from
+           + " " + message.messageId
+           + '</option>';
+
   var node = $(html);
-  node.click(function () {
+
+  node.click(function (evt) {
     $('#read-message').show();
     $('#compose').hide();
+    $('#create-message').hide();
     // display the message in the <pre>, etc
+    var msg = $(evt.target).text();
+    $('#message-content').text(msg);
   });
-  $('#messages').append();
+  $('#messages').append(node);
   // XXX: notify user of new message
 };
 

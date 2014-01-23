@@ -324,6 +324,18 @@ Container.prototype.sync = function (callback) {
   });
 };
 
+/**!
+ * ### share(peer, callback)
+ * Encrypt the container's sessionKey with peer's
+ * public key, commit new addContainerSessionKey chunk,
+ * and send a message to the peer informing them
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
 Container.prototype.share = function (peer, callback) {
   if (!this.sessionKey || !this.hmacKey) {
     return callback('Container must be initialized to share');

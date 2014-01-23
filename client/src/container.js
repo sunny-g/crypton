@@ -272,7 +272,7 @@ Container.prototype.parseHistory = function (records, callback) {
 // TODO handle potential JSON.parse errors here
 Container.prototype.decryptRecord = function (recordIndex, record) {
   if (!this.sessionKey) {
-    this.decryptKeys(record);
+    this.decryptKey(record);
   }
 
   var payload = JSON.parse(sjcl.decrypt(this.sessionKey, record.payloadCiphertext, crypton.cipherOptions));
@@ -292,7 +292,7 @@ Container.prototype.decryptRecord = function (recordIndex, record) {
 };
 
 /**!
- * ### decryptKeys(record)
+ * ### decryptKey(record)
  * Extract and decrypt the container's keys from a given record
  *
  * @param {Object} record

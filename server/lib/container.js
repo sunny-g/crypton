@@ -46,7 +46,7 @@ Container.prototype.get = function (containerNameHmac, callback) {
 
   var that = this;
 
-  db.getContainerRecords(containerNameHmac, function (err, records) {
+  db.getContainerRecords(containerNameHmac, that.accountId, function (err, records) {
     if (err) {
       callback(err);
       return;
@@ -55,6 +55,41 @@ Container.prototype.get = function (containerNameHmac, callback) {
     if (!records.length) {
       app.log('debug', 'container does not exist');
       callback('Container does not exist');
+      return;
+    }
+
+    that.update('records', records);
+    callback(null);
+  });
+};
+
+/**!
+ * ### getAfter(containerNameHmac, timestamp, callback)
+ * Retrieve all container records from the database for the specified `containerNameHmac`
+ * created after `timestamp`
+ *
+ * Adds records to container object and calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ * 
+ * @param {String} containerNameHmac
+ * @param {Number} timestamp
+ * @param {Function} callback
+ */
+Container.prototype.getAfter = function (containerNameHmac, timestamp, callback) {
+  app.log('debug', 'getting container');
+
+  var that = this;
+
+  db.getContainerRecordsAfter(containerNameHmac, that.accountId, timestamp, function (err, records) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    if (!records.length) {
+      app.log('debug', 'no new records');
+      callback('No new records');
       return;
     }
 

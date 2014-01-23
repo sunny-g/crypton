@@ -185,6 +185,32 @@ datastore.requestTransactionCommit = function (transactionId, accountId, callbac
   });
 };
 
+/**!
+ * ### transactionIsCommitted(transactionId, callback)
+ * Checks if a given transaction has been fully committed
+ *
+ * Calls back without error and transaction status boolean if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} transactionId
+ * @param {Function} callback
+ */
+datastore.transactionIsCommitted = function (transactionId, callback) {
+  connect(function (client, done) {
+    datastore.getTransaction(transactionId, function (err, transaction) {
+      done();
+
+      if (!transaction.transactionId) {
+        callback('Transaction does not exist');
+        return;
+      }
+
+      callback(null, !!transaction.commitFinishTime);
+    });
+  });
+};
+
 datastore.transaction = {};
 
 /**!
@@ -349,15 +375,15 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
     var query = {
       /*jslint multistr: true*/
       text: 'insert into transaction_add_container_session_key_share \
-        (transaction_id, name_hmac, to_account_id, session_key_ciphertext, hmac_key_ciphertext) \
-        values ($1, $2, $3, $4, $5)',
+        (transaction_id, name_hmac, session_key_ciphertext, hmac_key_ciphertext, to_account_id) \
+        select $1, $2, $3, $4, account_id from account where username = $5',
       /*jslint multistr: false*/
       values: [
         transaction.transactionId,
         data.containerNameHmac,
-        transaction.accountId,
-        data.sessionKeyCiphertext,
-        data.hmacKeyCiphertext
+        JSON.stringify(data.sessionKeyCiphertext),
+        JSON.stringify(data.hmacKeyCiphertext),
+        data.toAccount
       ]
     };
 
@@ -389,36 +415,47 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
  * @param {Function} callback
  */
 datastore.transaction.addContainerRecord = function (data, transaction, callback) {
-  connect(function (client, done) {
-    var query = {
-      /*jslint multistr: true*/
-      text: "\
-        insert into transaction_add_container_record \
-        (transaction_id, name_hmac, latest_record_id, \
-        /*hmac, payload_iv, */payload_ciphertext) \
-        values ($1, $2, $3, $4)", // decode($4, 'hex'), \
-        //decode($5, 'hex'), decode($6, 'hex'))",
-      /*jslint multistr: false*/
-      values: [
-        transaction.transactionId,
-        data.containerNameHmac,
-        data.latestRecordId,
-        //data.hmac,
-        //data.payloadIv,
-        data.payloadCiphertext
-      ]
-    };
+  // first, verify that the container was created by interacting account
+  datastore.getContainerCreator(data.containerNameHmac, function (err, containerCreatorId) {
+    if (err) {
+      return callback(err);
+    }
 
-    client.query(query, function (err, result) {
-      done();
+    if (containerCreatorId != transaction.accountId) {
+      return callback('Only container creators may add records to a container');
+    }
 
-      if (err) {
-        app.log('warn', err);
-        callback('Invalid chunk data');
-        return;
-      }
+    connect(function (client, done) {
+      var query = {
+        /*jslint multistr: true*/
+        text: "\
+          insert into transaction_add_container_record \
+          (transaction_id, name_hmac, latest_record_id, \
+          /*hmac, payload_iv, */payload_ciphertext) \
+          values ($1, $2, $3, $4)", // decode($4, 'hex'), \
+          //decode($5, 'hex'), decode($6, 'hex'))",
+        /*jslint multistr: false*/
+        values: [
+          transaction.transactionId,
+          data.containerNameHmac,
+          data.latestRecordId,
+          //data.hmac,
+          //data.payloadIv,
+          data.payloadCiphertext
+        ]
+      };
 
-      callback();
+      client.query(query, function (err, result) {
+        done();
+
+        if (err) {
+          app.log('warn', err);
+          callback('Invalid chunk data');
+          return;
+        }
+
+        callback();
+      });
     });
   });
 };
@@ -616,7 +653,7 @@ garbage.trollMessages = function () {
         return;
       }
 
-      app.log('debug', result.rows.length + ' containers need deletion');
+      app.log('debug', result.rows.length + ' messages need deletion');
 
       for (var i = 0; i < result.rows.length; i++) {
         garbage.destroyMessage(result.rows[i].message_id);

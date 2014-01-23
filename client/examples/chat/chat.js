@@ -97,16 +97,15 @@ function init () {
     createConversation();
   });
 
-  session.on('message', function (data) {
-    console.log(data);
-
-    var message = {
-      from: data.from.username,
-      to: session.account.username,
-      body: data.body.text
-    };
-
-    receiveMessage(message);
+  session.on('message', function (message) {
+    if (message.headers.app == 'chat' && message.headers.type == 'message') {
+      receiveMessage(message.payload);
+      session.inbox.delete(message.messageId, function (err) {
+        if (err) {
+          console.log(err);
+        }
+      });
+    }
   });
 }
 
@@ -272,9 +271,7 @@ function sendMessage (message) {
     currentPeer.sendMessage({
       app: 'chat',
       type: 'message'
-    }, {
-      text: message.body
-    }, function (err, mid) {
+    }, message, function (err, mid) {
       if (err) {
         alert(err);
         return;
@@ -298,7 +295,6 @@ function receiveMessage (message) {
 
       db.save(function (err) {
         createConversation(message.from);
-        //addMessage(message);
       });
     });
   });

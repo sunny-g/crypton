@@ -269,7 +269,6 @@ exports.getAccountById = function getAccountById(accountId, callback) {
  */
 exports.saveMessage = function (options, callback) {
   connect(function (client, done) {
-console.log(options);
     var messageQuery = {
       text:
         "insert into message " +

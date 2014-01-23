@@ -20,5 +20,6 @@
     "port": 6379,
     "pass": ""
   },
-  "commitStatusCheckDelay": 100
+  "commitStatusCheckDelay": 100,
+  "commitStatusCheckLimit": 100
 }

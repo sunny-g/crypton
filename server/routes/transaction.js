@@ -112,6 +112,7 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
         });
       }
 
+      var timesChecked = 0;
       checkCommitStatus();
 
       function checkCommitStatus () {
@@ -124,7 +125,11 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
           }
 
           if (!isCommitted) {
-            setTimeout(checkCommitStatus, app.config.commitStatusCheckDelay);
+            timesChecked++;
+
+            if (timesChecked < app.config.commitStatusCheckLimit) {
+              setTimeout(checkCommitStatus, app.config.commitStatusCheckDelay);
+            }
           } else {
             res.send({
               success: true

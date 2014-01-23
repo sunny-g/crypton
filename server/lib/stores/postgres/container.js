@@ -42,8 +42,7 @@ exports.getContainerRecords = function (containerNameHmac, accountId, callback) 
         select \
           container_record.*, \
           container_session_key.signature, \
-          container_session_key_share.session_key_ciphertext, \
-          container_session_key_share.hmac_key_ciphertext \
+          container_session_key_share.session_key_ciphertext \
         from container_record \
           join container_session_key using (container_session_key_id) \
           join container_session_key_share using (container_session_key_id) \
@@ -109,8 +108,7 @@ exports.getContainerRecordsAfter = function (containerNameHmac, accountId, times
         select \
           container_record.*, \
           container_session_key.signature, \
-          container_session_key_share.session_key_ciphertext, \
-          container_session_key_share.hmac_key_ciphertext \
+          container_session_key_share.session_key_ciphertext \
         from container_record \
           join container_session_key using (container_session_key_id) \
           join container_session_key_share using (container_session_key_id) \

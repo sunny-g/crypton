@@ -117,9 +117,19 @@ app.boot = function () {
   });
 
   app.session.on('message', function (message) {
-console.log(arguments);
     app.handleMessage(message);
   });
+
+  app.inboxPollInterval = setInterval(function () {
+    app.session.inbox.poll(function (err, messages) {
+      // messages may not catch those from the initial inbox.poll()
+      // when the session was created so let's always just loop through all
+
+      for (var i in app.session.inbox.messages) {
+        app.handleMessage(app.session.inbox.messages[i]);
+      }
+    });
+  }, 2000);
 };
 
 app.handleMessage = function (message) {
@@ -127,56 +137,58 @@ app.handleMessage = function (message) {
     return;
   }
 
-  if (message.headers.action == 'containerShare') {
-    // assuming the shared container is meant for this application
-    var username = message.payload.fromUsername;
-    var containerNameHmac = message.payload.containerNameHmac;
+  if (message.headers.action != 'containerShare') {
+    return;
+  }
 
-    if (app.conversations.keys[username]) {
-      app.conversations.keys[username].theirs = containerNameHmac;
-      app.conversations.save(function (err) {
-        if (err) {
-          console.log(err);
-          return;
-        }
+  // assuming the shared container is meant for this application
+  var username = message.payload.fromUsername;
+  var containerNameHmac = message.payload.containerNameHmac;
 
-        app.openConversation(username);
-      });
-    } else {
-      // user has initiated a conversation with us
-      app.getPeer(username, function (err, peer) {
+  if (app.conversations.keys[username]) {
+    app.conversations.keys[username].theirs = containerNameHmac;
+    app.conversations.save(function (err) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+
+      app.openConversation(username);
+    });
+  } else {
+    // user has initiated a conversation with us
+    app.getPeer(username, function (err, peer) {
+      if (err) {
+        alert(err);
+        return;
+      }
+
+      app.createConversation(peer, function (err) {
         if (err) {
           alert(err);
           return;
         }
 
-        app.createConversation(peer, function (err) {
+        app.conversations.keys[username].theirs = containerNameHmac;
+        app.conversations.save(function (err) {
           if (err) {
-            alert(err);
+            console.log(err);
             return;
           }
 
-          app.conversations.keys[username].theirs = containerNameHmac;
-          app.conversations.save(function (err) {
-            if (err) {
-              console.log(err);
-              return;
-            }
-
-            app.renderConversations(function () {
-              app.openConversation(username);
-            });
+          app.renderConversations(function () {
+            app.openConversation(username);
           });
         });
       });
-    }
-
-    app.session.inbox.delete(message.messageId, function (err) {
-      if (err) {
-        console.log(err);
-      }
     });
   }
+
+  app.session.inbox.delete(message.messageId, function (err) {
+    if (err) {
+      console.log(err);
+    }
+  });
 };
 
 app.bind = function () {

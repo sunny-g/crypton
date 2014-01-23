@@ -143,13 +143,11 @@ insert into container_session_key (container_session_key_id, container_id,
 
 insert into container_session_key_share (container_session_key_share_id, 
     container_session_key_id, account_id, to_account_id, 
-    transaction_id, session_key_ciphertext, 
-    hmac_key_ciphertext)
+    transaction_id, session_key_ciphertext)
     select tx_tacsks.container_session_key_share_id,
            tx_tacsks.container_session_key_id, 
            t.account_id, tacsks.to_account_id,
-           t.transaction_id, tacsks.session_key_ciphertext, 
-           tacsks.hmac_key_ciphertext
+           t.transaction_id, tacsks.session_key_ciphertext
       from transaction_add_container_session_key_share tacsks
       join txtmp_add_container_session_key_share tx_tacsks using (id)
       join transaction t using (transaction_id);

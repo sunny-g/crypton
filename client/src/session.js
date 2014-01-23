@@ -143,20 +143,13 @@ Session.prototype.create = function (containerName, callback) {
   });
 
   var sessionKey = crypton.randomBytes(8);
-  var hmacKey = crypton.randomBytes(8);
   var sessionKeyCiphertext = selfPeer.encryptAndSign(sessionKey);
-  var hmacKeyCiphertext = selfPeer.encryptAndSign(hmacKey);
 
   if (sessionKeyCiphertext.error) {
     return callback(sessionKeyCiphertext.error);
   }
 
-  if (hmacKeyCiphertext.error) {
-    return callback(hmacKeyCiphertext.error);
-  }
-
   delete sessionKeyCiphertext.error;
-  delete hmacKeyCiphertext.error;
 
   var signature = 'hello'; // TODO sign with private key
   var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
@@ -164,10 +157,18 @@ Session.prototype.create = function (containerName, callback) {
 
   // TODO why is a session object generating container payloads? creating the
   // initial container state should be done in container.js
-  var payloadCiphertext = sjcl.encrypt(sessionKey, JSON.stringify({
+  var rawPayloadCiphertext = sjcl.encrypt(sessionKey, JSON.stringify({
     recordIndex: 0,
     delta: {}
   }), crypton.cipherOptions);
+
+  var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(rawPayloadCiphertext));
+  var payloadSignature = this.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
+
+  var payloadCiphertext = {
+    ciphertext: rawPayloadCiphertext,
+    signature: payloadSignature
+  }
 
   var that = this;
   new crypton.Transaction(this, function (err, tx) {
@@ -184,7 +185,6 @@ Session.prototype.create = function (containerName, callback) {
         toAccount: that.account.username,
         containerNameHmac: containerNameHmac,
         sessionKeyCiphertext: sessionKeyCiphertext,
-        hmacKeyCiphertext: hmacKeyCiphertext
       }, {
         type: 'addContainerRecord',
         containerNameHmac: containerNameHmac,
@@ -205,7 +205,6 @@ Session.prototype.create = function (containerName, callback) {
         var container = new crypton.Container(that);
         container.name = containerName;
         container.sessionKey = sessionKey;
-        container.hmacKey = hmacKey;
         that.containers.push(container);
         callback(null, container);
       });

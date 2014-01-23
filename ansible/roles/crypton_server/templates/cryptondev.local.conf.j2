@@ -25,6 +25,10 @@ server {
         alias {{ crypton_checkout }}/client/examples/diary;
     }
 
+    location /examples/chat3 {
+        alias {{ crypton_checkout }}/client/examples/chat3;
+    }
+
     location /vendor {
         alias /home/crypton_server/vendor;
     }

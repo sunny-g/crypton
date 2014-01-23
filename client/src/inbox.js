@@ -51,7 +51,7 @@ Inbox.prototype.poll = function (callback) {
 
 Inbox.prototype.list = function () {
   // TODO should we poll here?
-  return this.messages();
+  return this.messages;
 };
 
 Inbox.prototype.filter = function (criteria, callback) {

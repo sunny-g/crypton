@@ -161,7 +161,7 @@ app.sendMessage = function () {
     from: app.session.account.username
   };
 
-  var signedCiphertext = peer.encryptAndSign(message, app.session);
+  var signedCiphertext = peer.encryptAndSign(message);
   console.log(signedCiphertext)
   if (signedCiphertext.error) {
     alert(signedCiphertext.error);

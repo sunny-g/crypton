@@ -40,6 +40,12 @@ app.bindActions = function () {
     app.lookupPeer();
   });
 
+  $('#done-reading-btn').click(function () {
+    $('#read-message').hide();
+    $('#message-content').text("");
+    app.resetUI();
+  });
+
   $('#lookup-peer').keyup(function () {
     if (event.keyCode == '13') {
       app.lookupPeer();
@@ -92,7 +98,7 @@ app.verifyDecryptDisplay = function (message) {
       alert("Error: Could not verify the message signature!");
       return;
     }
-    $('#message-content').text(verified.plaintext);
+    $('#message-content').text(JSON.parse(verified.plaintext).content);
   });
 };
 
@@ -159,7 +165,6 @@ app.sendMessage = function () {
   console.log(signedCiphertext)
   if (signedCiphertext.error) {
     alert(signedCiphertext.error);
-    // app.resetUI();
     return;
   }
   var payload = signedCiphertext;
@@ -176,6 +181,7 @@ app.resetUI = function () {
   $('#lookup-peer').val("");
   $('#compose').hide();
   $('#read-message').hide();
+  $('#create-message').show();
 };
 
 app.logout = function () {

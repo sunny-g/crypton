@@ -113,6 +113,13 @@ body {
 
 #read-message {
   display: none;
+  padding: 1em;
+}
+
+#message-content {
+  padding: 10px;
+  font-family: monotype;
+  font-size: 1.5em;
 }
 
 #compose-message {

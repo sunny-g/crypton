@@ -73,6 +73,8 @@ CREATE TABLE base_keyring (
     symkey bytea,
     container_name_hmac_key bytea,
     hmac_key bytea,
+    sign_key_pub bytea,
+    sign_key_private_ciphertext bytea,
     deletion_time timestamp
 );
 
@@ -97,7 +99,10 @@ COMMENT ON COLUMN base_keyring.container_name_hmac_key IS
 'AES output ciphertext of 32 byte HMAC key used for container names';
 COMMENT ON COLUMN base_keyring.hmac_key IS
 'AES output ciphertext of 32 byte HMAC key for general data authentication';
-
+COMMENT ON COLUMN base_keyring.sign_key_pub IS
+'ECDSA public key used by Alice to verify Bobs signature';
+COMMENT ON COLUMN base_keyring.sign_key_private_ciphertext IS
+'AES output ciphertext of ECDSA private key used for autheticating public key encrypted messages, data';
 create table container (
     container_id int8 not null primary key default nextval('version_identifier'),
     account_id int8 not null references account,

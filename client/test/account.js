@@ -21,15 +21,17 @@ var assert = chai.assert;
 describe('Account', function () {
   var account = new crypton.Account();
   account.passphrase = 'pass';
-  account.keypairSalt = [1564845058,-1293627195,-1585435890,492648950,2141345437,1592867359,-937032772,-1905610525];
-  account.keypairCiphertext = {"iv":"sUY4yMPHE9c41BVQf1mG4Q","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"ThYDjTqCdWWdc73mcqUNH/Z1B20TVIarjxuRm9uVQ7PLS3L2+AeRDKAtFIxa+ptJ0QHgx4+lXWVB8TNBNOZcVoxgLFTi0P+byOJimqOQVJUf40nYlwr7rGcbkkRCmQohr7FLt+NPeAz5YwZechGjZmBYEyUtWBG/rhIAsrCxEP+QpnUyg4iVtzq+RnSzNVJimH0/L8bzfcGe53ofwi7SjQu+qNG8yJ8XEAUR0ri4mUYm"};
-  account.pubKey = {"point":[-2015264652,-1538140418,-1175319149,1657508811,-1743502158,-2083525240,188660825,992931953,-1782164223,40980219,1916901449,359203583,468335305,1081801300,1259748966,-889585411,-1770659608,-628811822,-363012455,232219854,-772619381,-86354165,109571400,785127553],"curve":384};
-  account.symKeyCiphertext = [-1890852175,-1463681136,288196395,-1721887852,473345249,-1607953797,1580830373,428714056,-965153791,-1786103648,-1304058751,1147932365,-843226348,-518514188,-768167566,-1907360275,-1861046390,330482748,-411094456,-1055208610,60416359,-649285652,1075893283,-1792708249];
-  account.containerNameHmacKeyCiphertext = {"iv":"+DGWzgQLX5JrDn3YnQin4g","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"Sz6fxXyupBBSxwVA5a4DE0c6iRJjQMJWM8aoAkvO5YdkiNAP9IdUZw2uj4qhtL6hBTvtOfbyRTizoHWxWW9A44WUr0kV+DcPyvFJrSy6gzALn5DsgflGF3yreQsGNGvI"};
-  account.hmacKeyCiphertext = {"iv":"scJ0FirBeCraOTIp2v+WDg","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"N+OCBvmA9Go8zp7M5kxeaSNnd5CYey/F/Bzh7x5mHjUXbX4+0MDSWmsb8b3QbJ3rZcgb5xBfimeMNOkXwKJdZD4qS2fAeOF+EleIHG9J0OWKnXE2fZi00cTbqQrl5A1lTQ"};
   account.username = 'user';
   account.srpVerifier = 'verifier';
   account.srpSalt = 'salt';
+  account.keypairSalt = [-1601113307,-147606214,-62907260,1664396850,1038241656,596952288,-1676728508,-743835030];
+  account.keypairCiphertext = {"iv":"5PtD42BLh2N1A/M9KF+l8g","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"Z3+NhRZLZiyFtH0FVFx6sWQWksE5yG7Wsiyjr1RNzf2P3eayWBy+d5DbS417oEC94xgrMEGuc6lp8oKR0MvgS2Rb32US8FNCQIzLg1+kidgz4gJLd0WN+TaERoa6O3W5ARvJyWwkw7vTnk92PbTNQnuo31o7n/FNZCCkXVriBw9iqsrIFYORjSRb8EeAoxecOTK5wW5riphjfr3Scn3Rm9sgD5Ps3R1znQxiRARiv2w"};
+  account.pubKey = {"point":[-814316318,1020697195,358800030,2142462487,-1630869932,477045498,1093057837,354832449,1063888822,-1054421197,-1933044690,-1955745963,-1020314082,-2106178156,-95968818,1241660716,-314482104,1807577500,1811162725,-1270122694,-377237982,1917786300,1311599981,1075655987],"curve":384};
+  account.symKeyCiphertext =[1243127374,-874272957,-264228200,-1453158182,438342754,1182255140,884225542,-1204693896,-436097068,563643357,1411388321,-1924282403,-756350478,1643683828,-386465580,2006255534,-627964371,755872376,-725931272,-928801328,-2065686341,-735712476,352918313,388227430];
+  account.containerNameHmacKeyCiphertext = {"iv":"YFeYPJXn2bztkD1zOFmiFQ","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"6MNWGoSboynaTA1cBVOGhtNXMTF75n6xSs5gdVZqDKkd32CyUnzuNYcJWP2E6qeWC850/I8uC5LFPFa6PTyOMA5rc9KBFv+J4X648nBP+kaxelenK2XnT1d6iETVU7iu"};
+  account.hmacKeyCiphertext = {"iv":"tqrCZxNtLYXKkU2O96cnpg","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"93FNMpuKSPajTV4z4iJDw806TiNaDxBcM60UiU/vz+yFviPuzJgmVVuF7wf1kUDfPKYSBzKvDX51yOT2h9a4I6C3kgttooU/NOn3nJdb480zVgFjHrTso1/kTTqwaDm6u9DA"};
+  account.signKeyPub = {"point":[-544178132,115453517,-1912575641,920110764,762420811,2037665175,69508748,-1944972765,-1220788834,-1964704246,-846945090,879724614],"curve":192};
+  account.signKeyPrivateCiphertext = {"iv":"qgXT725sFea1sK9prEQMPQ","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"u/LY6VUAqjWfySGCgdOYmjpLY1aLpbZjcMqaJIG7EuB5ZMQi4FxXuiyPe4cvgYl03as7LNJuR2vpun0DXmj0/xlIGeux52PYmoGYqXDWk6hLg9W5UM+/wV/MaZ7LPkIml98NAlSes/hGo4rT"};
 
   describe('save()', function () {
     // TODO should we just test this in the integration tests?
@@ -45,7 +47,9 @@ describe('Account', function () {
           'pubKey',
           'symkey',
           'containerNameHmacKey',
-          'hmacKey'
+          'hmacKey',
+          'signKeyPub',
+          'signKeyPrivate'
         ];
 
         for (var i in fields) {
@@ -68,7 +72,9 @@ describe('Account', function () {
         'pubKey',
         'keypairSalt',
         'symKeyCiphertext',
-        'username'
+        'username',
+        'signKeyPub',
+        'signKeyPrivateCiphertext'
       ];
       var serialized = account.serialize();
       assert.deepEqual(Object.keys(serialized), expected);
@@ -88,6 +94,49 @@ describe('Account', function () {
       assert.deepEqual(ret.keypairSalt, account.keypairSalt);
       assert.deepEqual(ret.symkeyCiphertext, account.symkeyCiphertext);
       assert.deepEqual(ret.username, account.username);
+      assert.deepEqual(ret.signKeyPub, account.signKeyPub);
+      assert.deepEqual(ret.signKeyPrivateCiphertext, account.signKeyPrivateCiphertext);
+    });
+  });
+
+  describe('encryptAndSign+verifyAndDecrypt()', function () {
+    var alice;
+    var aliceErr;
+    var bob;
+    var bobErr;
+    var aliceSession;
+    var bobSession;
+    crypton.generateAccount('alice', 'pass', function () {
+      aliceErr = arguments[0];
+      alice = arguments[1];
+      crypton.authorize('alice', 'pass', function (err, rawSession) {
+        if (err) throw err;
+        aliceSession = rawSession;
+      });
+      crypton.generateAccount('bob', 'pass', function () {
+        bobErr = arguments[0];
+        bob = arguments[1];
+        crypton.authorize('bob', 'pass', function (err, rawSession) {
+          if (err) throw err;
+          bobSession = rawSession;
+          it('should be able to encrypt & sign & verify & decrypt', function (done) {
+            var payload = "This is a secret message and whatnot.";
+            // get bob peer
+            aliceSession.getPeer("bob", function (err, peer) {
+              var ret = peer.encryptAndSign(payload, aliceSession);
+              assert(ret.ciphertext && ret.signature);
+              var verified = bobSession.account.verifyAndDecrypt(ret, alicePeer);
+              assert(verified.plaintext && verified.verified);
+              assert(verified.plaintext == payload);
+              done();
+            });
+          });
+        });
+      }, {
+        save: false
+      });
+    }, {
+      save: false
     });
   });
 });

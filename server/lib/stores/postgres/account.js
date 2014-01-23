@@ -42,7 +42,9 @@ exports.saveAccount = function saveAccount(account, callback) {
     'containerNameHmacKeyCiphertext',
     'hmacKeyCiphertext',
     'srpVerifier',
-    'srpSalt'
+    'srpSalt',
+    'signKeyPub',
+    'signKeyPrivateCiphertext'
   ];
 
   for (var i in requiredFields) {
@@ -67,6 +69,7 @@ exports.saveAccount = function saveAccount(account, callback) {
 
     client.query(accountQuery, function (err, result) {
       if (err) {
+        console.log(err);
         client.query('rollback');
         done();
 
@@ -86,8 +89,9 @@ exports.saveAccount = function saveAccount(account, callback) {
           "  base_keyring_id, account_id," +
           "  keypair, keypair_salt, pubkey, symkey," +
           "  container_name_hmac_key," +
-          "  hmac_key, srp_verifier, srp_salt" +
-          ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+          "  hmac_key, srp_verifier, srp_salt, "
+          + "sign_key_pub, sign_key_private_ciphertext " +
+          ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
@@ -98,7 +102,9 @@ exports.saveAccount = function saveAccount(account, callback) {
           account.containerNameHmacKeyCiphertext,
           account.hmacKeyCiphertext,
           account.srpVerifier,
-          account.srpSalt
+          account.srpSalt,
+          account.signKeyPub,
+          account.signKeyPrivateCiphertext
         ]
       };
 
@@ -146,7 +152,8 @@ exports.getAccount = function getAccount(username, callback) {
         "srp_verifier, srp_salt, " +
         "keypair, keypair_salt, " +
         "pubkey, symkey, " +
-        "container_name_hmac_key, hmac_key " +
+        "container_name_hmac_key, hmac_key," +
+        "sign_key_pub, sign_key_private_ciphertext " +
         "from account left join base_keyring using (base_keyring_id) " +
         "where username=$1",
       values: [
@@ -158,7 +165,7 @@ exports.getAccount = function getAccount(username, callback) {
       done();
 
       if (err) {
-        console.log('Unhandled database error: ' + err);
+        console.log('*** Unhandled database error: ' + err);
         callback('Database error.');
         return;
       }
@@ -178,7 +185,10 @@ exports.getAccount = function getAccount(username, callback) {
         srpVerifier: result.rows[0].srp_verifier.toString(),
         srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
-        hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
+        hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString()),
+        signKeyPub: JSON.parse(result.rows[0].sign_key_pub.toString()),
+        signKeyPrivateCiphertext:
+          JSON.parse(result.rows[0].sign_key_private_ciphertext.toString())
       });
     });
   });
@@ -204,7 +214,8 @@ exports.getAccountById = function getAccountById(accountId, callback) {
         "srp_verifier, srp_salt, " +
         "keypair, keypair_salt, " +
         "pubkey, symkey, " +
-        "container_name_hmac_key, hmac_key " +
+        "container_name_hmac_key, hmac_key," +
+        "sign_key_pub, sign_key_private_ciphertext " +
         "from account left join base_keyring using (base_keyring_id) " +
         "where account.account_id=$1",
       values: [
@@ -236,7 +247,10 @@ exports.getAccountById = function getAccountById(accountId, callback) {
         srpVerifier: result.rows[0].srp_verifier.toString(),
         srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
-        hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString())
+        hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString()),
+        signKeyPub: JSON.parse(result.rows[0].sign_key_pub.toString()),
+        signKeyPrivateCiphertext:
+          JSON.parse(result.rows[0].sign_key_private_ciphertext.toString())
       });
     });
   });

@@ -126,7 +126,7 @@ app.boot = function () {
       // when the session was created so let's always just loop through all
 
       for (var i in app.session.inbox.messages) {
-        app.handleMessages(app.session.inbox.messages[i]);
+        app.handleMessage(app.session.inbox.messages[i]);
       }
     });
   }, 2000);

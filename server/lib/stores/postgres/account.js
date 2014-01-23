@@ -280,9 +280,7 @@ exports.saveMessage = function (options, callback) {
         options.toAccountId,
         options.fromAccountId,
         options.headersCiphertext,
-        options.payloadCiphertext,
-        options.headersCiphertextHmacSignature,
-        options.payloadCiphertextHmacSignature
+        options.payloadCiphertext
       ]
     };
 

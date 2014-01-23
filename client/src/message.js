@@ -52,40 +52,46 @@ Message.prototype.encrypt = function (peer, callback) {
 };
 
 Message.prototype.decrypt = function (callback) {
-  // var secretKey = this.session.account.secretKey;
+  var that = this;
   var headersCiphertext = JSON.parse(this.headersCiphertext);
   var payloadCiphertext = JSON.parse(this.payloadCiphertext);
 
   this.session.getPeer(this.fromUsername, function (err, peer) {
     if (err) {
-      callback("Error: cannot getPeer in Message.decrypt()");
+      callback("Cannot getPeer in Message.decrypt()");
       return;
     }
 
-    var headers = this.session.account.verifyAndDecrypt(headersCiphertext, peer);
-    var payload = this.session.account.verifyAndDecrypt(payloadCiphertext, peer);
+    var headers = that.session.account.verifyAndDecrypt(headersCiphertext, peer);
+    var payload = that.session.account.verifyAndDecrypt(payloadCiphertext, peer);
     if (!headers.verified || !payload.verified) {
-      callback("Error: cannot verify headers or payload ciphertext in Message.decrypt()");
+      callback("Cannot verify headers or payload ciphertext in Message.decrypt()");
       return;
     } else if (headers.error || payload.error) {
-      callback("Error: cannot decrypt headers or payload in Message.decrypt");
+      callback("Cannot decrypt headers or payload in Message.decrypt");
       return;
     }
 
-    try {
-      headers = JSON.parse(headers);
-      payload = JSON.parse(payload);
-    } catch (e) {
-      err = 'Error: Could not parse message in Message.decrypt()';
-    }
+    console.log(headers);
+    console.log(payload);
+
+    // try {
+    //   console.log(headers);
+    //   console.log(payload);
+    //   headers = JSON.parse(headers);
+    //   payload = JSON.parse(payload);
+    // } catch (e) {
+    //   console.error("Could not parse message in Message.decrypt()");
+    //   err = 'Error: Could not parse message in Message.decrypt()';
+    // }
 
     if (err) {
       callback(err);
       return;
     } else {
-      this.headers = headers;
-      this.payload = payload;
-      this.created = new Date(this.creationTime);
+      that.headers = headers;
+      that.payload = payload;
+      that.created = new Date(that.creationTime);
       callback(null, this);
     }
   });

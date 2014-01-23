@@ -78,9 +78,13 @@ Peer.prototype.fetch = function (callback) {
     that.accountId = peer.accountId;
     that.username = peer.username;
     that.pubKey = peer.pubKey;
+    that.signKeyPub = peer.signKeyPub;
     // this may be necessary
     var point = sjcl.ecc.curves['c' + peer.pubKey.curve].fromBits(peer.pubKey.point);
     that.pubKey = new sjcl.ecc.elGamal.publicKey(peer.pubKey.curve, point.curve, point);
+    var signPoint =
+      sjcl.ecc.curves['c' + peer.signKeyPub.curve].fromBits(peer.signKeyPub.point);
+    that.signKeyPub = new sjcl.ecc.ecdsa.publicKey(peer.signKeyPub.curve, signPoint.curve, signPoint);
 
     callback(null, that);
   });

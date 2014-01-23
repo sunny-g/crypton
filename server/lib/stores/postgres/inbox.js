@@ -102,7 +102,6 @@ datastore.getMessageById = function (messageId, callback) {
       }
 
       var message = datastore.util.camelizeObject(result.rows[0]);
-      // console.log(JSON.stringify(message));
       message.headersCiphertext = message.headersCiphertext.toString();
       message.payloadCiphertext = message.payloadCiphertext.toString();
 

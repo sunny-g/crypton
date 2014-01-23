@@ -75,7 +75,6 @@ Inbox.prototype.getMessageById = function (messageId, callback) {
         callback('Message does not exist');
         return;
       }
-      console.log("*** username: " + account.username);
       message.fromUsername = account.username;
       callback(err, message);
     });

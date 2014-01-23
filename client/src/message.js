@@ -32,7 +32,6 @@ var Message = crypton.Message = function Message (session, raw) {
 };
 
 Message.prototype.encrypt = function (peer, callback) {
-
   var headersCiphertext = peer.encryptAndSign(this.headers);
   var payloadCiphertext = peer.encryptAndSign(this.payload);
 
@@ -72,28 +71,10 @@ Message.prototype.decrypt = function (callback) {
       return;
     }
 
-    console.log(headers);
-    console.log(payload);
-
-    // try {
-    //   console.log(headers);
-    //   console.log(payload);
-    //   headers = JSON.parse(headers);
-    //   payload = JSON.parse(payload);
-    // } catch (e) {
-    //   console.error("Could not parse message in Message.decrypt()");
-    //   err = 'Error: Could not parse message in Message.decrypt()';
-    // }
-
-    if (err) {
-      callback(err);
-      return;
-    } else {
-      that.headers = headers;
-      that.payload = payload;
-      that.created = new Date(that.creationTime);
-      callback(null, this);
-    }
+    that.headers = headers;
+    that.payload = payload;
+    that.created = new Date(that.creationTime);
+    callback(null, this);
   });
 };
 

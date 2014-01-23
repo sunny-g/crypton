@@ -381,8 +381,8 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
       values: [
         transaction.transactionId,
         data.containerNameHmac,
-        data.sessionKeyCiphertext,
-        data.hmacKeyCiphertext,
+        JSON.stringify(data.sessionKeyCiphertext),
+        JSON.stringify(data.hmacKeyCiphertext),
         data.toAccount
       ]
     };

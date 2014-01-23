@@ -139,6 +139,8 @@ app.handleMessage = function (message) {
           console.log(err);
           return;
         }
+
+        app.openConversation(username);
       });
     } else {
       // user has initiated a conversation with us
@@ -364,14 +366,16 @@ app.openConversation = function (username) {
     if (!theirsHmac) {
       return app.renderConversation();
     } else {
-      app.session.loadWithHmac(theirsHmac, function (err, theirContainer) {
-        if (err) {
-          console.log(err);
-          return;
-        }
+      app.session.getPeer(username, function (err, peer) {
+        app.session.loadWithHmac(theirsHmac, peer, function (err, theirContainer) {
+          if (err) {
+            console.log(err);
+            return;
+          }
 
-        app.conversation.theirs = theirContainer;
-        app.renderConversation();
+          app.conversation.theirs = theirContainer;
+          app.renderConversation();
+        });
       });
     }
   });

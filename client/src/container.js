@@ -271,7 +271,7 @@ Container.prototype.parseHistory = function (records, callback) {
  */
 // TODO handle potential JSON.parse errors here
 Container.prototype.decryptRecord = function (recordIndex, record) {
-  if (!this.sessionKey || !this.hmacKey) {
+  if (!this.sessionKey) {
     this.decryptKeys(record);
   }
 
@@ -297,29 +297,19 @@ Container.prototype.decryptRecord = function (recordIndex, record) {
  *
  * @param {Object} record
  */
-Container.prototype.decryptKeys = function (record) {
+Container.prototype.decryptKey = function (record) {
   var peer = this.peer || this.session.account;
   var sessionKeyRaw = this.session.account.verifyAndDecrypt(JSON.parse(record.sessionKeyCiphertext), peer);
-  var hmacKeyRaw = this.session.account.verifyAndDecrypt(JSON.parse(record.hmacKeyCiphertext), peer);
 
   if (sessionKeyRaw.error) {
     throw new Error(sessionKeyRaw.error);
-  }
-
-  if (hmacKeyRaw.error) {
-    throw new Error(hmacKeyRaw.error);
   }
 
   if (!sessionKeyRaw.verified) {
     throw new Error('Container session key signature mismatch');
   }
 
-  if (!hmacKeyRaw.verified) {
-    throw new Error('Container session key signature mismatch');
-  }
-
   this.sessionKey = JSON.parse(sessionKeyRaw.plaintext);
-  this.hmacKey = JSON.parse(hmacKeyRaw.plaintext);
 };
 
 /**!
@@ -364,7 +354,7 @@ Container.prototype.sync = function (callback) {
  * @param {Function} callback
  */
 Container.prototype.share = function (peer, callback) {
-  if (!this.sessionKey || !this.hmacKey) {
+  if (!this.sessionKey) {
     return callback('Container must be initialized to share');
   }
 
@@ -374,20 +364,14 @@ Container.prototype.share = function (peer, callback) {
   // we will have to mark containers as origin or remote
   var containerNameHmac = this.getPublicName();
 
-  // encrypt sessionKey and hmacKey to peer's pubKey
+  // encrypt sessionKey to peer's pubKey
   var sessionKeyCiphertext = peer.encryptAndSign(this.sessionKey);
-  var hmacKeyCiphertext = peer.encryptAndSign(this.sessionKey);
 
   if (sessionKeyCiphertext.error) {
     return callback(sessionKeyCiphertext.error);
   }
 
-  if (hmacKeyCiphertext.error) {
-    return callback(hmacKeyCiphertext.error);
-  }
-
   delete sessionKeyCiphertext.error;
-  delete hmacKeyCiphertext.error;
 
   // create new addContainerSessionKeyShare chunk
   var that = this;
@@ -396,8 +380,7 @@ Container.prototype.share = function (peer, callback) {
       type: 'addContainerSessionKeyShare',
       toAccount: peer.username,
       containerNameHmac: containerNameHmac,
-      sessionKeyCiphertext: sessionKeyCiphertext,
-      hmacKeyCiphertext: hmacKeyCiphertext
+      sessionKeyCiphertext: sessionKeyCiphertext
     };
 
     tx.save(chunk, function (err) {

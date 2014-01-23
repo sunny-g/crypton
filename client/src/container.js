@@ -267,19 +267,15 @@ Container.prototype.parseHistory = function (records, callback) {
  *
  * @param {Object} recordIndex
  * @param {Object} record
- * @record {Object} decryptedRecord
+ * @return {Object} decryptedRecord
  */
-// TODO consider new scheme for extracting keys
 // TODO handle potential JSON.parse errors here
-// TODO why are we decrypting and storing session keys every record iteration?
 Container.prototype.decryptRecord = function (recordIndex, record) {
-  var sessionKey = JSON.parse(sjcl.decrypt(this.session.account.secretKey, record.sessionKeyCiphertext, crypton.cipherOptions));
-  var hmacKey = JSON.parse(sjcl.decrypt(this.session.account.secretKey, record.hmacKeyCiphertext, crypton.cipherOptions));
+  if (!this.sessionKey || !this.hmacKey) {
+    this.decryptKeys(record);
+  }
 
-  this.sessionKey = sessionKey;
-  this.hmacKey = hmacKey;
-
-  var payload = JSON.parse(sjcl.decrypt(sessionKey, record.payloadCiphertext, crypton.cipherOptions));
+  var payload = JSON.parse(sjcl.decrypt(this.sessionKey, record.payloadCiphertext, crypton.cipherOptions));
 
   if (payload.recordIndex !== recordIndex) {
     // TODO revisit. this was giving me too much trouble trying to keep state up
@@ -293,6 +289,37 @@ Container.prototype.decryptRecord = function (recordIndex, record) {
     time: +new Date(record.creationTime),
     delta: payload.delta
   };
+};
+
+/**!
+ * ### decryptKeys(record)
+ * Extract and decrypt the container's keys from a given record
+ *
+ * @param {Object} record
+ */
+Container.prototype.decryptKeys = function (record) {
+  var peer = this.peer || this.session.account;
+  var sessionKeyRaw = this.session.account.verifyAndDecrypt(JSON.parse(record.sessionKeyCiphertext), peer);
+  var hmacKeyRaw = this.session.account.verifyAndDecrypt(JSON.parse(record.hmacKeyCiphertext), peer);
+
+  if (sessionKeyRaw.error) {
+    throw new Error(sessionKeyRaw.error);
+  }
+
+  if (hmacKeyRaw.error) {
+    throw new Error(hmacKeyRaw.error);
+  }
+
+  if (!sessionKeyRaw.verified) {
+    throw new Error('Container session key signature mismatch');
+  }
+
+  if (!hmacKeyRaw.verified) {
+    throw new Error('Container session key signature mismatch');
+  }
+
+  this.sessionKey = JSON.parse(sessionKeyRaw.plaintext);
+  this.hmacKey = JSON.parse(hmacKeyRaw.plaintext);
 };
 
 /**!
@@ -348,8 +375,19 @@ Container.prototype.share = function (peer, callback) {
   var containerNameHmac = this.getPublicName();
 
   // encrypt sessionKey and hmacKey to peer's pubKey
-  var sessionKeyCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.sessionKey), crypton.cipherOptions);
-  var hmacKeyCiphertext = sjcl.encrypt(peer.pubKey, JSON.stringify(this.hmacKey), crypton.cipherOptions);
+  var sessionKeyCiphertext = peer.encryptAndSign(this.sessionKey);
+  var hmacKeyCiphertext = peer.encryptAndSign(this.sessionKey);
+
+  if (sessionKeyCiphertext.error) {
+    return callback(sessionKeyCiphertext.error);
+  }
+
+  if (hmacKeyCiphertext.error) {
+    return callback(hmacKeyCiphertext.error);
+  }
+
+  delete sessionKeyCiphertext.error;
+  delete hmacKeyCiphertext.error;
 
   // create new addContainerSessionKeyShare chunk
   var that = this;

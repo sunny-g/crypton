@@ -284,7 +284,7 @@ create table container_record (
     account_id int8 not null references account,
     transaction_id int8 not null,
     creation_time timestamp not null default current_timestamp,
-    payload_ciphertext bytea not null
+    payload_ciphertext varchar not null
 );
 
 COMMENT ON TABLE container_record IS
@@ -593,7 +593,7 @@ create table transaction_add_container_record (
     transaction_id int8 not null references transaction,
     name_hmac bytea not null,
     latest_record_id int8,
-    payload_ciphertext bytea not null
+    payload_ciphertext varchar not null
 );
 
 create table transaction_add_message (

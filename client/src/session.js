@@ -157,10 +157,18 @@ Session.prototype.create = function (containerName, callback) {
 
   // TODO why is a session object generating container payloads? creating the
   // initial container state should be done in container.js
-  var payloadCiphertext = sjcl.encrypt(sessionKey, JSON.stringify({
+  var rawPayloadCiphertext = sjcl.encrypt(sessionKey, JSON.stringify({
     recordIndex: 0,
     delta: {}
   }), crypton.cipherOptions);
+
+  var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(rawPayloadCiphertext));
+  var payloadSignature = this.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
+
+  var payloadCiphertext = {
+    ciphertext: rawPayloadCiphertext,
+    signature: payloadSignature
+  }
 
   var that = this;
   new crypton.Transaction(this, function (err, tx) {

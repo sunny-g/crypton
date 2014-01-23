@@ -49,6 +49,12 @@ crypton.cipherOptions = {
 };
 
 /**!
+ * ### paranoia
+ * Tells SJCL how strict to be about PRNG readiness
+ */
+crypton.paranoia = 6;
+
+/**!
  * ### url()
  * Generate URLs for server calls
  *

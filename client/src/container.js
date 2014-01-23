@@ -111,7 +111,14 @@ Container.prototype.save = function (callback, options) {
     that.version = now;
     that.recordCount++;
 
-    var payloadCiphertext = sjcl.encrypt(that.sessionKey, JSON.stringify(payload), crypton.cipherOptions);
+    var rawPayloadCiphertext = sjcl.encrypt(that.sessionKey, JSON.stringify(payload), crypton.cipherOptions);
+    var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(rawPayloadCiphertext));
+    var payloadSignature = that.session.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
+
+    var payloadCiphertext = {
+      ciphertext: rawPayloadCiphertext,
+      signature: payloadSignature
+    };
 
     var chunk = {
       type: 'addContainerRecord',
@@ -275,7 +282,22 @@ Container.prototype.decryptRecord = function (recordIndex, record) {
     this.decryptKey(record);
   }
 
-  var payload = JSON.parse(sjcl.decrypt(this.sessionKey, record.payloadCiphertext, crypton.cipherOptions));
+  var peer = this.peer || this.session.account;
+  var parsedRecord = JSON.parse(record.payloadCiphertext);
+  var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(parsedRecord.ciphertext));
+
+  var verified;
+  try {
+    verified = peer.signKeyPub.verify(payloadCiphertextHash, parsedRecord.signature);
+  } catch (e) {
+    console.log(e);
+  }
+
+  if (!verified) {
+    throw new Error('Record signaure does not match expected signature');
+  }
+
+  var payload = JSON.parse(sjcl.decrypt(this.sessionKey, parsedRecord.ciphertext, crypton.cipherOptions));
 
   if (payload.recordIndex !== recordIndex) {
     // TODO revisit. this was giving me too much trouble trying to keep state up

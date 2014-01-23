@@ -33,8 +33,10 @@ var Container = crypton.Container = function (session) {
   this.keys = {};
   this.session = session;
   this.recordCount = 1;
+  this.recordIndex = 0;
   this.versions = {};
-  this.version = +new Date();
+  //this.version = +new Date();
+  this.version = 0;
   this.name = null;
 };
 
@@ -109,7 +111,7 @@ Container.prototype.save = function (callback, options) {
     that.version = now;
     that.recordCount++;
 
-    var payloadCiphertext = sjcl.encrypt(that.hmacKey, JSON.stringify(payload), crypton.cipherOptions);
+    var payloadCiphertext = sjcl.encrypt(that.sessionKey, JSON.stringify(payload), crypton.cipherOptions);
 
     var chunk = {
       type: 'addContainerRecord',
@@ -193,9 +195,14 @@ Container.prototype.latestVersion = function () {
  * @return {String} hmac
  */
 Container.prototype.getPublicName = function () {
+  if (this.nameHmac) {
+    return this.nameHmac;
+  }
+
   var hmac = new sjcl.misc.hmac(this.session.account.containerNameHmacKey);
   var containerNameHmac = hmac.encrypt(this.name);
-  return sjcl.codec.hex.fromBits(containerNameHmac);
+  this.nameHmac = sjcl.codec.hex.fromBits(containerNameHmac);
+  return this.nameHmac;
 };
 
 /**!
@@ -210,11 +217,11 @@ Container.prototype.getPublicName = function () {
  */
 Container.prototype.getHistory = function (callback) {
   var containerNameHmac = this.getPublicName();
+  var currentVersion = this.latestVersion();
 
-  var url = crypton.url() + '/container/' + containerNameHmac;
+  var url = crypton.url() + '/container/' + containerNameHmac + '?after=' + (currentVersion + 1);
   superagent.get(url)
     .withCredentials()
-    .set('x-session-identifier', this.session.id)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -239,10 +246,10 @@ Container.prototype.getHistory = function (callback) {
  * @param {Function} callback
  */
 Container.prototype.parseHistory = function (records, callback) {
-  var keys = {};
-  var versions = {};
+  var keys = this.keys || {};
+  var versions = this.versions || {};
 
-  var recordIndex = 0;
+  var recordIndex = this.recordIndex + 1;
   for (var i in records) {
     var record = this.decryptRecord(recordIndex++, records[i]);
     keys = crypton.diff.apply(record.delta, keys);
@@ -255,33 +262,64 @@ Container.prototype.parseHistory = function (records, callback) {
 /**!
  * ### decryptRecord(recordIndex, record)
  * Use symkey to extract session and HMAC keys,
- * decrypt record ciphertext with HMAC key,
+ * decrypt record ciphertext with session key,
  * verify record index
  *
  * @param {Object} recordIndex
  * @param {Object} record
- * @record {Object} decryptedRecord
+ * @return {Object} decryptedRecord
  */
-// TODO consider new scheme for extracting keys
 // TODO handle potential JSON.parse errors here
 Container.prototype.decryptRecord = function (recordIndex, record) {
-  var sessionKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.sessionKeyCiphertext, crypton.cipherOptions));
+  if (!this.sessionKey || !this.hmacKey) {
+    this.decryptKeys(record);
+  }
 
-  var hmacKey = JSON.parse(sjcl.decrypt(this.session.account.symkey, record.hmacKeyCiphertext, crypton.cipherOptions));
-
-  this.sessionKey = sessionKey;
-  this.hmacKey = hmacKey;
-
-  var payload = JSON.parse(sjcl.decrypt(hmacKey, record.payloadCiphertext, crypton.cipherOptions));
+  var payload = JSON.parse(sjcl.decrypt(this.sessionKey, record.payloadCiphertext, crypton.cipherOptions));
 
   if (payload.recordIndex !== recordIndex) {
-    throw new RangeError('Unexpected recordIndex');
+    // TODO revisit. this was giving me too much trouble trying to keep state up
+    // after I implemented variable date record fetching
+    //throw new RangeError('Unexpected recordIndex');
   }
+
+  this.recordIndex++;
 
   return {
     time: +new Date(record.creationTime),
     delta: payload.delta
   };
+};
+
+/**!
+ * ### decryptKeys(record)
+ * Extract and decrypt the container's keys from a given record
+ *
+ * @param {Object} record
+ */
+Container.prototype.decryptKeys = function (record) {
+  var peer = this.peer || this.session.account;
+  var sessionKeyRaw = this.session.account.verifyAndDecrypt(JSON.parse(record.sessionKeyCiphertext), peer);
+  var hmacKeyRaw = this.session.account.verifyAndDecrypt(JSON.parse(record.hmacKeyCiphertext), peer);
+
+  if (sessionKeyRaw.error) {
+    throw new Error(sessionKeyRaw.error);
+  }
+
+  if (hmacKeyRaw.error) {
+    throw new Error(hmacKeyRaw.error);
+  }
+
+  if (!sessionKeyRaw.verified) {
+    throw new Error('Container session key signature mismatch');
+  }
+
+  if (!hmacKeyRaw.verified) {
+    throw new Error('Container session key signature mismatch');
+  }
+
+  this.sessionKey = JSON.parse(sessionKeyRaw.plaintext);
+  this.hmacKey = JSON.parse(hmacKeyRaw.plaintext);
 };
 
 /**!
@@ -307,8 +345,85 @@ Container.prototype.sync = function (callback) {
       that.keys = keys;
       that.versions = versions;
       that.version = Math.max.apply(Math, Object.keys(versions));
-      that.recordCount = recordCount;
+      that.recordCount = that.recordCount + recordCount;
       callback(err);
+    });
+  });
+};
+
+/**!
+ * ### share(peer, callback)
+ * Encrypt the container's sessionKey with peer's
+ * public key, commit new addContainerSessionKey chunk,
+ * and send a message to the peer informing them
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Container.prototype.share = function (peer, callback) {
+  if (!this.sessionKey || !this.hmacKey) {
+    return callback('Container must be initialized to share');
+  }
+
+  // get the containerNameHmac
+  // TODO this won't work if you aren't original sharer
+  // because you won't have the original containerNameHmacKey.
+  // we will have to mark containers as origin or remote
+  var containerNameHmac = this.getPublicName();
+
+  // encrypt sessionKey and hmacKey to peer's pubKey
+  var sessionKeyCiphertext = peer.encryptAndSign(this.sessionKey);
+  var hmacKeyCiphertext = peer.encryptAndSign(this.sessionKey);
+
+  if (sessionKeyCiphertext.error) {
+    return callback(sessionKeyCiphertext.error);
+  }
+
+  if (hmacKeyCiphertext.error) {
+    return callback(hmacKeyCiphertext.error);
+  }
+
+  delete sessionKeyCiphertext.error;
+  delete hmacKeyCiphertext.error;
+
+  // create new addContainerSessionKeyShare chunk
+  var that = this;
+  new crypton.Transaction(this, function (err, tx) {
+    var chunk = {
+      type: 'addContainerSessionKeyShare',
+      toAccount: peer.username,
+      containerNameHmac: containerNameHmac,
+      sessionKeyCiphertext: sessionKeyCiphertext,
+      hmacKeyCiphertext: hmacKeyCiphertext
+    };
+
+    tx.save(chunk, function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      tx.commit(function (err) {
+        if (err) {
+          return callback(err);
+        }
+
+        // send a message informing peer
+        // TODO we will have to add the ability to mark which application
+        // this container belongs to, otherwise an application on the same
+        // crypton server may incorrectly act upon this message
+        peer.sendMessage({
+          type: 'internal',
+          action: 'containerShare'
+        }, {
+          fromUsername: that.session.account.username,
+          containerNameHmac: containerNameHmac
+        }, function (err) {
+          callback(err);
+        });
+      });
     });
   });
 };

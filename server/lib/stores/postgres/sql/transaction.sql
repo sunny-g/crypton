@@ -176,4 +176,9 @@ update message
     select message_id from txtmp_delete_message
   );
 
+update transaction
+   set commit_finish_time = current_timestamp,
+       committer_hostname = '{{hostname}}'
+ where transaction_id={{transactionId}};
+
 commit;

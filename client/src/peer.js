@@ -108,16 +108,15 @@ Peer.prototype.encrypt = function (payload) {
  * Encrypt `message` with peer's public key, sign the message with own signing key
  *
  * @param {Object} payload
- * @param {Object} session The current authorized user's session object
  * @return {Object}
  */
-Peer.prototype.encryptAndSign = function (payload, session) {
+Peer.prototype.encryptAndSign = function (payload) {
   try {
     var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(payload), crypton.cipherOptions);
     // hash the ciphertext and sign the hash:
     var hash = sjcl.hash.sha256.hash(JSON.stringify(ciphertext));
     var PARANOIA = 6;
-    var signature = session.account.signKeyPrivate.sign(hash, PARANOIA);
+    var signature = this.session.account.signKeyPrivate.sign(hash, PARANOIA);
     return { ciphertext: ciphertext, signature: signature, error: null };
   } catch (ex) {
     var err = "Error: Could not complete encryptAndSign: " + ex;

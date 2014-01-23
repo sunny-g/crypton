@@ -148,19 +148,33 @@ Transaction.prototype.abort = function (callback) {
 };
 
 /**!
- * ### commit(callback)
+ * ### requestCommit(callback)
  * Request transaction commital with database
  * Calls back with error if request is unsuccessful
  * 
  * @param {Function} callback
  */
-Transaction.prototype.commit = function (callback) {
+Transaction.prototype.requestCommit = function (callback) {
   app.log('debug', 'requesting transaction commit');
 
   var that = this;
   this.assertOwnership(callback, function () {
     db.requestTransactionCommit(that.transactionId, that.accountId, callback);
   });
+};
+
+/**!
+ * ### isCommitted(callback)
+ * Checks database to see to if transaction has been fully committed
+ * Calls back with error if request is unsuccessful
+ * otherwise calls back without error and boolean commit status
+ *
+ * @param {Function} callback
+ */
+Transaction.prototype.isCommitted = function (callback) {
+  app.log('debug', 'checking transaction commit status');
+
+  db.transactionIsCommitted(this.transactionId, callback);
 };
 
 /**!

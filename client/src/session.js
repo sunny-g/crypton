@@ -42,9 +42,8 @@ var Session = crypton.Session = function (id) {
   });
 
   this.socket.on('message', function (data) {
-    that.inbox.poll();
-    that.emit('message', {
-      messageId: data.messageId
+    that.inbox.get(data.messageId, function (err, message) {
+      that.emit('message', message);
     });
   });
 };
@@ -84,6 +83,40 @@ Session.prototype.load = function (containerName, callback) {
 };
 
 /**!
+ * ### loadWithHmac(containerNameHmac, callback)
+ * Retieve container with given `containerNameHmac`,
+ * either from local cache or server
+ *
+ * Calls back with container and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerNameHmac
+ * @param {Function} callback
+ */
+Session.prototype.loadWithHmac = function (containerNameHmac, peer, callback) {
+  // check for a locally stored container
+  for (var i in this.containers) {
+    if (this.containers[i].nameHmac == containerNameHmac) {
+      callback(null, this.containers[i]);
+      return;
+    }
+  }
+
+  // check for a container on the server
+  var that = this;
+  this.getContainerWithHmac(containerNameHmac, peer, function (err, container) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.containers.push(container);
+    callback(null, container);
+  });
+};
+
+/**!
  * ### create(containerName, callback)
  * Create container with given platintext `containerName`,
  * save it to server
@@ -103,15 +136,27 @@ Session.prototype.create = function (containerName, callback) {
     }
   }
 
+  var selfPeer = new crypton.Peer({
+    session: this,
+    pubKey: this.account.pubKey,
+    signKeyPub: this.account.signKeyPub
+  });
+
   var sessionKey = crypton.randomBytes(8);
   var hmacKey = crypton.randomBytes(8);
-  var sessionKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(sessionKey), crypton.cipherOptions);
-  var hmacKeyCiphertext = sjcl.encrypt(this.account.symkey, JSON.stringify(hmacKey), crypton.cipherOptions);
+  var sessionKeyCiphertext = selfPeer.encryptAndSign(sessionKey);
+  var hmacKeyCiphertext = selfPeer.encryptAndSign(hmacKey);
 
-  // TODO what are these?
-  // they don't appear to be used below
-  var keyshmac = new sjcl.misc.hmac(crypton.randomBytes(8));
-  keyshmac = sjcl.codec.hex.fromBits(keyshmac.encrypt(JSON.stringify(sessionKey) + JSON.stringify(hmacKey)));
+  if (sessionKeyCiphertext.error) {
+    return callback(sessionKeyCiphertext.error);
+  }
+
+  if (hmacKeyCiphertext.error) {
+    return callback(hmacKeyCiphertext.error);
+  }
+
+  delete sessionKeyCiphertext.error;
+  delete hmacKeyCiphertext.error;
 
   var signature = 'hello'; // TODO sign with private key
   var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
@@ -119,7 +164,7 @@ Session.prototype.create = function (containerName, callback) {
 
   // TODO why is a session object generating container payloads? creating the
   // initial container state should be done in container.js
-  var payloadCiphertext = sjcl.encrypt(hmacKey, JSON.stringify({
+  var payloadCiphertext = sjcl.encrypt(sessionKey, JSON.stringify({
     recordIndex: 0,
     delta: {}
   }), crypton.cipherOptions);
@@ -136,6 +181,7 @@ Session.prototype.create = function (containerName, callback) {
         signature: signature
       }, {
         type: 'addContainerSessionKeyShare',
+        toAccount: that.account.username,
         containerNameHmac: containerNameHmac,
         sessionKeyCiphertext: sessionKeyCiphertext,
         hmacKeyCiphertext: hmacKeyCiphertext
@@ -218,6 +264,27 @@ Session.prototype.deleteContainer = function (containerName, callback) {
 Session.prototype.getContainer = function (containerName, callback) {
   var container = new crypton.Container(this);
   container.name = containerName;
+  container.sync(function (err) {
+    callback(err, container);
+  });
+};
+
+/**!
+ * ### getContainerWithHmac(containerNameHmac, callback)
+ * Retrieve container with given `containerNameHmac`
+ * specifically from the server
+ *
+ * Calls back with container and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} containerNameHmac
+ * @param {Function} callback
+ */
+Session.prototype.getContainerWithHmac = function (containerNameHmac, peer, callback) {
+  var container = new crypton.Container(this);
+  container.nameHmac = containerNameHmac;
+  container.peer = peer;
   container.sync(function (err) {
     callback(err, container);
   });

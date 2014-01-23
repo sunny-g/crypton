@@ -23,14 +23,14 @@ app.init = function (session) {
     console.log("incoming message!");
     console.log(data);
     app.session.inbox.get(data.messageId, function (err, message) {
-      if (message.headers.app == 'deadDrop') {
+      // if (message.headers.app == 'deadDrop') {
         app.processMessage(message);
         app.session.inbox.delete(data.messageId, function (err) {
           if (err) {
             alert(err);
           }
         });
-      }
+      // }
     });
   });
 };
@@ -85,14 +85,15 @@ app.processMessage = function (message) {
 };
 
 app.verifyDecryptDisplay = function (message) {
-  var peerName = message.headers.from;
+  var peerName = message.fromUsername;
   app.getPeer(peerName, function(err, peer) {
     if (err) {
       alert(err);
       return;
     }
     console.log(peer);
-    var verified = app.session.account.verifyAndDecrypt(message.payload, peer);
+    var sct = JSON.parse(message.payload.plaintext);
+    var verified = app.session.account.verifyAndDecrypt(sct, peer);
     console.log(verified);
     if (!verified.verified) {
       alert("Error: Could not verify the message signature!");

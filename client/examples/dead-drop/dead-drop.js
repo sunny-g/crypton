@@ -3,6 +3,7 @@ var app = {};
 app.init = function (session) {
   app.session = session;
   app.peers = {};
+  app.incomingMessages = {};
 
   $('#header').css({
     top: 0
@@ -56,12 +57,12 @@ app.processMessage = function (message) {
   app.incomingMessages[message.messageId] = message;
 
   console.log(message);
-  var html = '<option id="'
+  var html = '<li id="'
            + message.messageId
            + '">'
            + message.headers.from
            + " " + message.messageId
-           + '</option>';
+           + '</li>';
 
   var node = $(html);
 
@@ -70,11 +71,29 @@ app.processMessage = function (message) {
     $('#compose').hide();
     $('#create-message').hide();
     // display the message in the <pre>, etc
-    var msg = $(evt.target).text();
-    $('#message-content').text(msg);
+    var msg = app.incomingMessages[message.messageId];
+    app.verifyDecryptDisplay(msg);
   });
   $('#messages').append(node);
   // XXX: notify user of new message
+};
+
+app.verifyDecryptDisplay = function (message) {
+  var peerName = message.headers.from;
+  app.getPeer(peerName, function(err, peer) {
+    if (err) {
+      alert(err);
+      return;
+    }
+    console.log(peer);
+    var verified = app.session.account.verifyAndDecrypt(message.payload, peer);
+    console.log(verified);
+    if (!verified.verified) {
+      alert("Error: Could not verify the message signature!");
+      return;
+    }
+    $('#message-content').text(verified.plaintext);
+  });
 };
 
 app.setUsername = function () {
@@ -117,7 +136,7 @@ app.getPeer = function (username, callback) {
       return;
     }
     app.peers[username] = peer;
-    callback();
+    callback(null, peer);
   });
 };
 

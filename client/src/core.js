@@ -124,7 +124,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   account.symKeyCiphertext = JSON.stringify(symkey.tag);
   account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
   account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
-
+  console.log(account);
   if (save) {
     account.save(function (err) {
       callback(err, account);

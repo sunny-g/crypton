@@ -43,8 +43,10 @@ ansible-playbook \
     -i hosts.dev \
     site.yml "$@"
 
+set +x
 echo "If everything went well, you should be able to point your browser"
 echo "to use the HTTP proxy inside the container on "
 echo "$container_ip port 3128.  Use for all"
-echo "protocols.  Try the diary demo app at "
+echo "protocols.  With that proxy, try the demo apps at: "
 echo "  https://server.cryptondev.local/examples/diary"
+echo "  https://server.cryptondev.local/examples/chat3"

@@ -131,7 +131,7 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   var verified = peer.signKeyPub.verify(hash, signedCiphertext.signature);
   // try to decrypt regardless of verification failure
   try {
-    var message = sjcl.decrypt(this.secretKey, JSON.stringify(signedCiphertext.ciphertext), crypton.cipherOptions);
+    var message = sjcl.decrypt(this.secretKey, signedCiphertext.ciphertext, crypton.cipherOptions);
     return { plaintext: message, verified: verified, error: null };
   } catch (ex) {
     return { plaintext: null, verified: false, error: "Cannot verify ciphertext" };

@@ -263,7 +263,6 @@ create table container_session_key_share (
     to_account_id int8 not null references account (account_id),
     transaction_id int8 not null,
     session_key_ciphertext varchar not null,
-    hmac_key_ciphertext varchar not null,
     deletion_time timestamp
 );
 
@@ -304,8 +303,7 @@ CREATE OR REPLACE VIEW readable_container_records_by_account AS
     SELECT container_record.*,
            container_session_key.signature,
            container_session_key_share.to_account_id,
-           container_session_key_share.session_key_ciphertext,
-           container_session_key_share.hmac_key_ciphertext
+           container_session_key_share.session_key_ciphertext
       FROM container_record
       JOIN container_session_key using (container_session_key_id)
       JOIN container_session_key_share using (container_session_key_id)
@@ -568,8 +566,7 @@ create table transaction_add_container_session_key_share (
     name_hmac bytea not null,
     latest_record_id int8,
     to_account_id int8 not null,
-    session_key_ciphertext varchar not null,
-    hmac_key_ciphertext varchar not null
+    session_key_ciphertext varchar not null
 );
 /* disallow adding more than one session key share for the same container to
  * the same account in the same transaction */

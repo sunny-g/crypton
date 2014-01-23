@@ -375,14 +375,13 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
     var query = {
       /*jslint multistr: true*/
       text: 'insert into transaction_add_container_session_key_share \
-        (transaction_id, name_hmac, session_key_ciphertext, hmac_key_ciphertext, to_account_id) \
-        select $1, $2, $3, $4, account_id from account where username = $5',
+        (transaction_id, name_hmac, session_key_ciphertext, to_account_id) \
+        select $1, $2, $3, account_id from account where username = $4',
       /*jslint multistr: false*/
       values: [
         transaction.transactionId,
         data.containerNameHmac,
         JSON.stringify(data.sessionKeyCiphertext),
-        JSON.stringify(data.hmacKeyCiphertext),
         data.toAccount
       ]
     };

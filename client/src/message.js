@@ -36,14 +36,14 @@ Message.prototype.encrypt = function (peer, callback) {
   var payloadCiphertext = peer.encryptAndSign(this.payload);
 
   if (headersCiphertext.error || payloadCiphertext.error) {
-    callback("Error encrypting headers or payload in Message.encrypt()");
+    callback('Error encrypting headers or payload in Message.encrypt()');
     return;
   }
-  var that = this;
+
   this.encrypted = {
     headersCiphertext: JSON.stringify(headersCiphertext),
     payloadCiphertext: JSON.stringify(payloadCiphertext),
-    fromUsername: that.session.account.username,
+    fromUsername: this.session.account.username,
     toAccountId: peer.accountId
   };
 
@@ -57,17 +57,17 @@ Message.prototype.decrypt = function (callback) {
 
   this.session.getPeer(this.fromUsername, function (err, peer) {
     if (err) {
-      callback("Cannot getPeer in Message.decrypt()");
+      callback(err);
       return;
     }
 
     var headers = that.session.account.verifyAndDecrypt(headersCiphertext, peer);
     var payload = that.session.account.verifyAndDecrypt(payloadCiphertext, peer);
     if (!headers.verified || !payload.verified) {
-      callback("Cannot verify headers or payload ciphertext in Message.decrypt()");
+      callback('Cannot verify headers or payload ciphertext in Message.decrypt()');
       return;
     } else if (headers.error || payload.error) {
-      callback("Cannot decrypt headers or payload in Message.decrypt");
+      callback('Cannot decrypt headers or payload in Message.decrypt');
       return;
     }
 

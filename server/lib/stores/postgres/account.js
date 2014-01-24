@@ -273,18 +273,14 @@ exports.saveMessage = function (options, callback) {
       text:
         "insert into message " +
         "(to_account_id, from_account_id, " +
-        "headers_ciphertext, payload_ciphertext, " +
-        "headers_ciphertext_hmac_signature, " +
-        "payload_ciphertext_hmac_signature) " +
-        "values ($1, $2, $3, $4, $5, $6) " +
+        "headers_ciphertext, payload_ciphertext)" +
+        "values ($1, $2, $3, $4) " +
         "returning message_id",
       values: [
         options.toAccountId,
         options.fromAccountId,
         options.headersCiphertext,
-        options.payloadCiphertext,
-        options.headersCiphertextHmacSignature,
-        options.payloadCiphertextHmacSignature
+        options.payloadCiphertext
       ]
     };
 

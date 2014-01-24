@@ -368,8 +368,6 @@ create table message (
     to_account_id int8 not null references account (account_id),
     headers_ciphertext varchar not null,
     payload_ciphertext varchar not null,
-    headers_ciphertext_hmac_signature bytea,
-    payload_ciphertext_hmac_signature bytea,
     deletion_time timestamp
     constraint deleted_after_created 
         check (deletion_time is null or deletion_time >= creation_time)
@@ -396,10 +394,6 @@ COMMENT ON COLUMN message.headers_ciphertext IS
 'AES-GCM of header, key=hash(data key)';
 COMMENT ON COLUMN message.payload_ciphertext IS 
 'AES-GCM of payload, key=hash(data key)';
-COMMENT ON COLUMN message.headers_ciphertext_hmac_signature IS
-'signature of HMACSHA256(headers_ciphertext)';
-COMMENT ON COLUMN message.payload_ciphertext_hmac_signature IS
-'signature of HMACSHA256(payload_ciphertext)';
 
 create table transaction (
     transaction_id int8 not null primary key default nextval('version_identifier'),

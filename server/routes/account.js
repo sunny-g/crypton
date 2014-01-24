@@ -137,7 +137,6 @@ app.post('/account/:username/answer', function (req, res) {
 
       app.log('debug', 'SRP verification succcess');
       req.session.accountId = account.accountId;
-
       res.send({
         success: true,
         account: account.toJSON(),

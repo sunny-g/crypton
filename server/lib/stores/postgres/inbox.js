@@ -60,8 +60,7 @@ datastore.getAllMessages = function (accountId, callback) {
         row = datastore.util.camelizeObject(row);
         row.headersCiphertext = row.headersCiphertext.toString();
         row.payloadCiphertext = row.payloadCiphertext.toString();
-        row.headersCiphertextHmacSignature = row.headersCiphertextHmacSignature.toString();
-        row.payloadCiphertextHmacSignature = row.payloadCiphertextHmacSignature.toString();
+
         records.push(row);
       });
 
@@ -105,8 +104,6 @@ datastore.getMessageById = function (messageId, callback) {
       var message = datastore.util.camelizeObject(result.rows[0]);
       message.headersCiphertext = message.headersCiphertext.toString();
       message.payloadCiphertext = message.payloadCiphertext.toString();
-      message.headersCiphertextHmacSignature = message.headersCiphertextHmacSignature.toString();
-      message.payloadCiphertextHmacSignature = message.payloadCiphertextHmacSignature.toString();
 
       callback(null, message);
     });

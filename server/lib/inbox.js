@@ -41,7 +41,7 @@ var Inbox = module.exports = function Inbox (accountId) {
  * Calls back without error and with messages if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Inbox.prototype.getAllMessages = function (callback) {
@@ -57,7 +57,7 @@ Inbox.prototype.getAllMessages = function (callback) {
  * Calls back without error and with messages if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Number} messageId
  * @param {Function} callback
  */
@@ -70,7 +70,13 @@ Inbox.prototype.getMessageById = function (messageId, callback) {
       callback('Message does not exist');
       return;
     }
-
-    callback(err, message);
+    db.getAccountById(message.fromAccountId, function (err, account) {
+      if (err) {
+        callback('Database Error');
+        return;
+      }
+      message.fromUsername = account.username;
+      callback(err, message);
+    });
   });
 };

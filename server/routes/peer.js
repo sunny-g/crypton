@@ -70,9 +70,7 @@ app.post('/peer', verifySession, function (req, res) {
     toAccountId: req.body.toAccountId,
     fromAccountId: req.session.accountId,
     headersCiphertext: req.body.headersCiphertext,
-    payloadCiphertext: req.body.payloadCiphertext,
-    headersCiphertextHmacSignature: req.body.headersCiphertextHmacSignature,
-    payloadCiphertextHmacSignature: req.body.payloadCiphertextHmacSignature
+    payloadCiphertext: req.body.payloadCiphertext
   };
 
   var account = new Account();

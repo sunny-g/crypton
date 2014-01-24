@@ -71,10 +71,10 @@ Message.prototype.decrypt = function (callback) {
       return;
     }
 
-    that.headers = headers;
-    that.payload = payload;
+    that.headers = JSON.parse(headers.plaintext);
+    that.payload = JSON.parse(payload.plaintext);
     that.created = new Date(that.creationTime);
-    callback(null, this);
+    callback(null, that);
   });
 };
 

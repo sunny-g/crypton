@@ -94,10 +94,6 @@ crypton.randomBytes = randomBytes;
 crypton.generateAccount = function (username, passphrase, callback, options) {
   options = options || {};
 
-  if (typeof options.paranoia === 'undefined') {
-    options.paranoia = 6;   // 256 bits of entropy from prng
-  }
-
   if (!username || !passphrase) {
     return callback('Must supply username and passphrase');
   }
@@ -105,17 +101,18 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var SIGN_KEY_BIT_LENGTH = 384;
   var keypairCurve = options.keypairCurve || 384;
   var save = typeof options.save !== 'undefined' ? options.save : true;
+
   var account = new crypton.Account();
   var containerNameHmacKey = randomBytes(8);
   var hmacKey = randomBytes(8);
   var keypairSalt = randomBytes(8);
-  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, options.paranoia);
+  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var symkey = keypair.pub.kem(0);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var srpSalt = srp.randomHexSalt();
   var srpVerifier = srp.calculateV(srpSalt).toString(16);
-  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, options.paranoia);
+  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
 
   account.username = username;
   // Pad verifier to 512 bytes

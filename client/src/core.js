@@ -68,10 +68,17 @@ crypton.url = function () {
  * ### randomBytes()
  * Generate `nbytes` bytes of random data
  *
- * @param {Number} nbytes
+ * @param {Number} nbytes (default 32)
  */
 function randomBytes (nbytes) {
-  return sjcl.random.randomWords(nbytes);
+  var nwords = 8; // default 32 bytes, 256 bits
+
+  // sjcl's words are 4 bytes (32 bits)
+  if (nbytes) {
+    nwords = nbytes / 4;
+  }
+
+  return sjcl.random.randomWords(nwords);
 }
 crypton.randomBytes = randomBytes;
 
@@ -103,9 +110,9 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
   var account = new crypton.Account();
-  var containerNameHmacKey = randomBytes(8);
-  var hmacKey = randomBytes(8);
-  var keypairSalt = randomBytes(8);
+  var containerNameHmacKey = randomBytes(32);
+  var hmacKey = randomBytes(32);
+  var keypairSalt = randomBytes(32);
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var symkey = keypair.pub.kem(0);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);

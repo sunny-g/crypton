@@ -83,6 +83,23 @@ function randomBytes (nbytes) {
 crypton.randomBytes = randomBytes;
 
 /**!
+ * ### randomBits()
+ * Generate `nbits` bits of random data
+ *
+ * @param {Number} nbits (default 256)
+ */
+crypton.randomBits = function (nbits) {
+  var nbytes = 32; // default 32 bytes, 256 bits
+
+  // sjcl's words are 4 bytes (32 bits)
+  if (nbits) {
+    nbytes = nbits / 8;
+  }
+
+  return crypton.randomBytes(nbytes);
+}
+
+/**!
  * ### generateAccount(username, passphrase, callback, options)
  * Generate salts and keys necessary for an account
  *

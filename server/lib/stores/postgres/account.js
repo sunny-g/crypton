@@ -58,10 +58,10 @@ exports.saveAccount = function saveAccount(account, callback) {
     client.query('begin');
 
     var accountQuery = {
-      text:
-        "insert into account (username, base_keyring_id) " +
-        "values ($1, nextval('version_identifier')) " +
-        "returning account_id, base_keyring_id",
+      text: '\
+        insert into account (username, base_keyring_id) \
+          values ($1, nextval(\'version_identifier\')) \
+        returning account_id, base_keyring_id',
       values: [
         account.username
       ]
@@ -84,14 +84,14 @@ exports.saveAccount = function saveAccount(account, callback) {
       }
 
       var keyringQuery = {
-        text:
-          "insert into base_keyring (" +
-          "  base_keyring_id, account_id," +
-          "  keypair, keypair_salt, pubkey, symkey," +
-          "  container_name_hmac_key," +
-          "  hmac_key, srp_verifier, srp_salt, "
-          + "sign_key_pub, sign_key_private_ciphertext " +
-          ") values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+        text: '\
+          insert into base_keyring ( \
+            base_keyring_id, account_id, \
+            keypair, keypair_salt, pubkey, symkey, \
+            container_name_hmac_key, \
+            hmac_key, srp_verifier, srp_salt, \
+            sign_key_pub, sign_key_private_ciphertext \
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
@@ -146,16 +146,16 @@ exports.saveAccount = function saveAccount(account, callback) {
 exports.getAccount = function getAccount(username, callback) {
   connect(function (client, done) {
     var accountQuery = {
-      text:
-        "select username, " +
-        "account.account_id, base_keyring_id, " +
-        "srp_verifier, srp_salt, " +
-        "keypair, keypair_salt, " +
-        "pubkey, symkey, " +
-        "container_name_hmac_key, hmac_key," +
-        "sign_key_pub, sign_key_private_ciphertext " +
-        "from account left join base_keyring using (base_keyring_id) " +
-        "where username=$1",
+      text: '\
+        select username, \
+          account.account_id, base_keyring_id, \
+          srp_verifier, srp_salt, \
+          keypair, keypair_salt, \
+          pubkey, symkey, \
+          container_name_hmac_key, hmac_key, \
+          sign_key_pub, sign_key_private_ciphertext \
+        from account left join base_keyring using (base_keyring_id) \
+        where username = $1',
       values: [
         username
       ]
@@ -208,16 +208,16 @@ exports.getAccount = function getAccount(username, callback) {
 exports.getAccountById = function getAccountById(accountId, callback) {
   connect(function (client, done) {
     var accountQuery = {
-      text:
-        "select account.account_id, " +
-        "account.username, base_keyring_id, " +
-        "srp_verifier, srp_salt, " +
-        "keypair, keypair_salt, " +
-        "pubkey, symkey, " +
-        "container_name_hmac_key, hmac_key," +
-        "sign_key_pub, sign_key_private_ciphertext " +
-        "from account left join base_keyring using (base_keyring_id) " +
-        "where account.account_id=$1",
+      text: '\
+        select account.account_id, \
+          account.username, base_keyring_id, \
+          srp_verifier, srp_salt, \
+          keypair, keypair_salt, \
+          pubkey, symkey, \
+          container_name_hmac_key, hmac_key, \
+          sign_key_pub, sign_key_private_ciphertext \
+        from account left join base_keyring using (base_keyring_id) \
+        where account.account_id = $1',
       values: [
         accountId
       ]
@@ -270,12 +270,12 @@ exports.getAccountById = function getAccountById(accountId, callback) {
 exports.saveMessage = function (options, callback) {
   connect(function (client, done) {
     var messageQuery = {
-      text:
-        "insert into message " +
-        "(to_account_id, from_account_id, " +
-        "headers_ciphertext, payload_ciphertext)" +
-        "values ($1, $2, $3, $4) " +
-        "returning message_id",
+      text: '\
+        insert into message \
+          (to_account_id, from_account_id, \
+          headers_ciphertext, payload_ciphertext) \
+          values ($1, $2, $3, $4) \
+        returning message_id',
       values: [
         options.toAccountId,
         options.fromAccountId,

@@ -22,7 +22,7 @@
   },
   "securityHeaders": {
     "csrf": true,
-    "csp": { 
+    "csp": {
       "default-src": "self",
       "script-src": "self",
       "img-src": "self",

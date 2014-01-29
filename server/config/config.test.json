@@ -19,5 +19,16 @@
     "host": "localhost",
     "port": 6379,
     "pass": ""
+  },
+  "securityHeaders": {
+    "csrf": true,
+    "csp": { "default-src": "self",
+             "script-src": "self",
+             "img-src": "self",
+             "style-src": "self",
+             "font-src": "self",
+             "object-src": "none"
+           },
+    "xframe": "SAMEORIGIN"
   }
 }

@@ -25,6 +25,7 @@ var https = require('https');
 var connect = require('connect');
 var express = require('express');
 var util = require('./lib/util');
+var appsec = require('lusca');
 
 var app = process.app = module.exports = express();
 app.log = require('./lib/log');
@@ -53,6 +54,36 @@ app.use(cors({
     callback(null, true);
   }
 }));
+
+if (app.config.securityHeaders) {
+  try {
+    var luscaObj = app.config.securityHeaders;
+    // A naive validation check:
+    if ((typeof luscaObj.csp == 'object') && (typeof luscaObj.xframe == "string")
+                                          && (typeof luscaObj.csrf == 'boolean')) {
+      app.use(appsec(luscaObj));
+    } else {
+      throw new Error("Lusca configuration invalid!");
+    }
+  } catch (ex) {
+    app.log("error", ex);
+    // Exit in an orderly fashion
+    process.exit(1);
+  }
+} else {
+  // A very strict CSP, CSRF enabled and xframe options as sameorigin.
+  app.use(appsec({
+    csrf: true,
+    csp: { 'default-src': 'self',
+           'script-src': 'self',
+           'img-src': 'self',
+           'style-src': 'self',
+           'font-src': 'self',
+           'object-src': 'none'
+         },
+    xframe: 'SAMEORIGIN'
+  }));
+}
 
 var redis = require('redis').createClient(
   app.config.redis.port,
@@ -86,7 +117,7 @@ app.use(express.logger(function (info, req, res) {
   }
 
   var line = res.statusCode.toString()[color] + ' ' + req.method + ' ' + req.url;
-  app.log('info', line); 
+  app.log('info', line);
 }));
 
 if (app.config.appPath) {
@@ -128,4 +159,3 @@ process.on('uncaughtException', function (err) {
   app.log('fatal', err.stack);
   process.exit(1);
 });
-

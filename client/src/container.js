@@ -433,5 +433,13 @@ Container.prototype.share = function (peer, callback) {
   });
 };
 
+Container.prototype.watch = function (listener) {
+  this._listener = listener;
+};
+
+Container.prototype.unwatch = function () {
+  delete this._listener;
+};
+
 })();
 

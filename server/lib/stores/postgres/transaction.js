@@ -21,6 +21,7 @@
 var app = process.app;
 var datastore = require('./');
 var connect = datastore.connect;
+var pg = require('pg');
 var fs = require('fs');
 var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toString();
 
@@ -500,6 +501,34 @@ datastore.transaction.deleteMessage = function (data, transaction, callback) {
     });
   });
 };
+
+(function listen () {
+  app.log('debug', 'listening for container updates');
+
+  var config = process.app.config.database;
+  var client = new pg.Client(config);
+  client.connect();
+  client.query('listen "container_update"');
+
+  client.on('notification', function (data) {
+    app.log('container update');
+
+    var payload = data.payload.split(':');
+    var containerNameHmac = payload[0];
+    var fromAccountId = payload[1];
+    var toAccountId = payload[2];
+
+    // if a client has written to their own container we
+    // won't need to let them know it was updated
+    if (fromAccountId == toAccountId) {
+      return;
+    }
+
+    if (app.clients[toAccountId]) {
+      app.clients[toAccountId].emit('containerUpdate', containerNameHmac);
+    }
+  });
+})();
 
 var commit = {};
 

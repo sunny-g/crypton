@@ -46,6 +46,23 @@ var Session = crypton.Session = function (id) {
       that.emit('message', message);
     });
   });
+
+  this.socket.on('containerUpdate', function (containerNameHmac) {
+    for (var i in that.containers) {
+      var container = that.containers[i];
+      var temporaryHmac = container.containerNameHmac || container.getPublicName();
+
+      if (temporaryHmac == containerNameHmac) {
+        container.sync(function (err) {
+          if (container._listener) {
+            container._listener();
+          }
+        });
+
+        break;
+      }
+    }
+  });
 };
 
 /**!

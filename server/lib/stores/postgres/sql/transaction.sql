@@ -161,11 +161,6 @@ insert into container_record (container_record_id, container_id,
       join txtmp_add_container_record tx_tacr using (id)
       join transaction t using (transaction_id);
 
-select pg_notify('container_update', encode(name_hmac, 'escape') || ':' || csks.account_id::text || ':' || csks.to_account_id::text)
-  from txtmp_add_container_record tx_tacr
-  join container using (container_id)
-  join container_session_key_share csks using (container_session_key_id);
-
 update container
   set deletion_time = current_timestamp
   where container_id in (
@@ -182,5 +177,16 @@ update transaction
    set commit_finish_time = current_timestamp,
        committer_hostname = '{{hostname}}'
  where transaction_id={{transactionId}};
+
+/*
+ * after all other operations have had the chance to err out,
+ * notify any clients about container record insertions that may have happened
+ *
+ * TODO is there a more eloquent way to structure this query?
+ */
+select pg_notify('container_update', encode(name_hmac, 'escape') || ':' || csks.account_id::text || ':' || csks.to_account_id::text)
+  from txtmp_add_container_record tx_tacr
+  join container using (container_id)
+  join container_session_key_share csks using (container_session_key_id);
 
 commit;

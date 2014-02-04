@@ -433,10 +433,23 @@ Container.prototype.share = function (peer, callback) {
   });
 };
 
+/**!
+ * ### watch(listener)
+ * Attach a listener to the container
+ * which is called if it is written to by a peer
+ *
+ * This is called after the container is synced
+ *
+ * @param {Function} callback
+ */
 Container.prototype.watch = function (listener) {
   this._listener = listener;
 };
 
+/**!
+ * ### unwatch()
+ * Remove an attached listener
+ */
 Container.prototype.unwatch = function () {
   delete this._listener;
 };

@@ -41,13 +41,18 @@ var Session = crypton.Session = function (id) {
     secure: true
   });
 
+  // watch for incoming Inbox messages
   this.socket.on('message', function (data) {
     that.inbox.get(data.messageId, function (err, message) {
       that.emit('message', message);
     });
   });
 
+  // watch for container update notifications
   this.socket.on('containerUpdate', function (containerNameHmac) {
+    // if any of the cached containers match the HMAC
+    // in the notification, sync the container and
+    // call the listener if one has been set
     for (var i in that.containers) {
       var container = that.containers[i];
       var temporaryHmac = container.containerNameHmac || container.getPublicName();

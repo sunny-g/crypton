@@ -79,7 +79,7 @@ work.calculateSrpM1 = function (options, callback) {
 };
 
 work.unravelAccount = function (account, callback) {
-//  try {
+  try {
     var ret = {};
 
     // regenerate keypair key from password
@@ -101,13 +101,10 @@ work.unravelAccount = function (account, callback) {
     ret.signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.signKeyPrivateCiphertext), crypton.cipherOptions));
 
     callback(null, ret);
-/*
   } catch (e) {
-throw e;
     console.log(e);
     callback(e);
   }
-*/
 };
 
 })();

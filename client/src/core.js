@@ -32,7 +32,7 @@ crypton.version = '0.0.2';
  * ### host
  * Holds location of Crypton server
  */
-crypton.host = window.location.hostname;
+crypton.host = location.hostname;
 
 /**!
  * ### port
@@ -133,10 +133,11 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var symkey = keypair.pub.kem(0);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
+  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
+
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
   var srpSalt = srp.randomHexSalt();
   var srpVerifier = srp.calculateV(srpSalt).toString(16);
-  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
 
   account.username = username;
   // Pad verifier to 512 bytes
@@ -183,70 +184,70 @@ crypton.authorize = function (username, passphrase, callback) {
     return callback('Must supply username and passphrase');
   }
 
-  var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
-  var a = srp.srpRandom();
-  var srpA = srp.calculateA(a);
-  // Pad A out to 512 bytes
-  // TODO: This length will change when a different SRP group is used
-  var srpAstr = srpA.toString(16);
-  srpAstr = srp.nZeros(512 - srpAstr.length) + srpAstr;
-
-  var response = {
-    srpA: srpAstr
+  var options = {
+    username: username,
+    passphrase: passphrase
   };
 
-  superagent.post(crypton.url() + '/account/' + username)
-    .withCredentials()
-    .send(response)
-    .end(function (res) {
-      if (!res.body || res.body.success !== true) {
-        callback(res.body.error);
-        return;
-      }
-
-      var body = res.body;
-      var srpSalt = body.srpSalt;
-      var srpB = new BigInteger(body.srpB, 16);
-
-      var srpu = srp.calculateU(srpA, srpB);
-      var srpS = srp.calculateS(srpB, srpSalt, srpu, a);
-      var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS).toString(16);
-      // Pad srpM1 to the full SHA-256 length
-      srpM1 = srp.nZeros(64 - srpM1.length) + srpM1;
-      response = {
-        srpM1: srpM1
-      };
-
-      superagent.post(crypton.url() + '/account/' + username + '/answer')
-        .withCredentials()
-        .send(response)
-        .end(function (res) {
-          if (!res.body || res.body.success !== true) {
-            callback(res.body.error);
-            return;
-          }
-
-          var sessionIdentifier = res.body.sessionIdentifier;
-          var session = new crypton.Session(sessionIdentifier);
-          session.account = new crypton.Account();
-          session.account.username = username;
-          session.account.passphrase = passphrase;
-          session.account.challengeKey = res.body.account.challengeKey;
-          session.account.containerNameHmacKeyCiphertext = res.body.account.containerNameHmacKeyCiphertext;
-          session.account.hmacKeyCiphertext = res.body.account.hmacKeyCiphertext;
-          session.account.keypairCiphertext = res.body.account.keypairCiphertext;
-          session.account.pubKey = res.body.account.pubKey;
-          session.account.challengeKeySalt = res.body.account.challengeKeySalt;
-          session.account.keypairSalt = res.body.account.keypairSalt;
-          session.account.symKeyCiphertext = res.body.account.symKeyCiphertext;
-          session.account.signKeyPub = res.body.account.signKeyPub;
-          session.account.signKeyPrivateCiphertext = res.body.account.signKeyPrivateCiphertext;
-          session.account.unravel(function () {
-            callback(null, session);
-          });
-        });
+  crypton.work.calculateSrpA(options, function (err, data) {
+    if (err) {
+      return callback(err);
     }
-  );
+
+    var response = {
+      srpA: data.srpAstr
+    };
+
+    superagent.post(crypton.url() + '/account/' + username)
+      .withCredentials()
+      .send(response)
+      .end(function (res) {
+        if (!res.body || res.body.success !== true) {
+          return callback(res.body.error);
+        }
+
+        options.a = data.a;
+        options.srpA = data.srpA;
+        options.srpB = res.body.srpB;
+        options.srpSalt = res.body.srpSalt;
+
+        // calculateSrpM1
+        crypton.work.calculateSrpM1(options, function (err, srpM1) {
+          response = {
+            srpM1: srpM1
+          };
+
+          superagent.post(crypton.url() + '/account/' + username + '/answer')
+            .withCredentials()
+            .send(response)
+            .end(function (res) {
+              if (!res.body || res.body.success !== true) {
+                callback(res.body.error);
+                return;
+              }
+
+              var sessionIdentifier = res.body.sessionIdentifier;
+              var session = new crypton.Session(sessionIdentifier);
+              session.account = new crypton.Account();
+              session.account.username = username;
+              session.account.passphrase = passphrase;
+              session.account.challengeKey = res.body.account.challengeKey;
+              session.account.containerNameHmacKeyCiphertext = res.body.account.containerNameHmacKeyCiphertext;
+              session.account.hmacKeyCiphertext = res.body.account.hmacKeyCiphertext;
+              session.account.keypairCiphertext = res.body.account.keypairCiphertext;
+              session.account.pubKey = res.body.account.pubKey;
+              session.account.challengeKeySalt = res.body.account.challengeKeySalt;
+              session.account.keypairSalt = res.body.account.keypairSalt;
+              session.account.symKeyCiphertext = res.body.account.symKeyCiphertext;
+              session.account.signKeyPub = res.body.account.signKeyPub;
+              session.account.signKeyPrivateCiphertext = res.body.account.signKeyPrivateCiphertext;
+              session.account.unravel(function () {
+                callback(null, session);
+              });
+            });
+        });
+      });
+  });
 };
 
 })();

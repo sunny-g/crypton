@@ -153,11 +153,10 @@ insert into container_session_key_share (container_session_key_share_id,
       join transaction t using (transaction_id);
 
 insert into container_record (container_record_id, container_id, 
-    container_session_key_id, account_id, transaction_id, 
-    /*hmac, payload_iv,*/ payload_ciphertext)
+    container_session_key_id, account_id, transaction_id,  payload_ciphertext)
     select tx_tacr.container_record_id, tx_tacr.container_id,
-           tx_tacr.container_session_key_id, t.account_id, t.transaction_id,
-           /* tacr.hmac, tacr.payload_iv,*/ tacr.payload_ciphertext
+           tx_tacr.container_session_key_id, t.account_id,
+           t.transaction_id, tacr.payload_ciphertext
       from transaction_add_container_record tacr
       join txtmp_add_container_record tx_tacr using (id)
       join transaction t using (transaction_id);
@@ -178,5 +177,16 @@ update transaction
    set commit_finish_time = current_timestamp,
        committer_hostname = '{{hostname}}'
  where transaction_id={{transactionId}};
+
+/*
+ * after all other operations have had the chance to err out,
+ * notify any clients about container record insertions that may have happened
+ *
+ * TODO is there a more eloquent way to structure this query?
+ */
+select pg_notify('container_update', encode(name_hmac, 'escape') || ':' || csks.account_id::text || ':' || csks.to_account_id::text)
+  from txtmp_add_container_record tx_tacr
+  join container using (container_id)
+  join container_session_key_share csks using (container_session_key_id);
 
 commit;

@@ -21,7 +21,6 @@
 var pg = require('pg');
 var datastore = require('./');
 
-
 datastore.util = {};
 
 /**!

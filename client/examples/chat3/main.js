@@ -362,6 +362,10 @@ app.openConversation = function (username) {
   $('#conversation').addClass('active');
   $('#chatInput').val('').focus();
 
+  if (app.conversation && app.conversation.theirs) {
+    app.conversation.theirs.unwatch();
+  }
+
   app.session.load('conversation_' + username, function (err, ourContainer) {
     if (err) {
       console.log(err);
@@ -385,25 +389,16 @@ app.openConversation = function (username) {
             return;
           }
 
+          theirContainer.watch(function () {
+            app.renderConversation();
+          });
+
           app.conversation.theirs = theirContainer;
           app.renderConversation();
         });
       });
     }
   });
-
-  app.pollInterval = setInterval(function () {
-    if (app.conversation.theirs) {
-      app.conversation.theirs.sync(function (err) {
-        if (err && err != 'No new records') {
-          console.log(err);
-          return;
-        }
-
-        app.renderConversation();
-      });
-    }
-  }, 1000);
 };
 
 app.renderConversation = function () {

@@ -21,8 +21,54 @@
 var app = process.app;
 var datastore = require('./');
 var connect = datastore.connect;
+var pg = require('pg');
 var fs = require('fs');
 var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toString();
+
+/**!
+ * Listen for container update notifications
+ *
+ * Upon container records being processed in a transaction,
+ * the database will NOTIFY on the container_update channel
+ * with the following payload format:
+ *
+ * `containerNameHmac:fromAccountId:toAccountId`
+ *
+ * where account IDs refer to those in container_session_key_share.
+ *
+ * If the container record is created by the container's creator
+ * every account with access to the container that isn't the creator
+ * will be notified by this server if they have an active websocket
+ */
+(function listenForContainerUpdates () {
+  app.log('debug', 'listening for container updates');
+
+  var config = process.app.config.database;
+  var client = new pg.Client(config);
+  client.connect();
+  client.query('listen "container_update"');
+
+  client.on('notification', function (data) {
+    app.log('container update');
+
+    var payload = data.payload.split(':');
+    var containerNameHmac = payload[0];
+    var fromAccountId = payload[1];
+    var toAccountId = payload[2];
+
+    // if a client has written to their own container we
+    // won't need to let them know it was updated
+    // TODO perhaps this should be disabled in the case
+    // where the author edited something in a separate window
+    if (fromAccountId == toAccountId) {
+      return;
+    }
+
+    if (app.clients[toAccountId]) {
+      app.clients[toAccountId].emit('containerUpdate', containerNameHmac);
+    }
+  });
+})();
 
 /**!
  * ### createTransaction(accountId, callback)

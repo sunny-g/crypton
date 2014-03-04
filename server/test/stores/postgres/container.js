@@ -28,7 +28,7 @@ describe('Postgres driver', function () {
       it('should return container records for known container', function (done) {
         var containerNameHmac = 'exists';
         var accountId = 2;
-        container.getContainerRecords(containerNameHmac, function (err) {
+        container.getContainerRecords(containerNameHmac, accountId, function (err) {
           assert.equal(err, null);
           done();
         });

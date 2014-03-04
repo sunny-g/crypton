@@ -216,7 +216,7 @@ describe('Transaction model', function () {
       tx.get(transactionId, function (err) {
         assert.equal(err, null);
 
-        tx.commit(function (err) {
+        tx.requestCommit(function (err) {
           assert.equal(err, null);
 
           setTimeout(function () {

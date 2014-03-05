@@ -95,6 +95,7 @@ Container.prototype.get = function (key, callback) {
  */
 Container.prototype.save = function (callback, options) {
   var that = this;
+
   this.getDiff(function (err, diff) {
     if (!diff) {
       callback('Container has not changed');
@@ -244,7 +245,8 @@ Container.prototype.getHistory = function (callback) {
  * Loop through given `records`, decrypt them,
  * and build object state from decrypted diff objects
  *
- * Calls back with full container state, history versions,
+ * Calls back with full container state,
+ * history versions, last record index,
  * and without error if successful
  *
  * Calls back with error if unsuccessful
@@ -253,64 +255,83 @@ Container.prototype.getHistory = function (callback) {
  * @param {Function} callback
  */
 Container.prototype.parseHistory = function (records, callback) {
-  var keys = this.keys || {};
-  var versions = this.versions || {};
+  var that = this;
+  var keys = that.keys || {};
+  var versions = that.versions || {};
 
-  var recordIndex = this.recordIndex + 1;
-  for (var i in records) {
-    var record = this.decryptRecord(recordIndex++, records[i]);
-    keys = crypton.diff.apply(record.delta, keys);
-    versions[record.time] = JSON.parse(JSON.stringify(keys));
-  }
+  var recordIndex = that.recordIndex + 1;
 
-  callback(null, keys, versions, recordIndex);
+  async.eachSeries(records, function (rawRecord, callback) {
+    that.decryptRecord(recordIndex, rawRecord, function (err, record) {
+      if (err) {
+        return callback(err);
+      }
+
+      // TODO put in worker
+      keys = crypton.diff.apply(record.delta, keys);
+
+      // stringify and parse keys to ensure clean clone
+      versions[record.time] = JSON.parse(JSON.stringify(keys));
+
+      callback(null);
+    });
+  }, function (err) {
+    if (err) {
+      console.log('Hit error parsing container history');
+      console.log(that);
+      console.log(err);
+
+      return callback(err);
+    }
+
+    that.recordIndex = recordIndex;
+    callback(null, keys, versions, recordIndex);
+  });
 };
 
 /**!
- * ### decryptRecord(recordIndex, record)
+ * ### decryptRecord(recordIndex, record, callback)
  * Use symkey to extract session and HMAC keys,
  * decrypt record ciphertext with session key,
  * verify record index
  *
+ * Calls back with object containing timestamp and delta
+ * and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
  * @param {Object} recordIndex
  * @param {Object} record
- * @return {Object} decryptedRecord
+ * @param {Object} callback
  */
-// TODO handle potential JSON.parse errors here
-Container.prototype.decryptRecord = function (recordIndex, record) {
+Container.prototype.decryptRecord = function (recordIndex, record, callback) {
   if (!this.sessionKey) {
     this.decryptKey(record);
   }
 
-  var peer = this.peer || this.session.account;
-  var parsedRecord = JSON.parse(record.payloadCiphertext);
-  var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(parsedRecord.ciphertext));
-
-  var verified;
+  var parsedRecord;
   try {
-    verified = peer.signKeyPub.verify(payloadCiphertextHash, parsedRecord.signature);
-  } catch (e) {
-    console.log(e);
+    parsedRecord = JSON.parse(record.payloadCiphertext);
+  } catch (e) {}
+
+  if (!parsedRecord) {
+    return callback('Could not parse record JSON');
   }
 
-  if (!verified) {
-    throw new Error('Record signaure does not match expected signature');
-  }
-
-  var payload = JSON.parse(sjcl.decrypt(this.sessionKey, parsedRecord.ciphertext, crypton.cipherOptions));
-
-  if (payload.recordIndex !== recordIndex) {
-    // TODO revisit. this was giving me too much trouble trying to keep state up
-    // after I implemented variable date record fetching
-    //throw new RangeError('Unexpected recordIndex');
-  }
-
-  this.recordIndex++;
-
-  return {
-    time: +new Date(record.creationTime),
-    delta: payload.delta
+  var options = {
+    sessionKey: this.sessionKey,
+    expectedRecordIndex: recordIndex,
+    record: record.payloadCiphertext,
+    // we can't just send the peer object or its signKeyPub
+    // here because of circular JSON when dealing with workers.
+    // we'll have to reconstruct the signkey on the other end.
+    // better to be explicit anyway!
+    peerSignKeyPubSerialized: (
+      this.peer && this.peer.signKeyPub || this.session.account.signKeyPub
+    ).serialize()
   };
+
+  crypton.work.decryptRecord(options, callback);
 };
 
 /**!
@@ -353,11 +374,14 @@ Container.prototype.sync = function (callback) {
       return;
     }
 
-    that.parseHistory(records, function (err, keys, versions, recordCount) {
+    that.parseHistory(records, function (err, keys, versions, recordIndexAfter) {
       that.keys = keys;
       that.versions = versions;
       that.version = Math.max.apply(Math, Object.keys(versions));
-      that.recordCount = that.recordCount + recordCount;
+      that.recordCount = that.recordCount + versions.count;
+
+      // TODO verify recordIndexAfter == recordCount?
+
       callback(err);
     });
   });

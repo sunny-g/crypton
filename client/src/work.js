@@ -107,4 +107,65 @@ work.unravelAccount = function (account, callback) {
   }
 };
 
+work.decryptRecord = function (options, callback) {
+  var sessionKey = options.sessionKey;
+  var expectedRecordIndex = options.expectedRecordIndex;
+  var peerSignKeyPubSerialized = options.peerSignKeyPubSerialized;
+
+  if (!sessionKey || !expectedRecordIndex || !peerSignKeyPubSerialized) {
+    return callback('Must supply all options to work.decryptRecord');
+  }
+
+  var record;
+  try {
+    record = JSON.parse(options.record);
+  } catch (e) {}
+
+  if (!record) {
+    return callback('Could not parse record');
+  }
+
+  // reconstruct the peer's public signing key
+  // the key itself typically has circular references which
+  // we can't pass around with JSON to/from a worker
+  var curve = 'c' + peerSignKeyPubSerialized.curve;
+  var signPoint = sjcl.ecc.curves[curve].fromBits(peerSignKeyPubSerialized.point);
+  var peerSignKeyPub = new sjcl.ecc.ecdsa.publicKey(peerSignKeyPubSerialized.curve, signPoint.curve, signPoint);
+
+
+  var verified = false;
+  var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(record.ciphertext));
+
+  try {
+    verified = peerSignKeyPub.verify(payloadCiphertextHash, record.signature);
+  } catch (e) {
+    console.log(e);
+  }
+
+  if (!verified) {
+    return callback('Record signature does not match expected signature');
+  }
+
+  var payload = JSON.parse(
+    sjcl.decrypt(sessionKey, record.ciphertext, crypton.cipherOptions)
+  );
+
+  if (payload.recordIndex !== expectedRecordIndex) {
+    // TODO revisit
+    // XXX ecto 3/4/14 I ran into a problem with this quite a while
+    // ago where recordIndexes would never match even if they obviously
+    // should. It smelled like an off-by-one or state error.
+    // Now that record decryption is abstracted outside container instances,
+    // we will have to do it in a different way anyway
+    // (there was formerly a this.recordIndex++ here)
+
+    // return callback('Record index mismatch');
+  }
+
+  callback(null, {
+    time: +new Date(record.creationTime),
+    delta: payload.delta
+  });
+};
+
 })();

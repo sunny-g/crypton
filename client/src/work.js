@@ -86,7 +86,15 @@ work.unravelAccount = function (account, callback) {
     var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
 
     // decrypt secret key
-    ret.secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.keypairCiphertext), crypton.cipherOptions));
+    try {
+      ret.secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.keypairCiphertext), crypton.cipherOptions));
+    } catch (e) {}
+
+    if (!ret.secret) {
+      // TODO could be decryption or parse error - should we specify?
+      return callback('Could not parse secret key');
+    }
+
     var exponent = sjcl.bn.fromBits(ret.secret.exponent);
     var secretKey = new sjcl.ecc.elGamal.secretKey(ret.secret.curve, sjcl.ecc.curves['c' + ret.secret.curve], exponent);
 
@@ -94,11 +102,32 @@ work.unravelAccount = function (account, callback) {
     ret.symKey = secretKey.unkem(account.symKeyCiphertext);
 
     // decrypt hmac keys
-    ret.containerNameHmacKey = JSON.parse(sjcl.decrypt(ret.symKey, JSON.stringify(account.containerNameHmacKeyCiphertext), crypton.cipherOptions));
-    ret.hmacKey = JSON.parse(sjcl.decrypt(ret.symKey, JSON.stringify(account.hmacKeyCiphertext), crypton.cipherOptions));
+    try {
+      ret.containerNameHmacKey = JSON.parse(sjcl.decrypt(ret.symKey, JSON.stringify(account.containerNameHmacKeyCiphertext), crypton.cipherOptions));
+    } catch (e) {}
+
+    if (!ret.containerNameHmacKey) {
+      // TODO could be decryption or parse error - should we specify?
+      return callback('Could not parse containerNameHmacKey');
+    }
+
+    try {
+      ret.hmacKey = JSON.parse(sjcl.decrypt(ret.symKey, JSON.stringify(account.hmacKeyCiphertext), crypton.cipherOptions));
+    } catch (e) {}
+
+    if (!ret.hmacKey) {
+      // TODO could be decryption or parse error - should we specify?
+      return callback('Could not parse hmacKey');
+    }
 
     // decrypt signing key
-    ret.signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.signKeyPrivateCiphertext), crypton.cipherOptions));
+    try {
+      ret.signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.signKeyPrivateCiphertext), crypton.cipherOptions));
+    } catch (e) {}
+
+    if (!ret.signKeySecret) {
+      return callback('Could not parse signKeySecret');
+    }
 
     callback(null, ret);
   } catch (e) {
@@ -146,9 +175,14 @@ work.decryptRecord = function (options, callback) {
     return callback('Record signature does not match expected signature');
   }
 
-  var payload = JSON.parse(
-    sjcl.decrypt(sessionKey, record.ciphertext, crypton.cipherOptions)
-  );
+  var payload;
+  try {
+    payload = JSON.parse(sjcl.decrypt(sessionKey, record.ciphertext, crypton.cipherOptions));
+  } catch (e) {}
+
+  if (!payload) {
+    return callback('Could not parse record payload');
+  }
 
   if (payload.recordIndex !== expectedRecordIndex) {
     // TODO revisit

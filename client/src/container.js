@@ -127,6 +127,8 @@ Container.prototype.save = function (callback, options) {
       payloadCiphertext: payloadCiphertext
     };
 
+    // if we aren't saving it, we're probably testing
+    // to see if the transaction chunk was generated correctly
     if (options && options.save == false) {
       callback(null, chunk);
       return;

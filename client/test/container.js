@@ -76,22 +76,39 @@ describe('Container', function () {
       var container = new crypton.Container();
       var now = container.version;
 
-      // these are necessary for the encryption
+      // is there a better place to do this?
+      // perhaps in a before()
+      var SIGN_KEY_BIT_LENGTH = 384;
+      var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
+
+      // these are necessary for operations, however
       // typically you will allow the session to create
       // a container instead of doing it manually
       container.name = 'legit';
+
+      // sessionKey content doesn't matter in this test because
+      // we're not testing the contents of the ciphertext
+      container.sessionKey = [1,2,3,4,5,6,7,8];
       container.session = {};
       container.session.account = {};
-      container.session.account.containerNameHmacKey = [1193696192,274367050,-1647541843,-73767300,1167252974,-984408945,-1161509559,962393744];
-      container.hmacKey = [644454176,567210777,1585131513,-1319788074,1059693219,-1045618495,1515382626,2119063568];
+
+      // containerNameHmacKey content doesn't matter here either
+      // because we aren't testing getPublicName() functionality
+      container.session.account.containerNameHmacKey = [1,2,3,4,5,6,7,8];
+      container.session.account.signKeyPrivate = signingKeys.sec;
 
       container.add('foo', function () {
         container.get('foo', function (err, foo) {
           foo.bar = 'baz';
+
           container.save(function (err) {
             assert.notEqual(container.version > now);
+
             var newVersion = container.versions[container.version];
-            assert.deepEqual(newVersion.foo, { bar: 'baz' });
+            assert.deepEqual(newVersion.foo, {
+              bar: 'baz'
+            });
+
             done();
           }, {
             save: false
@@ -103,23 +120,37 @@ describe('Container', function () {
     it('should generate the correct transaction chunk', function (done) {
       var container = new crypton.Container();
 
-      // these are necessary for the encryption
+      // is there a better place to do this?
+      // perhaps in a before()
+      var SIGN_KEY_BIT_LENGTH = 384;
+      var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
+
+      // these are necessary operations, however
       // typically you will allow the session to create
       // a container instead of doing it manually
       container.name = 'legit';
+
+      // sessionKey content doesn't matter in this test because
+      // we're not testing the contents of the ciphertext, only
+      // that it was successfully created
+      container.sessionKey = [1,2,3,4,5,6,7,8];
       container.session = {};
       container.session.account = {};
-      container.session.account.containerNameHmacKey = [1193696192,274367050,-1647541843,-73767300,1167252974,-984408945,-1161509559,962393744];
-      container.hmacKey = [644454176,567210777,1585131513,-1319788074,1059693219,-1045618495,1515382626,2119063568];
+
+      // containerNameHmacKey content doesn't matter here either
+      // because we aren't testing getPublicName() functionality
+      container.session.account.containerNameHmacKey = [1,2,3,4,5,6,7,8];
+      container.session.account.signKeyPrivate = signingKeys.sec;
 
       container.add('foo', function () {
         container.get('foo', function (err, foo) {
           foo.bar = 'baz';
+
           container.save(function (err, chunk) {
             assert.equal(err, null);
             assert.equal(chunk.type, 'addContainerRecord');
-            assert.equal(chunk.containerNameHmac, 'a6b4fdf950fb02d66bee39fbe8af8456a615969275a2ec0db0fc09936b99e882');
-            assert.deepEqual(Object.keys(JSON.parse(chunk.payloadCiphertext)), [
+
+            assert.deepEqual(Object.keys(JSON.parse(chunk.payloadCiphertext.ciphertext)), [
               'iv',
               'v',
               'iter',
@@ -130,6 +161,13 @@ describe('Container', function () {
               'cipher',
               'ct'
             ]);
+
+            // let's test that the signature exists and looks like a signature
+            // we can't test the content because the keys will change
+            var expectedSignatureLength = 24;
+            assert.equal(chunk.payloadCiphertext.signature instanceof Array, true);
+            assert.equal(chunk.payloadCiphertext.signature.length, expectedSignatureLength);
+
             done();
           }, {
             save: false
@@ -144,9 +182,11 @@ describe('Container', function () {
     // test more complex interactions!
     it('should get the correct diff', function (done) {
       var container = new crypton.Container();
+
       container.add('foo', function () {
         container.get('foo', function (err, foo) {
           foo.bar = 'baz';
+
           container.getDiff(function (err, diff) {
             assert.equal(err, null);
             assert.deepEqual(diff, { foo: [ { bar: 'baz' } ] });
@@ -219,7 +259,6 @@ describe('Container', function () {
       container.session = {};
       container.session.account = {};
       container.session.account.containerNameHmacKey = [1193696192,274367050,-1647541843,-73767300,1167252974,-984408945,-1161509559,962393744];
-      container.hmacKey = [644454176,567210777,1585131513,-1319788074,1059693219,-1045618495,1515382626,2119063568];
 
       var expected = 'a6b4fdf950fb02d66bee39fbe8af8456a615969275a2ec0db0fc09936b99e882';
       assert.equal(container.getPublicName(), expected);

@@ -16,6 +16,12 @@
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// tests running inside phantom on Travis CI
+// don't let the PRNG seed fast enough
+crypton.paranoia = 0;
+sjcl.random = new sjcl.prng(0);
+sjcl.random.addEntropy("foo", 1024);
+
 var assert = chai.assert;
 
 describe('Account', function () {

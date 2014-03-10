@@ -9,6 +9,9 @@ branches:
     - stable
     - test
 
+services:
+  - redis-server
+
 before_script:
   - psql -c 'create database crypton_test;' -U postgres
   - export DISPLAY=:99.0

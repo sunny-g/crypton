@@ -18,6 +18,10 @@
 
 var assert = chai.assert;
 
+// tests running inside phantom on Travis CI
+// don't let the PRNG seed fast enough
+crypton.paranoia = 0;
+
 describe('Core', function () {
   before(function () {
     sjcl.random.setDefaultParanoia(0);

@@ -17,7 +17,7 @@
 */
 
 describe('Session functionality', function () {
-  this.timeout(5000);
+  this.timeout(15000);
 
   describe('create()', function () {
     before(function (done) {

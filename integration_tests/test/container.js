@@ -17,7 +17,7 @@
 */
 
 describe('Container functionality', function () {
-  this.timeout(5000);
+  this.timeout(15000);
 
   var session;
 

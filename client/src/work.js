@@ -142,7 +142,12 @@ work.decryptRecord = function (options, callback) {
   var expectedRecordIndex = options.expectedRecordIndex;
   var peerSignKeyPubSerialized = options.peerSignKeyPubSerialized;
 
-  if (!sessionKey || !expectedRecordIndex || !peerSignKeyPubSerialized) {
+  if (
+    !sessionKey ||
+    !creationTime ||
+    !expectedRecordIndex ||
+    !peerSignKeyPubSerialized
+  ) {
     return callback('Must supply all options to work.decryptRecord');
   }
 

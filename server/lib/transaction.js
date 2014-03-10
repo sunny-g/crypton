@@ -164,17 +164,18 @@ Transaction.prototype.requestCommit = function (callback) {
 };
 
 /**!
- * ### isCommitted(callback)
+ * ### isProcessed(callback)
  * Checks database to see to if transaction has been fully committed
  * Calls back with error if request is unsuccessful
- * otherwise calls back without error and boolean commit status
+ * otherwise calls back without error, boolean finished status,
+ * boolean commit success, and any commit errors
  *
  * @param {Function} callback
  */
-Transaction.prototype.isCommitted = function (callback) {
+Transaction.prototype.isProcessed = function (callback) {
   app.log('debug', 'checking transaction commit status');
 
-  db.transactionIsCommitted(this.transactionId, callback);
+  db.transactionIsProcessed(this.transactionId, callback);
 };
 
 /**!

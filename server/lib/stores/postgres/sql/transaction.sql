@@ -175,6 +175,7 @@ update message
 
 update transaction
    set commit_finish_time = current_timestamp,
+       success = true,
        committer_hostname = '{{hostname}}'
  where transaction_id={{transactionId}};
 

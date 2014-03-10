@@ -17,7 +17,7 @@
 */
 
 describe('Transaction functionality', function () {
-  this.timeout(5000);
+  this.timeout(15000);
 
   var session;
   var tx;
@@ -161,9 +161,9 @@ describe('Transaction functionality', function () {
   });
 
   describe('commit()', function () {
-    it('should issue a commit request for exising transaction', function (done) {
+    it('should process transaction with errors', function (done) {
       tx.commit(function (err) {
-        assert.equal(err, null);
+        assert.equal(err, 'Malformed transaction');
         done();
       });
     });

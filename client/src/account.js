@@ -64,35 +64,52 @@ Account.prototype.save = function (callback) {
  * @param {Function} callback
  */
 Account.prototype.unravel = function (callback) {
-  // regenerate keypair key from password
-  var keypairKey = sjcl.misc.pbkdf2(this.passphrase, this.keypairSalt);
+  var that = this;
 
-  // decrypt secret key
-  var secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.keypairCiphertext), crypton.cipherOptions));
-  var exponent = sjcl.bn.fromBits(secret.exponent);
-  this.secretKey = new sjcl.ecc.elGamal.secretKey(secret.curve, sjcl.ecc.curves['c' + secret.curve], exponent);
+  crypton.work.unravelAccount(this, function (err, data) {
+    if (err) {
+      return callback('Could not decrypt account');
+    }
+
+    that.regenerateKeys(data, function (err) {
+      callback(err);
+    });
+  });
+};
+
+/**!
+ * ### regenerateKeys(callback)
+ * Reconstruct keys from unraveled data
+ *
+ * Calls back without error if successful
+ *
+ * __Throws__ if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Account.prototype.regenerateKeys = function (data, callback) {
+  // reconstruct secret key
+  var exponent = sjcl.bn.fromBits(data.secret.exponent);
+  this.secretKey = new sjcl.ecc.elGamal.secretKey(data.secret.curve, sjcl.ecc.curves['c' + data.secret.curve], exponent);
 
   // reconstruct public key and personal symkey
   var point = sjcl.ecc.curves['c' + this.pubKey.curve].fromBits(this.pubKey.point);
   this.pubKey = new sjcl.ecc.elGamal.publicKey(this.pubKey.curve, point.curve, point);
+  this.symKey = data.symKey;
 
-  var symKey = this.secretKey.unkem(this.symKeyCiphertext);
-  this.symkey = symKey;
+  // assign the hmac keys to the account
+  this.hmacKey = data.hmacKey;
+  this.containerNameHmacKey = data.containerNameHmacKey;
 
-  // decrypt hmac keys
-  this.containerNameHmacKey = sjcl.decrypt(symKey, JSON.stringify(this.containerNameHmacKeyCiphertext), crypton.cipherOptions);
-  this.hmacKey = sjcl.decrypt(symKey, JSON.stringify(this.hmacKeyCiphertext), crypton.cipherOptions);
+  // reconstruct the public signing key
+  var signPoint = sjcl.ecc.curves['c' + this.signKeyPub.curve].fromBits(this.signKeyPub.point);
+  this.signKeyPub = new sjcl.ecc.ecdsa.publicKey(this.signKeyPub.curve, signPoint.curve, signPoint);
 
-  var signKeyPubObj = this.signKeyPub;
-  // Convert serialized Signing Keys to key objects:
-  var signPoint =
-    sjcl.ecc.curves['c' + signKeyPubObj.curve].fromBits(signKeyPubObj.point);
-  this.signKeyPub = new sjcl.ecc.ecdsa.publicKey(signKeyPubObj.curve, signPoint.curve, signPoint);
-  // Decrypt private key
-  var signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(this.signKeyPrivateCiphertext), crypton.cipherOptions));
-  var signExponent = sjcl.bn.fromBits(signKeySecret.exponent);
-  this.signKeyPrivate = new sjcl.ecc.ecdsa.secretKey(signKeySecret.curve, sjcl.ecc.curves['c' + signKeySecret.curve], signExponent);
-  callback();
+  // reconstruct the secret signing key
+  var signExponent = sjcl.bn.fromBits(data.signKeySecret.exponent);
+  this.signKeyPrivate = new sjcl.ecc.ecdsa.secretKey(data.signKeySecret.curve, sjcl.ecc.curves['c' + data.signKeySecret.curve], signExponent);
+
+  callback(null);
 };
 
 /**!

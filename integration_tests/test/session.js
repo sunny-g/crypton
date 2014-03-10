@@ -17,11 +17,12 @@
 */
 
 describe('Session functionality', function () {
-  this.timeout(5000);
+  this.timeout(15000);
 
   describe('create()', function () {
     before(function (done) {
       var that = this;
+
       crypton.authorize('notSoSmart', 'pass', function (err, session) {
         if (err) throw err;
         that.session = session;
@@ -40,6 +41,7 @@ describe('Session functionality', function () {
   describe('load()', function () {
     before(function (done) {
       var that = this;
+
       crypton.authorize('notSoSmart', 'pass', function (err, session) {
         if (err) throw err;
         that.session = session;
@@ -49,7 +51,8 @@ describe('Session functionality', function () {
 
     it('should err on non-existant container', function (done) {
       this.session.load('grail', function (err, container) {
-        assert.equal(err, 'Container does not exist');
+        // server does not divulge container nonexistence
+        assert.equal(err, 'No new records');
         done();
       });
     });
@@ -62,11 +65,12 @@ describe('Session functionality', function () {
           'keys',
           'session',
           'recordCount',
+          'recordIndex',
           'versions',
           'version',
           'name',
-          'sessionKey',
-          'hmacKey'
+          'nameHmac',
+          'sessionKey'
         ];
 
         assert.deepEqual(Object.keys(container), expectedKeys);

@@ -1,6 +1,5 @@
 language: node_js
 node_js:
-  - "0.11"
   - "0.10"
 
 branches:
@@ -8,6 +7,9 @@ branches:
     - master
     - stable
     - test
+
+services:
+  - redis-server
 
 before_script:
   - psql -c 'create database crypton_test;' -U postgres

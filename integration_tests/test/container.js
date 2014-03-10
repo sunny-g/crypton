@@ -30,30 +30,19 @@ describe('Container functionality', function () {
   });
 
   describe('save()', function () {
-    // TODO flow control plz
     it('should save container changes', function (done) {
-      this.timeout(10000);
       session.create('tupperware', function (err, container) {
-        container.add('properties', function (err) {
-          container.get('properties', function (err, properties) {
-            properties.color = 'blue';
-            setTimeout(function () { // hack to get around commit poll race condition
-              container.save(function (err) {
-                setTimeout(function () {
-                crypton.authorize('notSoSmart', 'pass', function (err, session2) {
-                  session2.load('tupperware', function (err, container2) {
-                    container2.get('properties', function (err, properties2) {
-                      assert.equal(err, null);
-                      assert.equal(properties2.color, 'blue');
-                      done();
-                    });
-                  });
-                });
-                }, 3000);
-              });
-            }, 3000);
+        container.keys['color'] = 'blue';
+
+        container.save(function (err) {
+          crypton.authorize('notSoSmart', 'pass', function (err, session2) {
+            session2.load('tupperware', function (err, container2) {
+              assert.equal(err, null);
+              assert.equal(container2.keys.color, 'blue');
+              done();
+            });
           });
-        }); // -_-
+        });
       });
     });
   });
@@ -72,27 +61,24 @@ describe('Container functionality', function () {
   });
 
   describe('sync()', function () {
-    // TODO flow control plz
     it('should pull changes into an instantiated container', function (done) {
-      this.timeout(10000);
-      session.containers = []; // force the session to load from server
+      // force the session to load from server
+      session.containers = [];
+
       session.load('tupperware', function (err, container) {
+        // force the session to load from server again
         session.containers = [];
+
         session.load('tupperware', function (err, container2) {
-          container.get('properties', function (err, properties) {
-            properties.color = 'green';
-            container.save(function (err) {
-              setTimeout(function () { // hack to get around commit poll race condition
-              container2.sync(function () {
-                setTimeout(function () {
-                container2.get('properties', function (err, properties2) {
-                  assert.equal(err, null);
-                  assert.equal(properties2.color, 'green');
-                  done();
-                });
-                }, 2000);
-              });
-              }, 2000);
+          container.keys['color'] = 'green';
+
+          container.save(function (err) {
+            assert.equal(err, null);
+
+            container2.sync(function (err) {
+              assert.equal(err, null);
+              assert.equal(container2.keys.color, 'green');
+              done();
             });
           });
         });

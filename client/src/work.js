@@ -138,6 +138,7 @@ work.unravelAccount = function (account, callback) {
 
 work.decryptRecord = function (options, callback) {
   var sessionKey = options.sessionKey;
+  var creationTime = options.creationTime;
   var expectedRecordIndex = options.expectedRecordIndex;
   var peerSignKeyPubSerialized = options.peerSignKeyPubSerialized;
 
@@ -197,7 +198,7 @@ work.decryptRecord = function (options, callback) {
   }
 
   callback(null, {
-    time: +new Date(record.creationTime),
+    time: +new Date(creationTime),
     delta: payload.delta
   });
 };

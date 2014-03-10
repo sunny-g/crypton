@@ -324,6 +324,7 @@ Container.prototype.decryptRecord = function (recordIndex, record, callback) {
     sessionKey: this.sessionKey,
     expectedRecordIndex: recordIndex,
     record: record.payloadCiphertext,
+    creationTime: record.creationTime,
     // we can't just send the peer object or its signKeyPub
     // here because of circular JSON when dealing with workers.
     // we'll have to reconstruct the signkey on the other end.

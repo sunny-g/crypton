@@ -232,17 +232,18 @@ datastore.requestTransactionCommit = function (transactionId, accountId, callbac
 };
 
 /**!
- * ### transactionIsCommitted(transactionId, callback)
+ * ### transactionIsProcessed(transactionId, callback)
  * Checks if a given transaction has been fully committed
  *
- * Calls back without error and transaction status boolean if successful
+ * Calls back without error, with transaction processing finished boolean,
+ * transaction commit success boolean, and any errors, if successful
  *
  * Calls back with error if unsuccessful
  *
  * @param {Number} transactionId
  * @param {Function} callback
  */
-datastore.transactionIsCommitted = function (transactionId, callback) {
+datastore.transactionIsProcessed = function (transactionId, callback) {
   connect(function (client, done) {
     datastore.getTransaction(transactionId, function (err, transaction) {
       done();
@@ -252,7 +253,7 @@ datastore.transactionIsCommitted = function (transactionId, callback) {
         return;
       }
 
-      callback(null, !!transaction.commitFinishTime);
+      callback(null, !!transaction.commitFinishTime, transaction.success, transaction.errors);
     });
   });
 };
@@ -633,6 +634,41 @@ commit.finish = function (transactionId) {
     client.query(tq, function (err, result) {
       if (err) {
         client.query('rollback');
+        app.log('warn', err);
+        commit.fail(transactionId, err);
+      }
+
+      done();
+    });
+  });
+};
+
+/**!
+ * ### commit.fail(transactionId, err)
+ * Mark `transactionId` as failed with SQL error `err`
+ *
+ * XXX there is definitely a more eloquent way to do this
+ */
+commit.fail = function (transactionId, err) {
+  app.log('warn', 'marking failed transaction', transactionId);
+
+  connect(function (client, done) {
+    var formattedError = JSON.stringify(err, [ 'message', 'detail', 'code' ]);
+    var failQuery = {
+      text: '\
+        update transaction \
+        set commit_finish_time = current_timestamp, \
+        success = false, \
+        errors = $1 \
+        where transaction_id=$2',
+      values: [
+        formattedError,
+        transactionId
+      ]
+    };
+
+    client.query(failQuery, function (err, result) {
+      if (err) {
         app.log('warn', err);
       }
 

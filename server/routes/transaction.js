@@ -20,8 +20,17 @@
 
 var app = process.app;
 var db = app.datastore;
+var config = app.config;
 var verifySession = require('../lib/middleware').verifySession;
 var Transaction = require('../lib/transaction');
+
+// check manually for commit looping config variables here
+// because it seems odd to define defaults for them in this file
+// or in app.js where other defaults are defined, and when they
+// aren't configured commit POST request will silently never respond
+if (!config.commitStatusCheckLimit || !config.commitStatusCheckDelay) {
+  throw 'commitStatusCheckLimit and commitStatusCheckDelay must be set in config file';
+}
 
 /**!
  * ### POST /transaction/create
@@ -116,7 +125,7 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
       checkCommitStatus();
 
       function checkCommitStatus () {
-        tx.isCommitted(function (err, isCommitted) {
+        tx.isProcessed(function (err, isProcessed, success, errors) {
           if (err) {
             return res.send({
               success: false,
@@ -124,17 +133,35 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
             });
           }
 
-          if (!isCommitted) {
+          // if the transaction hasn't been processed yet,
+          // and we haven't hit a configured limit of checks,
+          // check again in the configured amount of time
+          if (!isProcessed) {
             timesChecked++;
 
             if (timesChecked < app.config.commitStatusCheckLimit) {
               setTimeout(checkCommitStatus, app.config.commitStatusCheckDelay);
             }
-          } else {
-            res.send({
+
+            return;
+          }
+
+          // transaction has committed successfully
+          if (success) {
+            return res.send({
               success: true
             });
           }
+
+          // transaction has been processed but with errors
+          // XXX in the future we will need to provide the client
+          // with a generalized error category so it can decide
+          // what to do with itself.
+          // for now we just let it know an error occurred in the commit
+          res.send({
+            success: false,
+            error: 'Malformed transaction'
+          });
         });
       }
     });

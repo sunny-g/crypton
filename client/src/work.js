@@ -20,6 +20,12 @@
 
 'use strict';
 
+/*
+ * if the browser supports web workers,
+ * we "isomerize" crypton.work to transparently
+ * put its methods in a worker and replace them
+ * with a bridge API to said worker
+*/
 !self.worker && window.addEventListener('load', function () {
   var scriptEls = document.getElementsByTagName('script');
   var path;
@@ -35,6 +41,17 @@
 
 var work = crypton.work = {};
 
+/**!
+ * ### calculateSrpA(options, callback)
+ * First step of authorization
+ *
+ * Calls back with SRP A values and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options
+ * @param {Function} callback
+ */
 work.calculateSrpA = function (options, callback) {
   try {
     var srp = new SRPClient(options.username, options.passphrase, 2048, 'sha-256');
@@ -57,6 +74,17 @@ work.calculateSrpA = function (options, callback) {
   }
 };
 
+/**!
+ * ### calculateSrpM1(options, callback)
+ * Second step of authorization
+ *
+ * Calls back with SRP M1 value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options
+ * @param {Function} callback
+ */
 work.calculateSrpM1 = function (options, callback) {
   try {
     var srp = new SRPClient(options.username, options.passphrase, 2048, 'sha-256');
@@ -78,6 +106,18 @@ work.calculateSrpM1 = function (options, callback) {
   }
 };
 
+/**!
+ * ### unravelAccount(account, callback)
+ * Decrypt account keys, and pass them back
+ * in a serialized form for reconstruction
+ *
+ * Calls back with key object and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} account
+ * @param {Function} callback
+ */
 work.unravelAccount = function (account, callback) {
   try {
     var ret = {};
@@ -136,6 +176,17 @@ work.unravelAccount = function (account, callback) {
   }
 };
 
+/**!
+ * ### decryptRecord(options, callback)
+ * Decrypt a single record after checking its signature
+ *
+ * Calls back with decrypted record and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options
+ * @param {Function} callback
+ */
 work.decryptRecord = function (options, callback) {
   var sessionKey = options.sessionKey;
   var creationTime = options.creationTime;
@@ -166,7 +217,6 @@ work.decryptRecord = function (options, callback) {
   var curve = 'c' + peerSignKeyPubSerialized.curve;
   var signPoint = sjcl.ecc.curves[curve].fromBits(peerSignKeyPubSerialized.point);
   var peerSignKeyPub = new sjcl.ecc.ecdsa.publicKey(peerSignKeyPubSerialized.curve, signPoint.curve, signPoint);
-
 
   var verified = false;
   var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(record.ciphertext));

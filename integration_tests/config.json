@@ -1,4 +1,6 @@
 {
+  "note": "This exists to specify the port so we can run the server without escalated privilege",
+  "port": 1025,
   "database": {
     "type": "postgres",
     "username": "crypton_test_user",
@@ -20,5 +22,18 @@
     "port": 6379,
     "pass": ""
   },
-  "port": 1025
+  "commitStatusCheckDelay": 100,
+  "commitStatusCheckLimit": 100,
+  "securityHeaders": {
+    "csrf": true,
+    "csp": {
+      "default-src": "self",
+      "script-src": "self",
+      "img-src": "self",
+      "style-src": "self",
+      "font-src": "self",
+      "object-src": "none"
+    },
+    "xframe": "SAMEORIGIN"
+  }
 }

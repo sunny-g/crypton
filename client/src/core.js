@@ -212,7 +212,7 @@ crypton.authorize = function (username, passphrase, callback) {
         options.srpSalt = res.body.srpSalt;
 
         // calculateSrpM1
-        crypton.work.calculateSrpM1(options, function (err, srpM1) {
+        crypton.work.calculateSrpM1(options, function (err, srpM1, ourSrpM2) {
           response = {
             srpM1: srpM1
           };
@@ -223,6 +223,12 @@ crypton.authorize = function (username, passphrase, callback) {
             .end(function (res) {
               if (!res.body || res.body.success !== true) {
                 callback(res.body.error);
+                return;
+              }
+
+              // TODO: Do compare in constant time
+              if (res.body.srpM2 !== ourSrpM2) {
+                callback('Server could not be verified');
                 return;
               }
 

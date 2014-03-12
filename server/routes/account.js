@@ -123,7 +123,7 @@ app.post('/account/:username/answer', function (req, res) {
       return;
     }
 
-    account.checkSrp(req.session.srpParams, srpM1, function (err) {
+    account.checkSrp(req.session.srpParams, srpM1, function (err, srpM2) {
       delete req.session.srpParams;
       if (err) {
         app.log('debug', 'SRP verification failed: ' + err);
@@ -140,7 +140,8 @@ app.post('/account/:username/answer', function (req, res) {
       res.send({
         success: true,
         account: account.toJSON(),
-        sessionIdentifier: req.sessionID
+        sessionIdentifier: req.sessionID,
+        srpM2: srpM2.toString('hex')
       });
     });
   });

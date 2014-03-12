@@ -28,7 +28,7 @@
     "colors": "0.6.x",
     "connect-redis": "~1.4.5",
     "redis": "~0.8.4",
-    "srp": "0.2.x",
+    "srp": "git+https://github.com/SpiderOak/node-srp.git",
     "cors": "~2.1.1",
     "lusca": "0.1.x"
   },

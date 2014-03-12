@@ -2,6 +2,7 @@
   "dependencies": {
     "mocha": "1.9.x",
     "chai": "1.6.x",
-    "mocha-phantomjs": "https://github.com/SpiderOak/mocha-phantomjs/tarball/ignore_ssl_errors"
+    "phantomjs": "1.9.7-1",
+    "mocha-phantomjs": "3.3.2"
   }
 }

@@ -1,7 +1,7 @@
 test: test-integration
 
 test-integration: node_modules clean-test-db setup-test-environment build-client run-server
-	@NODE_ENV=test ./node_modules/.bin/mocha-phantomjs test/index.html || true
+	@NODE_ENV=test ./node_modules/.bin/phantomjs --ignore-ssl-errors=true ./node_modules/mocha-phantomjs/lib/mocha-phantomjs.coffee test/index.html || true
 	@sudo killall node
 
 node_modules:

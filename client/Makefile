@@ -15,7 +15,7 @@ dist/crypton.js: $(SRC) node_modules
 test: test-unit
 
 test-unit: node_modules compile
-	@./node_modules/karma/bin/karma start --browsers Firefox,PhantomJS --single-run
+	@./node_modules/karma/bin/karma start --browsers PhantomJS --single-run
 
 node_modules:
 	npm install

@@ -1,6 +1,12 @@
 #!/bin/bash
 
-has_md5() {
+# cross-platform way to grab this script's directory
+pushd `dirname $0` > /dev/null
+SCRIPT_PATH=`pwd -P`
+popd > /dev/null
+UGLIFY_PATH="$SCRIPT_PATH/node_modules/uglify-js/bin/uglifyjs"
+
+has_md5 () {
   for PROG in md5 md5sum; do
     if which $PROG >/dev/null 2>&1; then
        MD5=$PROG
@@ -14,14 +20,21 @@ has_md5() {
   fi
 }
 
-has_uglify() {
-  if ! which uglifyjs >/dev/null 2>&1; then
-    echo "Uglify.js not found. Please install it (probably with npm install uglify-js)"
-    exit 1
+has_uglify () {
+  if [ ! -f $UGLIFY_PATH ]; then
+    if [ $1 ]; then
+      echo "Uglifyjs installation failed. Please install it manually."
+      exit 1
+    fi
+
+    echo "Uglifyjs not found. Attempting to install it"
+    cd $SCRIPT_PATH
+    npm install
+    has_uglify 1
   fi
 }
 
-daemon() {
+daemon () {
   chsum1=""
 
   while [[ true ]]
@@ -36,7 +49,7 @@ daemon() {
   done
 }
 
-compile() {
+compile () {
   echo "Compiling to crypton.js..."
   mkdir -p dist
   cat \
@@ -52,7 +65,7 @@ compile() {
     src/work.js \
     src/vendor/*.js \
     > dist/crypton.js
-  uglifyjs dist/crypton.js > dist/crypton.min.js
+  $UGLIFY_PATH dist/crypton.js > dist/crypton.min.js
 }
 
 case $1 in

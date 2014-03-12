@@ -1,4 +1,4 @@
-test: test-unit test-integration
+test: check-dependencies test-unit test-integration
 
 test-unit: test-unit-server test-unit-client
 
@@ -23,4 +23,7 @@ docs:
 	sed -i '' -e '1s:node:node --stack_size=4096:' $$(dirname $$(which otis))/$$(readlink $$(which otis))
 	otis .
 
-.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup-test-environment docs
+check-dependencies:
+	./check_dependencies.sh
+
+.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup-test-environment docs check-dependencies

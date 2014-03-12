@@ -56,15 +56,18 @@ if which redis-server >/dev/null; then
     echo "*** Found redis-server"
 else 
     echo ">>> Redis is not installed, `which redis-server` failed"
+    echo "Please install Redis 2.6.x or 2.8.x"
     exit 1;
 fi
 
-REDIS_VERSION=$(redis-server --version | grep -o "2.6")
+REDIS_VERSION=$(redis-server --version | grep -o -E "2.6|2.8")
 if [ "$REDIS_VERSION" = "2.6"  ]; then
     echo "*** Found redis 2.6.x"
+elif [ "$REDIS_VERSION" = "2.8"  ]; then
+    echo "*** Found redis 2.8.x"
 else 
-    echo ">>> Redis 2.6.x is required for Crypton"
-    echo "Please install Redis"
+    echo ">>> Redis 2.6.x or 2.8.x are required for Crypton"
+    echo "You have: `redis-server --version`"
     exit 1;
 fi
 echo "*******************************************************"

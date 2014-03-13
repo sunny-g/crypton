@@ -1,7 +1,7 @@
 test: test-integration
 
 test-integration: node_modules clean-test-db setup-test-environment build-client run-server
-	@NODE_ENV=test ./node_modules/.bin/mocha-phantomjs test/index.html || true
+	@NODE_ENV=test ./node_modules/.bin/mocha-phantomjs test/index.html
 	@sudo killall node
 
 node_modules:
@@ -21,4 +21,7 @@ run-server:
 	$(MAKE) -C ../server node_modules
 	NODE_ENV=test node ../server/bin/cli.js -c config.json &
 
-.PHONY: test test-integration setup-test-environment clean-test-db build-client run-server
+loop:
+	until ! make; do :; done
+
+.PHONY: test test-integration setup-test-environment clean-test-db build-client run-server loop

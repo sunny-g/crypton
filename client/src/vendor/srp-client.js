@@ -1603,6 +1603,11 @@ SRPClient.prototype = {
     var mHex = M.toString(16);
     var kHex = K.toString(16);
 
+    // can't send though paddedHash because it wants to make everything 512
+    aHex = this.nZeros(512 - aHex.length) + aHex;
+    mHex = this.nZeros(64 - mHex.length) + mHex;
+    kHex = this.nZeros(64 - kHex.length) + kHex;
+
     return this.hexHash(aHex + mHex + kHex);
 
   },
@@ -1637,7 +1642,9 @@ SRPClient.prototype = {
   },
   
   calculateK: function (S) {
-    return this.hexHash(S.toString(16));
+    var sHex = S.toString(16);
+    sHex = this.nZeros(512 - sHex.length) + sHex;
+    return this.hexHash(sHex);
   },
   
   /*

@@ -57,7 +57,7 @@ var Session = crypton.Session = function (id) {
       var container = that.containers[i];
       var temporaryHmac = container.containerNameHmac || container.getPublicName();
 
-      if (temporaryHmac == containerNameHmac) {
+      if (crypton.constEqual(temporaryHmac, containerNameHmac)) {
         container.sync(function (err) {
           if (container._listener) {
             container._listener();
@@ -85,7 +85,7 @@ var Session = crypton.Session = function (id) {
 Session.prototype.load = function (containerName, callback) {
   // check for a locally stored container
   for (var i in this.containers) {
-    if (this.containers[i].name == containerName) {
+    if (crypton.constEqual(this.containers[i].name, containerName)) {
       callback(null, this.containers[i]);
       return;
     }
@@ -119,7 +119,7 @@ Session.prototype.load = function (containerName, callback) {
 Session.prototype.loadWithHmac = function (containerNameHmac, peer, callback) {
   // check for a locally stored container
   for (var i in this.containers) {
-    if (this.containers[i].nameHmac == containerNameHmac) {
+    if (crypton.constEqual(this.containers[i].nameHmac, containerNameHmac)) {
       callback(null, this.containers[i]);
       return;
     }
@@ -152,7 +152,7 @@ Session.prototype.loadWithHmac = function (containerNameHmac, peer, callback) {
  */
 Session.prototype.create = function (containerName, callback) {
   for (var i in this.containers) {
-    if (this.containers[i].name == containerName) {
+    if (crypton.constEqual(this.containers[i].name, containerName)) {
       callback('Container already exists');
       return;
     }

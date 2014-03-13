@@ -83,6 +83,33 @@ function randomBytes (nbytes) {
 crypton.randomBytes = randomBytes;
 
 /**!
+ * ### constEqual()
+ * Compare two strings in constant time.
+ *
+ * @param {String} str1
+ * @param {String} str2
+ */
+function constEqual (str1, str2) {
+  // We only support string comparison, we could support Arrays but
+  // they would need to be single char elements or compare multichar
+  // elements constantly. Going for simplicity for now.
+  // TODO: Consider this ^
+  if (typeof str1 !== 'string' || typeof str2 !== 'string') {
+    return false;
+  }
+
+  var mismatch = str1.length ^ str2.length;
+  var len = Math.min(str1.length, str2.length);
+
+  for (var i = 0; i < len; i++) {
+    mismatch |= str1[i] ^ str2[i];
+  }
+
+  return mismatch === 0;
+}
+crypton.constEqual = constEqual;
+
+/**!
  * ### randomBits()
  * Generate `nbits` bits of random data
  *
@@ -226,8 +253,7 @@ crypton.authorize = function (username, passphrase, callback) {
                 return;
               }
 
-              // TODO: Do compare in constant time
-              if (res.body.srpM2 !== ourSrpM2) {
+              if (!constEqual(res.body.srpM2, ourSrpM2)) {
                 callback('Server could not be verified');
                 return;
               }

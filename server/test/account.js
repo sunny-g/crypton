@@ -168,8 +168,10 @@ describe('Account model', function () {
         // We've now generated our B value and sent it back to the client. They
         // give us back an M1 verification message.
         var srpM1 = '14824a6b7e6d68399db75e9d4c48079587607a425033c574592c002a9f3ba7ff';
-        account.checkSrp(srpParams, srpM1, function (err) {
+        account.checkSrp(srpParams, srpM1, function (err, srpM2) {
           if (err) throw err;
+          assert.equal(srpM2.toString('hex'),
+                       '646921a2c9b45a53b913eadae3a79212158607079bac7c1caff9691805866057');
           done();
         });
       });
@@ -185,8 +187,9 @@ describe('Account model', function () {
 
       account.beginSrp(srpA, function (err, srpParams) {
         var srpM1 = 'f6861abf8e5fa421266b04b281a4093de2b4951b86202ab37b7348edc1c30ee0';
-        account.checkSrp(srpParams, srpM1, function (err) {
+        account.checkSrp(srpParams, srpM1, function (err, srpM2) {
           assert.equal(err, 'Incorrect password');
+          assert.equal(srpM2, undefined);
           done();
         });
       });

@@ -165,7 +165,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
   srpServer.setA(srpA);
 
   try {
-    srpServer.checkM1(new Buffer(srpM1, 'hex'));
+    var srpM2 = srpServer.checkM1(new Buffer(srpM1, 'hex'));
   } catch(e) {
     callback('Incorrect password');
     app.log('debug', 'SRP verification error: ' + e.toString());
@@ -173,7 +173,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
   }
   // Don't need this right now. Maybe later?
   //var srpK = srpServer.computeK();
-  callback(null);
+  callback(null, srpM2);
 }
 
 /**!

@@ -95,11 +95,15 @@ work.calculateSrpM1 = function (options, callback) {
 
     var srpu = srp.calculateU(srpA, srpB);
     var srpS = srp.calculateS(srpB, options.srpSalt, srpu, a);
-    var srpM1 = srp.calculateMozillaM1(srpA, srpB, srpS).toString(16);
+    var rawSrpM1 = srp.calculateMozillaM1(srpA, srpB, srpS);
+    var srpM1 = rawSrpM1.toString(16);
     // Pad srpM1 to the full SHA-256 length
     srpM1 = srp.nZeros(64 - srpM1.length) + srpM1;
 
-    callback(null, srpM1);
+    var srpK = srp.calculateK(srpS);
+    var srpM2 = srp.calculateMozillaM2(srpA, rawSrpM1, srpK).toString(16);
+
+    callback(null, srpM1, srpM2);
   } catch (e) {
     console.log(e);
     callback(e);

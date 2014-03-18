@@ -1,28 +1,40 @@
 test: test-integration
 
-test-integration: node_modules clean-test-db setup-test-environment build-client run-server
-	@NODE_ENV=test ./node_modules/.bin/phantomjs --ignore-ssl-errors=true ./node_modules/mocha-phantomjs/lib/mocha-phantomjs.coffee test/index.html
+test-integration: node_modules kill-server reset build-client run-server
+	@./node_modules/phantomjs/bin/phantomjs --ignore-ssl-errors=true ./node_modules/mocha-phantomjs/lib/mocha-phantomjs.coffee test/index.html; SUCCESS=$$?; \
+	$(MAKE) kill-server; \
+	exit $$SUCCESS
 
 node_modules:
-	$(MAKE) -C ../server node_modules
-	npm install
+	@$(MAKE) -C ../server node_modules
+	@echo "Installing node modules for integration tests..."
+	@npm install &> /dev/null
 
 setup-test-environment:
-	./bin/setup_test_environment.sh
+	@echo "Setting up test database..."
+	@./bin/setup_test_environment.sh
 
 clean-test-db:
-	-sudo -u postgres dropdb crypton_test
+	@echo "Cleaning test database..."
+	-@sudo -u postgres dropdb crypton_test
+
+reset: clean-test-db setup-test-environment
 
 build-client:
-	$(MAKE) -C ../client compile
+	@$(MAKE) -C ../client compile
 
 run-server:
-	@echo "Killing any existing Crypton servers..."
-	sudo killall node || true
-	$(MAKE) -C ../server node_modules
-	NODE_ENV=test node ../server/bin/cli.js -c config.json &
+	@echo "Starting Crypton backend..."
+	@node ../server/bin/cli.js -c config.json > /dev/null & echo "$$!" > server.pid
+
+kill-server:
+	@echo "Killing Crypton backend..."
+	@if [ ! -f "server.pid" ]; then echo "Could not find server.pid, ignoring..."; else \
+	(kill -9 `cat server.pid` > /dev/null 2>&1 || echo "Invalid PID in server.pid, deleting..."); \
+	rm server.pid; fi
 
 loop:
-	until ! make; do :; done
+	@echo "Looping integration tests until failure..."
+	@until ! make; do :; done
 
-.PHONY: test test-integration setup-test-environment clean-test-db build-client run-server loop
+.PHONY: test test-integration node_modules setup-test-environment clean-test-db reset build-client run-server kill-server loop

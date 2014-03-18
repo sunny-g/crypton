@@ -6,23 +6,22 @@ SRC = src/core.js src/account.js src/session.js src/container.js \
 	src/diff.js src/vendor/*.js
 
 compile:
-	./compile.sh --once
-
-dist/crypton.js: $(SRC) node_modules
-	@mkdir -p dist
-	cat $(SRC) > dist/crypton.js
+	@./compile.sh --once
 
 test: test-unit
 
 KARMA_PATH= `[ "$$TRAVIS" = true ] && echo "./node_modules/.bin/karma" || echo "./node_modules/karma/bin/karma"`
 test-unit: node_modules compile
+	@echo "Running client tests..."
 	@echo ${KARMA_PATH}
 	@${KARMA_PATH} start --browsers PhantomJS --single-run
 
 node_modules:
-	npm install
+	@echo "Installing node modules for client testing..."
+	@npm install &> /dev/null
 
 clean:
-	-rm -rf dist
+	@echo "Removing client compiled code..."
+	-@rm -rf dist
 
-.PHONY: test test-unit clean
+.PHONY: compile test test-unit node_modules clean

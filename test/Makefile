@@ -26,7 +26,7 @@ build-client:
 
 run-server:
 	@echo "Starting Crypton backend..."
-	@sudo ../server/bin/cli.js & # echo "$$!" > server.pid && cat server.pid
+	@sudo `which node` ../server/bin/cli.js & # echo "$$!" > server.pid && cat server.pid
 
 kill-server:
 	@echo "Killing Crypton backend..."

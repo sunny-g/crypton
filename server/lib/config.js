@@ -25,8 +25,6 @@ var app = require('../app');
 var configFile;
 var env = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase();
 
-app.log('info', 'loading config');
-
 /**!
  * Attempt to load a provided `config.json` file, falling back to the example file
  */
@@ -37,7 +35,6 @@ if (process.configFile) {
   configFile = __dirname + '/../config/config.test.json';
 } else {
   configFile = __dirname + '/../config/config.test.json';
-  app.log('info', 'config file not specified, using example');
 }
 
 try {

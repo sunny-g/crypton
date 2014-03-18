@@ -11,7 +11,7 @@ compile:
 test: test-unit
 
 KARMA_PATH= `[ "$$TRAVIS" = true ] && echo "./node_modules/.bin/karma" || echo "./node_modules/karma/bin/karma"`
-test-unit: node_modules compile
+test-unit: node_modules clean compile
 	@echo "Running client tests..."
 	@echo ${KARMA_PATH}
 	@${KARMA_PATH} start --browsers PhantomJS --single-run

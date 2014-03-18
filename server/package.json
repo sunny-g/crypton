@@ -29,6 +29,7 @@
     "connect-redis": "~1.4.5",
     "redis": "~0.8.4",
     "srp": "git+https://github.com/SpiderOak/node-srp.git",
+    "validator": "3.5.x",
     "cors": "~2.1.1",
     "lusca": "0.1.x"
   },

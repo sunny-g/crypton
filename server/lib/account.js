@@ -22,6 +22,7 @@ var app = require('../app');
 var db = app.datastore;
 var bcrypt = require('bcrypt');
 var srp = require('srp');
+var validator = require('validator');
 
 /**!
  * # Account()
@@ -39,7 +40,7 @@ var Account = module.exports = function Account () {};
  * Adds data to account object and calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} username
  * @param {Function} callback
  */
@@ -66,7 +67,7 @@ Account.prototype.get = function (username, callback) {
  * Adds data to account object and calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Number} id
  * @param {Function} callback
  */
@@ -179,7 +180,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
 /**!
  * ### update(key, value)
  * Update one or a set of keys in the parent account object
- * 
+ *
  * @param {String} key
  * @param {Object} value
  *
@@ -205,7 +206,7 @@ Account.prototype.update = function () {
 /**!
  * ### toJSON()
  * Dump non-function values of account object into an object
- * 
+ *
  * @return {Object} account
  */
 Account.prototype.toJSON = function () {
@@ -227,11 +228,24 @@ Account.prototype.toJSON = function () {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
+  if (!this.username) {
+    callback("undefined"  + " is not a valid username");
+    return;
+  }
+  // TODO: additional validation on any other account properties that need validation
+  if (this.username.length > 32) {
+    callback(this.username + " is not a valid username: exceeds 32 charcters!");
+    return;
+  }
+  if (!validator.isAlphanumeric(this.username)) {
+    callback(this.username + " is not a valid username: not alphanumeric!");
+    return;
+  }
   db.saveAccount(this.toJSON(), callback);
 };
 
@@ -242,7 +256,7 @@ Account.prototype.save = function (callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Object} options
  * @param {Function} callback
  */
@@ -279,4 +293,3 @@ Account.prototype.sendMessage = function (options, callback) {
     callback(null, messageId);
   });
 };
-

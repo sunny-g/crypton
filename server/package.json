@@ -30,7 +30,7 @@
     "redis": "~0.8.4",
     "srp": "git+https://github.com/SpiderOak/node-srp.git",
     "cors": "~2.1.1",
-    "lusca": "0.1.x"
+    "lusca": "1.0.x"
   },
   "devDependencies": {
     "mocha": "1.8.x",

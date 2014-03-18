@@ -20,6 +20,6 @@ module.exports = {
     'client/test',
     'client/dist',
     'client/src/vendor',
-    'integration_tests'
+    'test'
   ].join(',')
 };

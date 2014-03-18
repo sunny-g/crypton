@@ -11,16 +11,16 @@ test-unit-client:
 	@$(MAKE) -C client test
 
 test-integration:
-	@$(MAKE) -C integration_tests test
+	@$(MAKE) -C test test
 
 full: nuke test
 
 clean:
 	@$(MAKE) -C client clean
-	@$(MAKE) -C integration_tests clean-test-db
+	@$(MAKE) -C test clean-test-db
 
 setup:
-	@$(MAKE) -C integration_tests setup-test-environment
+	@$(MAKE) -C test setup-test-environment
 
 reset: clean setup
 
@@ -38,6 +38,6 @@ nuke:
 	@echo "Deleting all node modules..."
 	-@rm -rf server/node_modules
 	-@rm -rf client/node_modules
-	-@rm -rf integration_tests/node_modules
+	-@rm -rf test/node_modules
 
 .PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup reset docs check nuke

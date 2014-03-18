@@ -26,12 +26,12 @@ build-client:
 
 run-server:
 	@echo "Starting Crypton backend..."
-	@node ../server/bin/cli.js -c config.json > /dev/null & echo "$$!" > server.pid
+	@sudo node ../server/bin/cli.js & echo "$$!" > server.pid
 
 kill-server:
 	@echo "Killing Crypton backend..."
 	@if [ ! -f "server.pid" ]; then echo "Could not find server.pid, ignoring..."; else \
-	(kill -9 `cat server.pid` > /dev/null 2>&1 || echo "Invalid PID in server.pid, deleting..."); \
+	(sudo kill -9 `cat server.pid` > /dev/null 2>&1 || echo "Invalid PID in server.pid, deleting..."); \
 	rm server.pid; fi
 
 loop:

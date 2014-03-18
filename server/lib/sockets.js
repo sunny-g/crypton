@@ -26,6 +26,7 @@ var connect = require('connect');
 app.log('info', 'starting socket.io');
 
 app.io = io.listen(app.server);
+app.io.set('log level', 1); // TODO make this configurable
 app.clients = {};
 
 /**!

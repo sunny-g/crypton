@@ -22,17 +22,14 @@ var fs = require('fs');
 var path = require('path');
 var app = require('../app');
 
-var configFile;
-var env = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase();
-
 /**!
  * Attempt to load a provided `config.json` file, falling back to the example file
  */
 
+var configFile;
+
 if (process.configFile) {
   configFile = path.resolve(process.env.PWD, process.configFile);
-} else if (env === 'test') {
-  configFile = __dirname + '/../config/config.test.json';
 } else {
   configFile = __dirname + '/../config/config.test.json';
 }

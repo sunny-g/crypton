@@ -9,7 +9,7 @@ test-integration: node_modules kill-server reset build-client run-server
 node_modules:
 	@$(MAKE) -C ../server node_modules
 	@echo "Installing node modules for integration tests..."
-	@npm install &> /dev/null
+	@npm install
 
 setup-test-environment:
 	@echo "Setting up test database..."

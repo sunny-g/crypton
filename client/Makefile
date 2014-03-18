@@ -18,7 +18,7 @@ test-unit: node_modules clean compile
 
 node_modules:
 	@echo "Installing node modules for client testing..."
-	@npm install &> /dev/null
+	@npm install
 
 clean:
 	@echo "Removing client compiled code..."

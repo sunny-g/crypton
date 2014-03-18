@@ -50,7 +50,7 @@ daemon () {
 }
 
 compile () {
-  echo "Compiling to crypton.js..."
+  echo "Compiling client code to crypton.js..."
   mkdir -p dist
   cat \
     src/core.js \

@@ -24,11 +24,18 @@ setup:
 
 reset: clean setup
 
-docs:
-	@echo "Generating documentation..."
-	@npm install -g otis jade
+doc:
+	@echo "Installing documentation generator dependencies..."
+	@pip install pygments &> /dev/null
+	@echo "Installing node modules for documentation..."
+	@npm uninstall -g otis jade@0.x &> /dev/null
+	@npm install -g otis jade@0.x http-server &> /dev/null
+	@echo "Applying hack to documentation generator..."
 	@sed -i '' -e '1s:node:node --stack_size=4096:' $$(dirname $$(which otis))/$$(readlink $$(which otis))
+	@echo "Generating documentation..."
 	@otis .
+	@echo "Opening documentation..."
+	@open doc/index.html
 
 check:
 	@echo "Checking dependencies..."
@@ -40,4 +47,4 @@ nuke:
 	-@rm -rf client/node_modules
 	-@rm -rf test/node_modules
 
-.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup reset docs check nuke
+.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup reset doc check nuke

@@ -47,4 +47,8 @@ nuke:
 	-@rm -rf client/node_modules
 	-@rm -rf test/node_modules
 
+loop: nuke
+	@echo "Looping all tests until failure..."
+	@until ! make; do :; done
+
 .PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup reset doc check nuke

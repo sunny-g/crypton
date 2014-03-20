@@ -138,17 +138,17 @@ describe('Core', function () {
       assert(!crypton.constEqual('differentsomestring', 'somestring'));
     });
 
-    it('should return false for undefined', function() {
+    it('should return false for undefined', function () {
       assert(!crypton.constEqual('somestring', undefined));
     });
 
-    it('should return false for int', function() {
+    it('should return false for int', function () {
       assert(!crypton.constEqual('somestring', 42));
     });
 
-    it('should return false for array', function() {
+    it('should return false for array', function () {
       var testArray = [ 4, 2 ];
-      assert(!crypton.constEqual('somestring', test_array));
+      assert(!crypton.constEqual('somestring', testArray));
     });
   });
 

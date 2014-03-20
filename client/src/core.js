@@ -65,19 +65,31 @@ crypton.url = function () {
 };
 
 /**!
- * ### randomBytes()
+ * ### randomBytes(nbytes)
  * Generate `nbytes` bytes of random data
  *
- * @param {Number} nbytes (default 32)
+ * @param {Number} nbytes
+ * @return {Array} bitArray
  */
 function randomBytes (nbytes) {
-  var nwords = 8; // default 32 bytes, 256 bits
-
-  // sjcl's words are 4 bytes (32 bits)
-  if (nbytes) {
-    nwords = nbytes / 4;
+  if (!nbytes) {
+    throw new Error('randomBytes requires input');
   }
 
+  if (parseInt(nbytes, 10) !== nbytes) {
+    throw new Error('randomBytes requires integer input');
+  }
+
+  if (nbytes < 4) {
+    throw new Error('randomBytes cannot return less than 4 bytes');
+  }
+
+  if (nbytes % 4 !== 0) {
+    throw new Error('randomBytes requires input as multiple of 4');
+  }
+
+  // sjcl's words are 4 bytes (32 bits)
+  var nwords = nbytes / 4;
   return sjcl.random.randomWords(nwords);
 }
 crypton.randomBytes = randomBytes;
@@ -110,21 +122,32 @@ function constEqual (str1, str2) {
 crypton.constEqual = constEqual;
 
 /**!
- * ### randomBits()
+ * ### randomBits(nbits)
  * Generate `nbits` bits of random data
  *
- * @param {Number} nbits (default 256)
+ * @param {Number} nbits
+ * @return {Array} bitArray
  */
 crypton.randomBits = function (nbits) {
-  var nbytes = 32; // default 32 bytes, 256 bits
-
-  // sjcl's words are 4 bytes (32 bits)
-  if (nbits) {
-    nbytes = nbits / 8;
+  if (!nbits) {
+    throw new Error('randomBits requires input');
   }
 
+  if (parseInt(nbits, 10) !== nbits) {
+    throw new Error('randomBits requires integer input');
+  }
+
+  if (nbits < 32) {
+    throw new Error('randomBits cannot return less than 32 bits');
+  }
+
+  if (nbits % 32 !== 0) {
+    throw new Error('randomBits requires input as multiple of 32');
+  }
+
+  var nbytes = nbits / 8;
   return crypton.randomBytes(nbytes);
-}
+};
 
 /**!
  * ### generateAccount(username, passphrase, callback, options)

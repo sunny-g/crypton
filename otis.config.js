@@ -19,7 +19,9 @@ module.exports = {
     'server/test',
     'client/test',
     'client/dist',
+    'client/examples',
     'client/src/vendor',
-    'integration_tests'
+    'test',
+    'ansible'
   ].join(',')
 };

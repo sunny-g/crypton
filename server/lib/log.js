@@ -19,9 +19,8 @@
 'use strict';
 
 var colors = require('colors');
+var config = require('./config');
 
-var maxLevel;
-var env = process.env.NODE_ENV;
 var possibleLevels = [
   'error',
   'warn',
@@ -30,18 +29,7 @@ var possibleLevels = [
   'trace'
 ];
 
-switch (env) {
-  case 'test':
-    maxLevel = 'trace';
-    break;
-  case 'production':
-    maxLevel = 'info';
-    break;
-  default:
-    maxLevel = 'debug';
-    break;
-}
-
+var maxLevel = config.logLevel || 'error';
 var maxIndex = possibleLevels.indexOf(maxLevel);
 
 /**!
@@ -64,4 +52,4 @@ module.exports = function log (level, message) {
     var initial = '[' + level + ']';
     console.log(initial.blue + ' ' + message);
   }
-}
+};

@@ -1,29 +1,54 @@
-test: check-dependencies test-unit test-integration
+all: test
+
+test: check test-unit test-integration
 
 test-unit: test-unit-server test-unit-client
 
 test-unit-server:
-	$(MAKE) -C server test
+	@$(MAKE) -C server -s test
 
 test-unit-client:
-	$(MAKE) -C client test
+	@$(MAKE) -C client -s test
 
 test-integration:
-	$(MAKE) -C integration_tests test
+	@$(MAKE) -C test -s test
+
+full: nuke test
 
 clean:
-	$(MAKE) -C client clean
-	$(MAKE) -C integration_tests clean-test-db
+	@$(MAKE) -C client -s clean
+	@$(MAKE) -C test -s clean-test-db
 
-setup-test-environment:
-	$(MAKE) -C integration_tests setup-test-environment
+setup:
+	@$(MAKE) -C test -s setup-test-environment
 
-docs:
-	npm install -g otis jade
-	sed -i '' -e '1s:node:node --stack_size=4096:' $$(dirname $$(which otis))/$$(readlink $$(which otis))
-	otis .
+reset: clean setup
 
-check-dependencies:
-	./check_dependencies.sh
+doc:
+	@echo "Installing documentation generator dependencies..."
+	@pip install pygments &> /dev/null
+	@echo "Installing node modules for documentation..."
+	@npm uninstall -g otis jade@0.x &> /dev/null
+	@npm install -g otis jade@0.x http-server &> /dev/null
+	@echo "Applying hack to documentation generator..."
+	@sed -i '' -e '1s:node:node --stack_size=4096:' $$(dirname $$(which otis))/$$(readlink $$(which otis))
+	@echo "Generating documentation..."
+	@otis .
+	@echo "Opening documentation..."
+	@open doc/index.html
 
-.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup-test-environment docs check-dependencies
+check:
+	@echo "Checking dependencies..."
+	@./check_dependencies.sh
+
+nuke:
+	@echo "Deleting all node modules..."
+	-@rm -rf server/node_modules
+	-@rm -rf client/node_modules
+	-@rm -rf test/node_modules
+
+loop: nuke
+	@echo "Looping all tests until failure..."
+	@until ! make; do :; done
+
+.PHONY: test test-unit test-unit-server test-unit-client test-integration clean setup reset doc check nuke

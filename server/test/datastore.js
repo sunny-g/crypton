@@ -20,8 +20,6 @@
 /*jslint expr: true*/
 
 require('should');
-var util = require("util");
-util.log("database tests");
 
 var db = require("../lib/storage");
 

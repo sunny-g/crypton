@@ -39,7 +39,7 @@ var Account = module.exports = function Account () {};
  * Adds data to account object and calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} username
  * @param {Function} callback
  */
@@ -66,7 +66,7 @@ Account.prototype.get = function (username, callback) {
  * Adds data to account object and calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Number} id
  * @param {Function} callback
  */
@@ -105,13 +105,23 @@ Account.prototype.beginSrp = function(srpA, callback) {
   }
 
   var that = this;
-  srp.genKey(function(err, srpb) {
-    if (err) {
-      callback(err);
-      return;
-    }
-    that.continueSrp(srpA, srpb, callback);
-  })
+  try {
+    // srp.genKey can throw if the callback is missing or
+    // inside crypto.randombytes, which it calls, or inside
+    // continueSRP. See issue #185
+    srp.genKey(function(err, srpb) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      that.continueSrp(srpA, srpb, callback);
+    });
+  } catch (e) {
+    var error = 'Cannot generate srpB value or continueSrp failed';
+    app.log('error', error);
+    app.log('error', e);
+    callback(error);
+  }
 };
 
 /**!
@@ -179,7 +189,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
 /**!
  * ### update(key, value)
  * Update one or a set of keys in the parent account object
- * 
+ *
  * @param {String} key
  * @param {Object} value
  *
@@ -205,7 +215,7 @@ Account.prototype.update = function () {
 /**!
  * ### toJSON()
  * Dump non-function values of account object into an object
- * 
+ *
  * @return {Object} account
  */
 Account.prototype.toJSON = function () {
@@ -227,7 +237,7 @@ Account.prototype.toJSON = function () {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Account.prototype.save = function (callback) {
@@ -242,7 +252,7 @@ Account.prototype.save = function (callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Object} options
  * @param {Function} callback
  */
@@ -279,4 +289,3 @@ Account.prototype.sendMessage = function (options, callback) {
     callback(null, messageId);
   });
 };
-

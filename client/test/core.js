@@ -57,6 +57,35 @@ describe('Core', function () {
     });
   });
 
+  describe('constEqual()', function () {
+    it('should return true to same string', function () {
+      assert(crypton.constEqual('somestring', 'somestring'));
+    });
+
+    it('should return false to same prefix but different length strings', function () {
+      assert(!crypton.constEqual('somestring', 'somestringdifferent'));
+    });
+
+    it('should return false to same postfix but different length strings', function () {
+      assert(!crypton.constEqual('differentsomestring', 'somestring'));
+    });
+
+    it('should return false for undefined', function() {
+      assert(!crypton.constEqual('somestring', undefined));
+    });
+
+    it('should return false for int', function() {
+      assert(!crypton.constEqual('somestring', 42));
+    });
+
+    it('should return false for array', function() {
+      var test_array = new Array();
+      test_array[0] = "4";
+      test_array[1] = "2";
+      assert(!crypton.constEqual('somestring', test_array));
+    });
+  });
+
   describe('generateAccount()', function () {
     var err;
     var user;

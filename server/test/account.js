@@ -66,7 +66,7 @@ describe('Account model', function () {
       account.update(requestedAccount);
 
       account.save(function (err) {
-        assert(err == "Username is not valid: it is not alphanumeric!");
+        assert(err == 'Username is not valid: it is not alphanumeric!');
         done();
       });
     });
@@ -91,7 +91,7 @@ describe('Account model', function () {
       account.update(requestedAccount);
 
       account.save(function (err) {
-        assert(err == "Username is not valid: exceeds 32 charcters!");
+        assert(err == 'Username is not valid: exceeds 32 charcters!');
         done();
       });
     });
@@ -100,7 +100,7 @@ describe('Account model', function () {
       var account = new Account();
 
       account.save(function (err) {
-        assert(err == "'undefined' is not a valid username");
+        assert(err == '"undefined" is not a valid username');
         done();
       });
     });

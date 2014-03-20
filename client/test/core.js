@@ -147,9 +147,7 @@ describe('Core', function () {
     });
 
     it('should return false for array', function() {
-      var test_array = new Array();
-      test_array[0] = "4";
-      test_array[1] = "2";
+      var testArray = [ 4, 2 ];
       assert(!crypton.constEqual('somestring', test_array));
     });
   });

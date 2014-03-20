@@ -45,9 +45,13 @@ app.secret = util.readFileSync(
   app.config.defaultKeySize
 );
 
-app.use(express.limit('20mb'));
-app.use(express.bodyParser());
-app.use(express.cookieParser());
+app.use(connect.urlencoded());
+app.use(connect.cookieParser());
+
+app.use(connect.json({
+  limit: '20mb'
+}));
+
 app.use(cors({
   credentials: true,
   origin: function (origin, callback) {

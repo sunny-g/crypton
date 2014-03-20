@@ -66,7 +66,20 @@ describe('Core', function () {
       assert.equal(err, 'randomBytes cannot return less than 4 bytes');
     });
 
-    it('should throw when given non-integer input', function () {
+    it('should throw when given non-numeric input', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBytes('bitcoins');
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBytes requires integer input');
+    });
+
+
+    it('should throw when given numeric but non-integer input', function () {
       var err = null;
 
       try {
@@ -78,23 +91,105 @@ describe('Core', function () {
       assert.equal(err, 'randomBytes requires integer input');
     });
 
-    it('should return an array', function () {
-      var random = crypton.randomBytes(4);
-      assert(Array.isArray());
+    it('should throw when given integer input of multiple other than 4', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBytes(15);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBytes requires input as multiple of 4');
     });
 
-    it('should return the appropriate number of words', function () {
+    it('should return an array', function () {
+      var random = crypton.randomBytes(4);
+      assert(Array.isArray(random));
+    });
+
+    it('should return the appropriate number of words for small nbytes', function () {
       var random = crypton.randomBytes(4);
       assert.equal(random.length, 1);
     });
 
-    it('should return the appropriate number of words', function () {
+    it('should return the appropriate number of words for larger nbytes', function () {
       var random = crypton.randomBytes(32);
       assert.equal(random.length, 8); // 32 / 4
+    });
+
+    it('should return different values on distict calls', function () {
+      var random = crypton.randomBytes(4);
+      var random2 = crypton.randomBytes(4);
+      assert.notEqual(random[0], random2[0]);
     });
   });
 
   describe('randomBits()', function () {
+    it('should throw when given no input', function () {
+      assert.throw(crypton.randomBits, 'randomBits requires input');
+    });
+
+    it('should throw when given input < 32', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBits(31);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBits cannot return less than 32 bits');
+    });
+
+    it('should throw when given non-numeric input', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBits('litecoin');
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBits requires integer input');
+    });
+
+
+    it('should throw when given numeric but non-integer input', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBits(36.5);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBytes requires integer input');
+    });
+
+    it('should throw when given integer input of multiple other than 32', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBits(43);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBits requires input as multiple of 32');
+    });
+
+    it('should return the appropriate number of words for small nbits', function () {
+      var random = crypton.randomBits(32);
+      assert.equal(random.length, 1); // 4 bytes * 8 bits * 1 word = 32 bits
+    });
+
+    it('should return the appropriate number of words for larger nbits', function () {
+      var random = crypton.randomBits(256);
+      assert.equal(random.length, 8); // 4 bytes * 8 bits * 8 words = 256 bits
+    });
+
+    // any further tests would just be repeats of randomBytes tests
   });
 
 

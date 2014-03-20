@@ -48,14 +48,55 @@ describe('Core', function () {
   });
 
   describe('randomBytes()', function () {
-    it('should return a random array', function () {
-      var random = crypton.randomBytes();
-      //assert(random.length > 0);
-      //dump(random);
-      // TODO testing speed presents a race condition with entropy generator
-      // how can we manually seed this?
+    it('should throw when given no input', function () {
+      assert.throw(crypton.randomBytes, 'randomBytes requires input');
+    });
+
+    // the output of this function is an array of SJCL "words"
+    // being 4 bytes each. the minimum outpt length is 1 word.
+    it('should throw when given input < 4', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBytes(3);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBytes cannot return less than 4 bytes');
+    });
+
+    it('should throw when given non-integer input', function () {
+      var err = null;
+
+      try {
+        var random = crypton.randomBytes(4.5);
+      } catch (e) {
+        err = e;
+      }
+
+      assert.equal(err, 'randomBytes requires integer input');
+    });
+
+    it('should return an array', function () {
+      var random = crypton.randomBytes(4);
+      assert(Array.isArray());
+    });
+
+    it('should return the appropriate number of words', function () {
+      var random = crypton.randomBytes(4);
+      assert.equal(random.length, 1);
+    });
+
+    it('should return the appropriate number of words', function () {
+      var random = crypton.randomBytes(32);
+      assert.equal(random.length, 8); // 32 / 4
     });
   });
+
+  describe('randomBits()', function () {
+  });
+
 
   describe('generateAccount()', function () {
     var err;
@@ -76,7 +117,7 @@ describe('Core', function () {
     });
 
     it('should generate the correct data', function (done) {
-      assert(err == null);
+      assert(err === null);
       assert(user !== undefined);
 
       var fields = [

@@ -5,22 +5,22 @@ test: check test-unit test-integration
 test-unit: test-unit-server test-unit-client
 
 test-unit-server:
-	@$(MAKE) -C server test
+	@$(MAKE) -C server -s test
 
 test-unit-client:
-	@$(MAKE) -C client test
+	@$(MAKE) -C client -s test
 
 test-integration:
-	@$(MAKE) -C test test
+	@$(MAKE) -C test -s test
 
 full: nuke test
 
 clean:
-	@$(MAKE) -C client clean
-	@$(MAKE) -C test clean-test-db
+	@$(MAKE) -C client -s clean
+	@$(MAKE) -C test -s clean-test-db
 
 setup:
-	@$(MAKE) -C test setup-test-environment
+	@$(MAKE) -C test -s setup-test-environment
 
 reset: clean setup
 

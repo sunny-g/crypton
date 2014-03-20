@@ -63,7 +63,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBytes cannot return less than 4 bytes');
+      assert.equal(err.message, 'randomBytes cannot return less than 4 bytes');
     });
 
     it('should throw when given non-numeric input', function () {
@@ -75,7 +75,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBytes requires integer input');
+      assert.equal(err.message, 'randomBytes requires integer input');
     });
 
 
@@ -88,7 +88,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBytes requires integer input');
+      assert.equal(err.message, 'randomBytes requires integer input');
     });
 
     it('should throw when given integer input of multiple other than 4', function () {
@@ -100,7 +100,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBytes requires input as multiple of 4');
+      assert.equal(err.message, 'randomBytes requires input as multiple of 4');
     });
 
     it('should return an array', function () {
@@ -139,7 +139,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBits cannot return less than 32 bits');
+      assert.equal(err.message, 'randomBits cannot return less than 32 bits');
     });
 
     it('should throw when given non-numeric input', function () {
@@ -151,7 +151,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBits requires integer input');
+      assert.equal(err.message, 'randomBits requires integer input');
     });
 
 
@@ -164,7 +164,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBytes requires integer input');
+      assert.equal(err.message, 'randomBytes requires integer input');
     });
 
     it('should throw when given integer input of multiple other than 32', function () {
@@ -176,7 +176,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err, 'randomBits requires input as multiple of 32');
+      assert.equal(err.message, 'randomBits requires input as multiple of 32');
     });
 
     it('should return the appropriate number of words for small nbits', function () {

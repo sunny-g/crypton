@@ -234,16 +234,16 @@ Account.prototype.toJSON = function () {
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
   if (!this.username) {
-    callback("undefined"  + " is not a valid username");
+    callback("'undefined' is not a valid username");
     return;
   }
   // TODO: additional validation on any other account properties that need validation
   if (this.username.length > 32) {
-    callback(this.username + " is not a valid username: exceeds 32 charcters!");
+    callback("Username is not valid: exceeds 32 charcters!");
     return;
   }
   if (!validator.isAlphanumeric(this.username)) {
-    callback(this.username + " is not a valid username: not alphanumeric!");
+    callback("Username is not valid: it is not alphanumeric!");
     return;
   }
   db.saveAccount(this.toJSON(), callback);

@@ -234,7 +234,7 @@ Account.prototype.toJSON = function () {
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
   if (!this.username) {
-    callback("'undefined' is not a valid username");
+    callback("undefined is not a valid username");
     return;
   }
   // TODO: additional validation on any other account properties that need validation

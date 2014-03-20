@@ -100,7 +100,7 @@ describe('Account model', function () {
       var account = new Account();
 
       account.save(function (err) {
-        assert(err == '"undefined" is not a valid username');
+        assert(err == 'undefined is not a valid username');
         done();
       });
     });

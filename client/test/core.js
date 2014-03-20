@@ -164,7 +164,7 @@ describe('Core', function () {
         err = e;
       }
 
-      assert.equal(err.message, 'randomBytes requires integer input');
+      assert.equal(err.message, 'randomBits requires integer input');
     });
 
     it('should throw when given integer input of multiple other than 32', function () {

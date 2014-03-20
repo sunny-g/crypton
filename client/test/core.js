@@ -118,7 +118,7 @@ describe('Core', function () {
       assert.equal(random.length, 8); // 32 / 4
     });
 
-    it('should return different values on distict calls', function () {
+    it('should return different values on distinct calls', function () {
       var random = crypton.randomBytes(4);
       var random2 = crypton.randomBytes(4);
       assert.notEqual(random[0], random2[0]);

@@ -8,6 +8,11 @@ server {
 server {
     listen {{ ansible_default_ipv4.address }}:443;
     server_name server.{{ crypton_server_domain }};
+    add_header Strict-Transport-Security 'max-age=8640000';
+    add_header X-Frame-Options 'SAMEORIGIN';
+    add-header Content-Security-Policy "default-src 'self'; connect-src wss://localhost localhost; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; object-src 'self'";
+    Cache-Control 'no-cache';
+    server_tokens off;
     access_log /var/log/nginx/server.{{ crypton_server_domain }}-access.log;
     error_log /var/log/nginx/server.{{ crypton_server_domain }}-error.log;
     ssl on;

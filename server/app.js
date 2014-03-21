@@ -75,19 +75,36 @@ if (app.config.securityHeaders) {
     process.exit(1);
   }
 } else {
+  app.log('warn','No securityHeaders set in app.config! Security Headers are required to run this application in production. CSP connect-src is limited to localhost');
   // A very strict CSP, CSRF enabled and xframe options as sameorigin.
   app.use(appsec({
-    csrf: true,
-    csp: { 'default-src': 'self',
-           'script-src': 'self',
-           'img-src': 'self',
-           'style-src': 'self',
-           'font-src': 'self',
-           'object-src': 'none'
-         },
-    xframe: 'SAMEORIGIN'
+    csrf: false,
+    csp: {
+      policy:{
+        'default-src': "'self'",
+        'connect-src': "wss://localhost localhost",
+        'script-src': "'self'",
+        'img-src': "'self'",
+        'style-src': "'self'",
+        'font-src': "'self'",
+        'object-src': "'self'"
+      }
+    },
+    xframe: 'SAMEORIGIN',
+    hsts: {
+      maxAge: 31536000
+    }
   }));
 }
+
+// Do not cache responses.
+// XXXddahl: We are using a sledge hammer here, perhaps we can refine this at some point?
+app.use(function (req, res, next) {
+  res.set({
+    'Cache-Control': 'no-cache'
+  });
+  next();
+});
 
 var redis = require('redis').createClient(
   app.config.redis.port,

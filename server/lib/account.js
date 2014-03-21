@@ -127,17 +127,14 @@ Account.prototype.beginSrp = function(srpA, callback) {
  * @param {Function} callback
  */
 Account.prototype.continueSrp = function(srpA, srpb, callback) {
+  var verifier = new Buffer(this.srpVerifier, 'hex');
+  var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
   try {
-    var verifier = new Buffer(this.srpVerifier, 'hex');
+    srpServer.setA(new Buffer(srpA, 'hex'));
   } catch (e) {
-    app.log('error', e);
-    callback('srpVerifier value is bad');
+    callback('continueSrp(): srpA is invalid');
     return;
   }
-  var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
-
-  srpServer.setA(new Buffer(srpA, 'hex'));
-
   callback(null, {
     b: srpb.toString('hex'),
     B: srpServer.computeB().toString('hex'),

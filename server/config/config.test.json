@@ -23,15 +23,21 @@
   "commitStatusCheckDelay": 100,
   "commitStatusCheckLimit": 100,
   "securityHeaders": {
-    "csrf": true,
+    "csrf": false,
     "csp": {
-      "default-src": "self",
-      "script-src": "self",
-      "img-src": "self",
-      "style-src": "self",
-      "font-src": "self",
-      "object-src": "none"
+      "policy": {
+        "default-src": "'self'",
+        "connect-src": "wss://localhost localhost",
+        "script-src": "'self'",
+        "img-src": "'self'",
+        "style-src": "'self'",
+        "font-src": "'self'",
+        "object-src": "'self'"
+      }
     },
-    "xframe": "SAMEORIGIN"
+    "xframe": "SAMEORIGIN",
+    "hsts": {
+      "maxAge": 31536000
+    }
   }
 }

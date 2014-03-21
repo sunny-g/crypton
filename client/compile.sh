@@ -27,9 +27,9 @@ has_uglify () {
       exit 1
     fi
 
-    echo "Uglifyjs not found. Attempting to install it"
+    echo "Uglifyjs not found. Attempting to install it..."
     cd $SCRIPT_PATH
-    npm install
+    npm install &> /dev/null
     has_uglify 1
   fi
 }
@@ -50,7 +50,7 @@ daemon () {
 }
 
 compile () {
-  echo "Compiling to crypton.js..."
+  echo "Compiling client code to crypton.js..."
   mkdir -p dist
   cat \
     src/core.js \

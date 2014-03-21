@@ -65,39 +65,89 @@ crypton.url = function () {
 };
 
 /**!
- * ### randomBytes()
+ * ### randomBytes(nbytes)
  * Generate `nbytes` bytes of random data
  *
- * @param {Number} nbytes (default 32)
+ * @param {Number} nbytes
+ * @return {Array} bitArray
  */
 function randomBytes (nbytes) {
-  var nwords = 8; // default 32 bytes, 256 bits
-
-  // sjcl's words are 4 bytes (32 bits)
-  if (nbytes) {
-    nwords = nbytes / 4;
+  if (!nbytes) {
+    throw new Error('randomBytes requires input');
   }
 
+  if (parseInt(nbytes, 10) !== nbytes) {
+    throw new Error('randomBytes requires integer input');
+  }
+
+  if (nbytes < 4) {
+    throw new Error('randomBytes cannot return less than 4 bytes');
+  }
+
+  if (nbytes % 4 !== 0) {
+    throw new Error('randomBytes requires input as multiple of 4');
+  }
+
+  // sjcl's words are 4 bytes (32 bits)
+  var nwords = nbytes / 4;
   return sjcl.random.randomWords(nwords);
 }
 crypton.randomBytes = randomBytes;
 
 /**!
- * ### randomBits()
- * Generate `nbits` bits of random data
+ * ### constEqual()
+ * Compare two strings in constant time.
  *
- * @param {Number} nbits (default 256)
+ * @param {String} str1
+ * @param {String} str2
  */
-crypton.randomBits = function (nbits) {
-  var nbytes = 32; // default 32 bytes, 256 bits
-
-  // sjcl's words are 4 bytes (32 bits)
-  if (nbits) {
-    nbytes = nbits / 8;
+function constEqual (str1, str2) {
+  // We only support string comparison, we could support Arrays but
+  // they would need to be single char elements or compare multichar
+  // elements constantly. Going for simplicity for now.
+  // TODO: Consider this ^
+  if (typeof str1 !== 'string' || typeof str2 !== 'string') {
+    return false;
   }
 
-  return crypton.randomBytes(nbytes);
+  var mismatch = str1.length ^ str2.length;
+  var len = Math.min(str1.length, str2.length);
+
+  for (var i = 0; i < len; i++) {
+    mismatch |= str1[i] ^ str2[i];
+  }
+
+  return mismatch === 0;
 }
+crypton.constEqual = constEqual;
+
+/**!
+ * ### randomBits(nbits)
+ * Generate `nbits` bits of random data
+ *
+ * @param {Number} nbits
+ * @return {Array} bitArray
+ */
+crypton.randomBits = function (nbits) {
+  if (!nbits) {
+    throw new Error('randomBits requires input');
+  }
+
+  if (parseInt(nbits, 10) !== nbits) {
+    throw new Error('randomBits requires integer input');
+  }
+
+  if (nbits < 32) {
+    throw new Error('randomBits cannot return less than 32 bits');
+  }
+
+  if (nbits % 32 !== 0) {
+    throw new Error('randomBits requires input as multiple of 32');
+  }
+
+  var nbytes = nbits / 8;
+  return crypton.randomBytes(nbytes);
+};
 
 /**!
  * ### generateAccount(username, passphrase, callback, options)
@@ -226,8 +276,7 @@ crypton.authorize = function (username, passphrase, callback) {
                 return;
               }
 
-              // TODO: Do compare in constant time
-              if (res.body.srpM2 !== ourSrpM2) {
+              if (!constEqual(res.body.srpM2, ourSrpM2)) {
                 callback('Server could not be verified');
                 return;
               }

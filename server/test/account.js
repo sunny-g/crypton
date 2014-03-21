@@ -46,11 +46,61 @@ describe('Account model', function () {
       });
     });
 
+    it('should not save accounts with invalid usernames', function (done) {
+      var account = new Account();
+
+      var requestedAccount = {
+        username: 'pizza /@',
+        keypairSalt: '[1,2,3]',
+        keypairCiphertext: { keypair: 'ciphertext' },
+        pubKey: { pub: 'key' },
+        srpSalt: 'saltstring',
+        srpVerifier: 'verifierstring',
+        symKeyCiphertext: { sym: 'key' },
+        containerNameHmacKeyCiphertext: '[1,2,3]',
+        hmacKeyCiphertext: '[1,2,3]',
+        signKeyPub: { pub: 'key' },
+        signKeyPrivateCiphertext: '[1,2,3]'
+      };
+
+      account.update(requestedAccount);
+
+      account.save(function (err) {
+        assert(err == 'Username is not valid: it is not alphanumeric!');
+        done();
+      });
+    });
+
+    it('should not save accounts with usernames longer than 32 char', function (done) {
+      var account = new Account();
+
+      var requestedAccount = {
+        username: 'pizzapizzapizzapizzapizzapizzapizzapizza',
+        keypairSalt: '[1,2,3]',
+        keypairCiphertext: { keypair: 'ciphertext' },
+        pubKey: { pub: 'key' },
+        srpSalt: 'saltstring',
+        srpVerifier: 'verifierstring',
+        symKeyCiphertext: { sym: 'key' },
+        containerNameHmacKeyCiphertext: '[1,2,3]',
+        hmacKeyCiphertext: '[1,2,3]',
+        signKeyPub: { pub: 'key' },
+        signKeyPrivateCiphertext: '[1,2,3]'
+      };
+
+      account.update(requestedAccount);
+
+      account.save(function (err) {
+        assert(err == 'Username is not valid: exceeds 32 charcters!');
+        done();
+      });
+    });
+
     it('should err out for empty accounts', function (done) {
       var account = new Account();
 
       account.save(function (err) {
-        assert(err !== null);
+        assert(err == 'undefined is not a valid username');
         done();
       });
     });

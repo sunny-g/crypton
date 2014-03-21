@@ -22,6 +22,7 @@ var app = require('../app');
 var db = app.datastore;
 var bcrypt = require('bcrypt');
 var srp = require('srp');
+var validator = require('validator');
 
 /**!
  * # Account()
@@ -251,6 +252,20 @@ Account.prototype.toJSON = function () {
  */
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
+
+  if (!this.username) {
+    return callback('undefined is not a valid username');
+  }
+
+  // TODO: additional validation on any other account properties that need validation
+  if (this.username.length > 32) {
+    return callback('Username is not valid: exceeds 32 charcters!');
+  }
+
+  if (!validator.isAlphanumeric(this.username)) {
+    return callback('Username is not valid: it is not alphanumeric!');
+  }
+
   db.saveAccount(this.toJSON(), callback);
 };
 

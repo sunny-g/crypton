@@ -69,7 +69,6 @@ exports.saveAccount = function saveAccount(account, callback) {
 
     client.query(accountQuery, function (err, result) {
       if (err) {
-        console.log(err);
         client.query('rollback');
         done();
 

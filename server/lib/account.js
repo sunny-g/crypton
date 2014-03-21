@@ -114,12 +114,19 @@ Account.prototype.beginSrp = function(srpA, callback) {
         callback(err);
         return;
       }
-      that.continueSrp(srpA, srpb, callback);
+      try {
+        that.continueSrp(srpA, srpb, callback);
+      } catch (e) {
+        app.log('error', e);
+        var error = 'continueSrp() failed';
+        app.log('error', error);
+        callback(error);
+      }
     });
   } catch (e) {
-    var error = 'Cannot generate srpB value or continueSrp failed';
-    app.log('error', error);
     app.log('error', e);
+    var error = 'Cannot generate srpB value';
+    app.log('error', error);
     callback(error);
   }
 };

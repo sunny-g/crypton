@@ -54,6 +54,41 @@ describe('Account model', function () {
         done();
       });
     });
+
+    it('should error out with badly formed srpA values', function (done) {
+      var account = new Account();
+      var requestedAccount = {
+        username: 'pizza',
+        keypairSalt: '[1,2,3]',
+        keypairCiphertext: { keypair: 'ciphertext' },
+        pubKey: { pub: 'key' },
+        srpSalt: 'saltstring',
+        srpVerifier: 'verifierstring',
+        symKeyCiphertext: { sym: 'key' },
+        containerNameHmacKeyCiphertext: '[1,2,3]',
+        hmacKeyCiphertext: '[1,2,3]',
+        signKeyPub: { pub: 'key' },
+        signKeyPrivateCiphertext: '[1,2,3]'
+      };
+
+      account.update(requestedAccount);
+      account.save(function (err) {
+        assert(err !== null);
+        done();
+      });
+
+      var srpArr = [];
+      for (var i = 0; i < 512; i++) {
+        srpArr.push(0);
+      }
+
+      var srpA = srpArr.join("");
+
+      account.beginSrp(srpA, function (err, srpB) {
+        assert(err == 'Cannot generate srpB value')
+      });
+    });
+
   });
 
   describe('get()', function () {

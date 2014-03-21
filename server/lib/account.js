@@ -106,20 +106,13 @@ Account.prototype.beginSrp = function(srpA, callback) {
   }
 
   var that = this;
-  try {
-    srp.genKey(function(err, srpb) {
-      if (err) {
-        callback(err);
-        return;
-      }
-      that.continueSrp(srpA, srpb, callback);
-    });
-  } catch (e) {
-    app.log('error', e);
-    var error = 'srp.genKey failed';
-    app.log('error', error);
-    callback(error);
-  }
+  srp.genKey(function(err, srpb) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    that.continueSrp(srpA, srpb, callback);
+  });
 };
 
 /**!
@@ -142,13 +135,13 @@ Account.prototype.continueSrp = function(srpA, srpb, callback) {
     return;
   }
   var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
-  try {
+//  try {
     srpServer.setA(new Buffer(srpA, 'hex'));
-  } catch (e) {
-    app.log('error', e);
-    callback('srpA value is bad');
-    return;
-  }
+//  } catch (e) {
+//    app.log('error', e);
+//    callback('srpA value is bad');
+//    return;
+//  }
   callback(null, {
     b: srpb.toString('hex'),
     B: srpServer.computeB().toString('hex'),

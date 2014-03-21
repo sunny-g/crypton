@@ -106,26 +106,16 @@ Account.prototype.beginSrp = function(srpA, callback) {
 
   var that = this;
   try {
-    // srp.genKey can throw if the callback is missing or
-    // inside crypto.randombytes, which it calls, or inside
-    // continueSRP. See issue #185
     srp.genKey(function(err, srpb) {
       if (err) {
         callback(err);
         return;
       }
-      try {
-        that.continueSrp(srpA, srpb, callback);
-      } catch (e) {
-        app.log('error', e);
-        var error = 'continueSrp() failed';
-        app.log('error', error);
-        callback(error);
-      }
+      that.continueSrp(srpA, srpb, callback);
     });
   } catch (e) {
     app.log('error', e);
-    var error = 'Cannot generate srpB value';
+    var error = 'srp.genKey failed';
     app.log('error', error);
     callback(error);
   }
@@ -143,14 +133,26 @@ Account.prototype.beginSrp = function(srpA, callback) {
  * @param {Function} callback
  */
 Account.prototype.continueSrp = function(srpA, srpb, callback) {
-  var verifier = new Buffer(this.srpVerifier, 'hex');
+  try {
+    var verifier = new Buffer(this.srpVerifier, 'hex');
+  } catch (e) {
+    app.log('error', e);
+    callback('srpVerifier value is bad');
+    return;
+  }
   var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
-  srpServer.setA(new Buffer(srpA, 'hex'));
+  try {
+    srpServer.setA(new Buffer(srpA, 'hex'));
+  } catch (e) {
+    app.log('error', e);
+    callback('srpA value is bad');
+    return;
+  }
   callback(null, {
     b: srpb.toString('hex'),
     B: srpServer.computeB().toString('hex'),
     A: srpA
-  })
+  });
 }
 
 /**!

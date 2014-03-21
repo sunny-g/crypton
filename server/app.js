@@ -75,22 +75,23 @@ if (app.config.securityHeaders) {
     process.exit(1);
   }
 } else {
-  console.warn("No 'securityHeaders' set in app.config! Security Headers are required to run this application in production. CSP connect-src is limited to 'localhost'");
+  app.log('warn','No securityHeaders set in app.config! Security Headers are required to run this application in production. CSP connect-src is limited to localhost');
   // A very strict CSP, CSRF enabled and xframe options as sameorigin.
   app.use(appsec({
     csrf: false,
     csp: {
-      policy:{ 'default-src': "'self'",
-               'connect-src': "wss://localhost localhost",
-               'script-src': "'self'",
-               'img-src': "'self'",
-               'style-src': "'self'",
-               'font-src': "'self'",
-               'object-src': "'self'"
-             }
+      policy:{
+        'default-src': "'self'",
+        'connect-src': "wss://localhost localhost",
+        'script-src': "'self'",
+        'img-src': "'self'",
+        'style-src': "'self'",
+        'font-src': "'self'",
+        'object-src': "'self'"
+      }
     },
     xframe: 'SAMEORIGIN',
-    hsts:{
+    hsts: {
       maxAge: 31536000
     }
   }));

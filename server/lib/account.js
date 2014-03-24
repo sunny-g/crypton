@@ -132,7 +132,7 @@ Account.prototype.continueSrp = function(srpA, srpb, callback) {
   try {
     srpServer.setA(new Buffer(srpA, 'hex'));
   } catch (e) {
-    callback('continueSrp(): srpA is invalid');
+    callback('srpA is invalid');
     return;
   }
   callback(null, {

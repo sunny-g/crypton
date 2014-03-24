@@ -1429,6 +1429,8 @@ SRPClient = function (username, password, group, hashFn) {
   
 };
 
+var bcrypt = dcodeIO.bcrypt;
+
 /*
  * Implementation of an SRP client conforming
  * to the SRP protocol 6A (see RFC5054).
@@ -1465,8 +1467,8 @@ SRPClient.prototype = {
     
     // Hash the concatenated username and password.
     var usernamePassword = this.username + ":" + this.password;
-    var usernamePasswordHash = this.hash(usernamePassword);
-    
+    var usernamePasswordHash = bcrypt.hashSync(usernamePassword, saltHex);
+
     // Calculate the padding for the salt.
     var spad = (saltHex.length % 2 != 0) ? '0' : '';
     
@@ -1677,15 +1679,8 @@ SRPClient.prototype = {
   /* Return a random hexadecimal salt */
   randomHexSalt: function() {
 
-    var words = sjcl.random.randomWords(4,0);
-    var hex = sjcl.codec.hex.fromBits(words);
-    
-    // Verify length of hexadecimal salt.
-    if (hex.length != 32)
-      throw 'Invalid salt length.'
-      
-    return hex;
-    
+    return bcrypt.genSaltSync();
+
   },
   
   /*

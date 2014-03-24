@@ -262,6 +262,30 @@ describe('Core', function () {
 
       done();
     });
+
+    it('should generate the correct salt format', function (done) {
+      assert.equal(err, null);
+      assert.notEqual(user, undefined);
+
+      var salt = user['srpSalt'];
+      var offset = -1;
+
+      assert.equal(salt.charAt(0), '$');
+      assert.equal(salt.charAt(1), '2');
+
+      if (salt.charAt(2) == '$') {
+        offset = 3;
+      } else {
+        minor = salt.charAt(2);
+        assert.equal(minor, 'a');
+        assert.equal(salt.charAt(3), '$');
+        offset = 4;
+      }
+
+      assert(salt.charAt(offset + 2) <= '$');
+
+      done();
+    });
   });
 
   describe('account authorization', function () {

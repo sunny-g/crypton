@@ -251,7 +251,6 @@ describe('Core', function () {
         'containerNameHmacKeyCiphertext',
         'hmacKeyCiphertext',
         'pubKey',
-        'symKeyCiphertext',
         'signKeyPub',
         'signKeyPrivateCiphertext'
       ];

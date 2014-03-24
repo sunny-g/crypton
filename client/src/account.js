@@ -68,7 +68,7 @@ Account.prototype.unravel = function (callback) {
 
   crypton.work.unravelAccount(this, function (err, data) {
     if (err) {
-      return callback('Could not decrypt account');
+      return callback(err);
     }
 
     that.regenerateKeys(data, function (err) {
@@ -128,7 +128,6 @@ Account.prototype.serialize = function () {
     keypairCiphertext: this.keypairCiphertext,
     pubKey: this.pubKey,
     keypairSalt: this.keypairSalt,
-    symKeyCiphertext: this.symKeyCiphertext,
     username: this.username,
     signKeyPub: this.signKeyPub,
     signKeyPrivateCiphertext: this.signKeyPrivateCiphertext

@@ -92,10 +92,9 @@ Account.prototype.regenerateKeys = function (data, callback) {
   var exponent = sjcl.bn.fromBits(data.secret.exponent);
   this.secretKey = new sjcl.ecc.elGamal.secretKey(data.secret.curve, sjcl.ecc.curves['c' + data.secret.curve], exponent);
 
-  // reconstruct public key and personal symkey
+  // reconstruct public key
   var point = sjcl.ecc.curves['c' + this.pubKey.curve].fromBits(this.pubKey.point);
   this.pubKey = new sjcl.ecc.elGamal.publicKey(this.pubKey.curve, point.curve, point);
-  this.symKey = data.symKey;
 
   // assign the hmac keys to the account
   this.hmacKey = data.hmacKey;

@@ -70,7 +70,6 @@ CREATE TABLE base_keyring (
     keypair_salt bytea,
     keypair bytea,
     pubkey bytea,
-    symkey bytea,
     container_name_hmac_key bytea,
     hmac_key bytea,
     sign_key_pub bytea,

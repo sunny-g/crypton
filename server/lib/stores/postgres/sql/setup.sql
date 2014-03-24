@@ -93,8 +93,6 @@ COMMENT ON COLUMN base_keyring.keypair IS
 'AES ciphertext of serialize public/private keypair';
 COMMENT ON COLUMN base_keyring.pubkey IS
 'Plaintext of serialized public key from the keypair';
-COMMENT ON COLUMN base_keyring.symkey IS
-'AES256 sym key as encrypted by private key';
 COMMENT ON COLUMN base_keyring.container_name_hmac_key IS
 'AES output ciphertext of 32 byte HMAC key used for container names';
 COMMENT ON COLUMN base_keyring.hmac_key IS

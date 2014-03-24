@@ -38,7 +38,6 @@ exports.saveAccount = function saveAccount(account, callback) {
     'keypairCiphertext',
     'keypairSalt',
     'pubKey',
-    'symKeyCiphertext',
     'containerNameHmacKeyCiphertext',
     'hmacKeyCiphertext',
     'srpVerifier',
@@ -86,18 +85,17 @@ exports.saveAccount = function saveAccount(account, callback) {
         text: '\
           insert into base_keyring ( \
             base_keyring_id, account_id, \
-            keypair, keypair_salt, pubkey, symkey, \
+            keypair, keypair_salt, pubkey, \
             container_name_hmac_key, \
             hmac_key, srp_verifier, srp_salt, \
             sign_key_pub, sign_key_private_ciphertext \
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
           account.keypairCiphertext,
           account.keypairSalt,
           account.pubKey,
-          account.symKeyCiphertext,
           account.containerNameHmacKeyCiphertext,
           account.hmacKeyCiphertext,
           account.srpVerifier,
@@ -149,8 +147,7 @@ exports.getAccount = function getAccount(username, callback) {
         select username, \
           account.account_id, base_keyring_id, \
           srp_verifier, srp_salt, \
-          keypair, keypair_salt, \
-          pubkey, symkey, \
+          keypair, keypair_salt, pubkey, \
           container_name_hmac_key, hmac_key, \
           sign_key_pub, sign_key_private_ciphertext \
         from account left join base_keyring using (base_keyring_id) \
@@ -180,7 +177,6 @@ exports.getAccount = function getAccount(username, callback) {
         keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
-        symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
         srpVerifier: result.rows[0].srp_verifier.toString(),
         srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
@@ -211,8 +207,7 @@ exports.getAccountById = function getAccountById(accountId, callback) {
         select account.account_id, \
           account.username, base_keyring_id, \
           srp_verifier, srp_salt, \
-          keypair, keypair_salt, \
-          pubkey, symkey, \
+          keypair, keypair_salt, pubkey, \
           container_name_hmac_key, hmac_key, \
           sign_key_pub, sign_key_private_ciphertext \
         from account left join base_keyring using (base_keyring_id) \
@@ -242,7 +237,6 @@ exports.getAccountById = function getAccountById(accountId, callback) {
         keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
-        symKeyCiphertext: JSON.parse(result.rows[0].symkey.toString()),
         srpVerifier: result.rows[0].srp_verifier.toString(),
         srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),

@@ -112,7 +112,7 @@ Account.prototype.beginSrp = function(srpA, callback) {
       return;
     }
     that.continueSrp(srpA, srpb, callback);
-  })
+  });
 };
 
 /**!
@@ -129,12 +129,17 @@ Account.prototype.beginSrp = function(srpA, callback) {
 Account.prototype.continueSrp = function(srpA, srpb, callback) {
   var verifier = new Buffer(this.srpVerifier, 'hex');
   var srpServer = new srp.Server(srp.params[2048], verifier, srpb);
-  srpServer.setA(new Buffer(srpA, 'hex'));
+  try {
+    srpServer.setA(new Buffer(srpA, 'hex'));
+  } catch (e) {
+    callback('srpA is invalid');
+    return;
+  }
   callback(null, {
     b: srpb.toString('hex'),
     B: srpServer.computeB().toString('hex'),
     A: srpA
-  })
+  });
 }
 
 /**!

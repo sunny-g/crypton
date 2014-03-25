@@ -208,7 +208,7 @@ describe('Account model', function () {
       // invalid srpA values, which make it past our initial validation
       // of if(string and 512 chars)
       account.beginSrp(srpA, function (err, srpB) {
-        assert.equal(err, 'continueSrp(): srpA is invalid');
+        assert.equal(err, 'srpA is invalid');
         done();
       });
     });

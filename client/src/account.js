@@ -68,7 +68,7 @@ Account.prototype.unravel = function (callback) {
 
   crypton.work.unravelAccount(this, function (err, data) {
     if (err) {
-      return callback('Could not decrypt account');
+      return callback(err);
     }
 
     that.regenerateKeys(data, function (err) {
@@ -92,10 +92,9 @@ Account.prototype.regenerateKeys = function (data, callback) {
   var exponent = sjcl.bn.fromBits(data.secret.exponent);
   this.secretKey = new sjcl.ecc.elGamal.secretKey(data.secret.curve, sjcl.ecc.curves['c' + data.secret.curve], exponent);
 
-  // reconstruct public key and personal symkey
+  // reconstruct public key
   var point = sjcl.ecc.curves['c' + this.pubKey.curve].fromBits(this.pubKey.point);
   this.pubKey = new sjcl.ecc.elGamal.publicKey(this.pubKey.curve, point.curve, point);
-  this.symKey = data.symKey;
 
   // assign the hmac keys to the account
   this.hmacKey = data.hmacKey;
@@ -128,7 +127,6 @@ Account.prototype.serialize = function () {
     keypairCiphertext: this.keypairCiphertext,
     pubKey: this.pubKey,
     keypairSalt: this.keypairSalt,
-    symKeyCiphertext: this.symKeyCiphertext,
     username: this.username,
     signKeyPub: this.signKeyPub,
     signKeyPrivateCiphertext: this.signKeyPrivateCiphertext

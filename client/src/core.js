@@ -177,12 +177,11 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
   var account = new crypton.Account();
-  var containerNameHmacKey = randomBytes(32);
   var hmacKey = randomBytes(32);
   var keypairSalt = randomBytes(32);
-  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
-  var symkey = keypair.pub.kem(0);
+  var containerNameHmacKey = randomBytes(32);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
+  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
 
   var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
@@ -190,17 +189,23 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var srpVerifier = srp.calculateV(srpSalt).toString(16);
 
   account.username = username;
+  account.keypairSalt = JSON.stringify(keypairSalt);
+
   // Pad verifier to 512 bytes
   // TODO: This length will change when a different SRP group is used
   account.srpVerifier = srp.nZeros(512 - srpVerifier.length) + srpVerifier;
   account.srpSalt = srpSalt;
-  account.keypairSalt = JSON.stringify(keypairSalt);
-  account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
-  account.containerNameHmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(containerNameHmacKey), crypton.cipherOptions);
-  account.hmacKeyCiphertext = sjcl.encrypt(symkey.key, JSON.stringify(hmacKey), crypton.cipherOptions);
+
+  // pubkeys
   account.pubKey = JSON.stringify(keypair.pub.serialize());
-  account.symKeyCiphertext = JSON.stringify(symkey.tag);
   account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
+
+  // hmac keys
+  account.hmacKeyCiphertext = sjcl.encrypt(keypair.pub, JSON.stringify(hmacKey), crypton.cipherOptions);
+  account.containerNameHmacKeyCiphertext = sjcl.encrypt(keypair.pub, JSON.stringify(containerNameHmacKey), crypton.cipherOptions);
+
+  // private keys
+  account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
   account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
 
   if (save) {
@@ -293,10 +298,13 @@ crypton.authorize = function (username, passphrase, callback) {
               session.account.pubKey = res.body.account.pubKey;
               session.account.challengeKeySalt = res.body.account.challengeKeySalt;
               session.account.keypairSalt = res.body.account.keypairSalt;
-              session.account.symKeyCiphertext = res.body.account.symKeyCiphertext;
               session.account.signKeyPub = res.body.account.signKeyPub;
               session.account.signKeyPrivateCiphertext = res.body.account.signKeyPrivateCiphertext;
-              session.account.unravel(function () {
+              session.account.unravel(function (err) {
+                if (err) {
+                  return callback(err);
+                }
+
                 callback(null, session);
               });
             });

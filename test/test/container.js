@@ -32,10 +32,15 @@ describe('Container functionality', function () {
   describe('save()', function () {
     it('should save container changes', function (done) {
       session.create('tupperware', function (err, container) {
-        container.keys['color'] = 'blue';
+        assert.equal(err, null);
+        container.keys.color = 'blue';
 
         container.save(function (err) {
+          assert.equal(err, null);
+
           crypton.authorize('notSoSmart', 'pass', function (err, session2) {
+            assert.equal(err, null);
+
             session2.load('tupperware', function (err, container2) {
               assert.equal(err, null);
               assert.equal(container2.keys.color, 'blue');
@@ -50,8 +55,11 @@ describe('Container functionality', function () {
   describe('getHistory()', function () {
     it('should get container records', function (done) {
       session.load('tupperware', function (err, container) {
+        assert.equal(err, null);
+
         container.getHistory(function (err, records) {
           assert.equal(err, null);
+
           // TODO is there a better way to test the integrity of the response?
           assert.equal(records[0].accountId, 1);
           done();
@@ -66,11 +74,14 @@ describe('Container functionality', function () {
       session.containers = [];
 
       session.load('tupperware', function (err, container) {
+        assert.equal(err, null);
+
         // force the session to load from server again
         session.containers = [];
 
         session.load('tupperware', function (err, container2) {
-          container.keys['color'] = 'green';
+          assert.equal(err, null);
+          container.keys.color = 'green';
 
           container.save(function (err) {
             assert.equal(err, null);

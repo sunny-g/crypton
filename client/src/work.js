@@ -142,12 +142,9 @@ work.unravelAccount = function (account, callback) {
     var exponent = sjcl.bn.fromBits(ret.secret.exponent);
     var secretKey = new sjcl.ecc.elGamal.secretKey(ret.secret.curve, sjcl.ecc.curves['c' + ret.secret.curve], exponent);
 
-    // decrypt symkey
-    ret.symKey = secretKey.unkem(account.symKeyCiphertext);
-
     // decrypt hmac keys
     try {
-      ret.containerNameHmacKey = JSON.parse(sjcl.decrypt(ret.symKey, JSON.stringify(account.containerNameHmacKeyCiphertext), crypton.cipherOptions));
+      ret.containerNameHmacKey = JSON.parse(sjcl.decrypt(secretKey, JSON.stringify(account.containerNameHmacKeyCiphertext), crypton.cipherOptions));
     } catch (e) {}
 
     if (!ret.containerNameHmacKey) {
@@ -156,7 +153,7 @@ work.unravelAccount = function (account, callback) {
     }
 
     try {
-      ret.hmacKey = JSON.parse(sjcl.decrypt(ret.symKey, JSON.stringify(account.hmacKeyCiphertext), crypton.cipherOptions));
+      ret.hmacKey = JSON.parse(sjcl.decrypt(secretKey, JSON.stringify(account.hmacKeyCiphertext), crypton.cipherOptions));
     } catch (e) {}
 
     if (!ret.hmacKey) {

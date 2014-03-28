@@ -31,7 +31,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
   describe('Create 2 accounts and exchange a message and decrypt it', function () {
     it('Create Alice', function (done) {
       crypton.generateAccount('alice', 'pass', function (err, acct) {
-        if (err) throw err;
+        assert.equal(err, null);
         alice = acct;
         assert(alice);
         done();
@@ -42,7 +42,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
 
     it('Get Alice\'s session', function (done) {
       crypton.authorize('alice', 'pass', function (err, sess) {
-        if (err) throw err;
+        assert.equal(err, null);
         aliceSession = sess;
         assert(aliceSession);
         done();
@@ -51,7 +51,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
 
     it('Create Bob', function (done) {
       crypton.generateAccount('bob', 'pass', function (err, acct) {
-        if (err) throw err;
+        assert.equal(err, null);
         bob = acct;
         assert(bob);
         done();
@@ -62,7 +62,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
 
     it('Get Bob\'s session', function (done) {
       crypton.authorize('bob', 'pass', function (err, sess) {
-        if (err) throw err;
+        assert.equal(err, null);
         bobSession = sess;
         assert(bobSession);
         done();
@@ -71,7 +71,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
 
     it('Get Alice as peer', function (done) {
       bobSession.getPeer("alice", function (err, peer) {
-        if (err) throw err;
+        assert.equal(err, null);
         alicePeer = peer;
         done();
       });
@@ -87,7 +87,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
 
     it('Alice needs to login again so Alice\'s session is valid', function (done) {
       crypton.authorize('alice', 'pass', function (err, sess) {
-        if (err) throw err;
+        assert.equal(err, null);
         aliceSession = sess;
         assert(aliceSession);
         done();
@@ -96,7 +96,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
 
     it('Get Bob as peer', function (done) {
       aliceSession.getPeer('bob', function (err, peer) {
-        if (err) throw err;
+        assert.equal(err, null);
         bobPeer = peer;
         done();
       });

@@ -110,5 +110,15 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
       // assert(verified.plaintext == plaintext); // XXXddahl: This is off by the "" introduced by JSON???
       done();
     });
+
+    it('try to verifyAndDecrypt a message from Bob with a bad signature', function (done) {
+      var ciphertext = JSON.parse(messageResult);
+      ciphertext.signature[0] = -546152073;
+      var verified = aliceSession.account.verifyAndDecrypt(ciphertext, bobPeer);
+      assert.equal(verified.error, 'Cannot verify ciphertext');
+      assert.equal(verified.verified, false);
+      done();
+    });
+
   });
 });

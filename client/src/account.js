@@ -143,13 +143,20 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   // hash the ciphertext
   var hash = sjcl.hash.sha256.hash(JSON.stringify(signedCiphertext.ciphertext));
   // verify the signature
-  var verified = peer.signKeyPub.verify(hash, signedCiphertext.signature);
+  var verified = false;
+  try {
+    verified = peer.signKeyPub.verify(hash, signedCiphertext.signature);
+  } catch (ex) { }
   // try to decrypt regardless of verification failure
   try {
     var message = sjcl.decrypt(this.secretKey, signedCiphertext.ciphertext, crypton.cipherOptions);
-    return { plaintext: message, verified: verified, error: null };
+    if (verified) {
+      return { plaintext: message, verified: verified, error: null };
+    } else {
+      return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
+    }
   } catch (ex) {
-    return { plaintext: null, verified: false, error: "Cannot verify ciphertext" };
+    return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
   }
 };
 })();

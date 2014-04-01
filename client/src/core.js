@@ -200,11 +200,35 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   account.pubKey = JSON.stringify(keypair.pub.serialize());
   account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
 
+  var sessionIdentifier = 'dummySession';
+  var session = new crypton.Session(sessionIdentifier);
+  session.account = account;
+  session.account.signKeyPrivate = signingKeys.sec;
+
+  var selfPeer = new crypton.Peer({
+    session: session,
+    pubKey: keypair.pub
+  });
+
   // hmac keys
-  account.hmacKeyCiphertext = sjcl.encrypt(keypair.pub, JSON.stringify(hmacKey), crypton.cipherOptions);
-  account.containerNameHmacKeyCiphertext = sjcl.encrypt(keypair.pub, JSON.stringify(containerNameHmacKey), crypton.cipherOptions);
+  var encryptedHmacKey = selfPeer.encryptAndSign(JSON.stringify(hmacKey));
+  if (encryptedHmacKey.error) {
+    callback(encryptedHmacKey.error, null);
+    return;
+  }
+
+  account.hmacKeyCiphertext = JSON.stringify(encryptedHmacKey);
+
+  var encryptedContainerNameHmacKey = selfPeer.encryptAndSign(JSON.stringify(containerNameHmacKey));
+  if (encryptedContainerNameHmacKey.error) {
+    callback(encryptedContainerNameHmacKey.error, null);
+    return;
+  }
+
+  account.containerNameHmacKeyCiphertext = JSON.stringify(encryptedContainerNameHmacKey);
 
   // private keys
+  // TODO: Check data auth with hmac
   account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
   account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
 

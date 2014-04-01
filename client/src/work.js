@@ -131,34 +131,13 @@ work.unravelAccount = function (account, callback) {
 
     // decrypt secret key
     try {
+      // TODO: verify this
       ret.secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.keypairCiphertext), crypton.cipherOptions));
     } catch (e) {}
 
     if (!ret.secret) {
       // TODO could be decryption or parse error - should we specify?
       return callback('Could not parse secret key');
-    }
-
-    var exponent = sjcl.bn.fromBits(ret.secret.exponent);
-    var secretKey = new sjcl.ecc.elGamal.secretKey(ret.secret.curve, sjcl.ecc.curves['c' + ret.secret.curve], exponent);
-
-    // decrypt hmac keys
-    try {
-      ret.containerNameHmacKey = JSON.parse(sjcl.decrypt(secretKey, JSON.stringify(account.containerNameHmacKeyCiphertext), crypton.cipherOptions));
-    } catch (e) {}
-
-    if (!ret.containerNameHmacKey) {
-      // TODO could be decryption or parse error - should we specify?
-      return callback('Could not parse containerNameHmacKey');
-    }
-
-    try {
-      ret.hmacKey = JSON.parse(sjcl.decrypt(secretKey, JSON.stringify(account.hmacKeyCiphertext), crypton.cipherOptions));
-    } catch (e) {}
-
-    if (!ret.hmacKey) {
-      // TODO could be decryption or parse error - should we specify?
-      return callback('Could not parse hmacKey');
     }
 
     // decrypt signing key
@@ -168,6 +147,46 @@ work.unravelAccount = function (account, callback) {
 
     if (!ret.signKeySecret) {
       return callback('Could not parse signKeySecret');
+    }
+
+    var exponent = sjcl.bn.fromBits(ret.secret.exponent);
+    var secretKey = new sjcl.ecc.elGamal.secretKey(ret.secret.curve, sjcl.ecc.curves['c' + ret.secret.curve], exponent);
+
+    account.secretKey = secretKey;
+
+    var sessionIdentifier = 'dummySession';
+    var session = new crypton.Session(sessionIdentifier);
+    session.account = account;
+    session.account.signKeyPrivate = ret.signKeySecret;
+
+    var signPoint = sjcl.ecc.curves['c' + account.signKeyPub.curve].fromBits(account.signKeyPub.point);
+
+    var selfPeer = new crypton.Peer({
+      session: session,
+      pubKey: account.pubKey,
+      signKeyPub: new sjcl.ecc.ecdsa.publicKey(account.signKeyPub.curve, signPoint.curve, signPoint)
+    });
+
+    var selfAccount = new crypton.Account();
+    selfAccount.secretKey = secretKey;
+
+    // decrypt hmac keys
+    try {
+      ret.containerNameHmacKey = selfAccount.verifyAndDecrypt(account.containerNameHmacKeyCiphertext, selfPeer);
+    } catch (e) { }
+
+    if (!ret.containerNameHmacKey.verified) {
+      // TODO could be decryption or parse error - should we specify?
+      return callback('Could not parse containerNameHmacKey');
+    }
+
+    try {
+      ret.hmacKey = selfAccount.verifyAndDecrypt(account.hmacKeyCiphertext, selfPeer);
+    } catch (e) {}
+
+    if (!ret.hmacKey.verified) {
+      // TODO could be decryption or parse error - should we specify?
+      return callback('Could not parse hmacKey');
     }
 
     callback(null, ret);

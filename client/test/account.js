@@ -23,27 +23,57 @@ sjcl.random.addEntropy("foo", 1024);
 
 var assert = chai.assert;
 
-describe('Account', function () {
+setupAccount = function() {
   var account = new crypton.Account();
   account.passphrase = 'pass';
   account.username = 'user';
   account.srpVerifier = 'verifier';
   account.srpSalt = 'salt';
   account.keypairSalt = [-1601113307,-147606214,-62907260,1664396850,1038241656,596952288,-1676728508,-743835030];
-  account.keypairCiphertext = {"iv":"5PtD42BLh2N1A/M9KF+l8g","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"Z3+NhRZLZiyFtH0FVFx6sWQWksE5yG7Wsiyjr1RNzf2P3eayWBy+d5DbS417oEC94xgrMEGuc6lp8oKR0MvgS2Rb32US8FNCQIzLg1+kidgz4gJLd0WN+TaERoa6O3W5ARvJyWwkw7vTnk92PbTNQnuo31o7n/FNZCCkXVriBw9iqsrIFYORjSRb8EeAoxecOTK5wW5riphjfr3Scn3Rm9sgD5Ps3R1znQxiRARiv2w"};
-  account.pubKey = {"point":[-814316318,1020697195,358800030,2142462487,-1630869932,477045498,1093057837,354832449,1063888822,-1054421197,-1933044690,-1955745963,-1020314082,-2106178156,-95968818,1241660716,-314482104,1807577500,1811162725,-1270122694,-377237982,1917786300,1311599981,1075655987],"curve":384};
-  account.containerNameHmacKeyCiphertext = {"iv":"YFeYPJXn2bztkD1zOFmiFQ","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"6MNWGoSboynaTA1cBVOGhtNXMTF75n6xSs5gdVZqDKkd32CyUnzuNYcJWP2E6qeWC850/I8uC5LFPFa6PTyOMA5rc9KBFv+J4X648nBP+kaxelenK2XnT1d6iETVU7iu"};
-  account.hmacKeyCiphertext = {"iv":"tqrCZxNtLYXKkU2O96cnpg","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"93FNMpuKSPajTV4z4iJDw806TiNaDxBcM60UiU/vz+yFviPuzJgmVVuF7wf1kUDfPKYSBzKvDX51yOT2h9a4I6C3kgttooU/NOn3nJdb480zVgFjHrTso1/kTTqwaDm6u9DA"};
-  account.signKeyPub = {"point":[-544178132,115453517,-1912575641,920110764,762420811,2037665175,69508748,-1944972765,-1220788834,-1964704246,-846945090,879724614],"curve":192};
-  account.signKeyPrivateCiphertext = {"iv":"qgXT725sFea1sK9prEQMPQ","v":1,"iter":1000,"ks":128,"ts":64,"mode":"gcm","adata":"","cipher":"aes","ct":"u/LY6VUAqjWfySGCgdOYmjpLY1aLpbZjcMqaJIG7EuB5ZMQi4FxXuiyPe4cvgYl03as7LNJuR2vpun0DXmj0/xlIGeux52PYmoGYqXDWk6hLg9W5UM+/wV/MaZ7LPkIml98NAlSes/hGo4rT"};
 
+  var keypairCurve = 384;
+
+  var hmacKey = crypton.randomBytes(32);
+  var containerNameHmacKey = crypton.randomBytes(32);
+
+  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
+  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
+  var signingKeys = sjcl.ecc.ecdsa.generateKeys(384, crypton.paranoia);
+
+  account.pubKey = keypair.pub.serialize();
+  account.signKeyPub = JSON.parse(JSON.stringify(signingKeys.pub.serialize()));
+
+  var sessionIdentifier = 'dummySession';
+  var session = new crypton.Session(sessionIdentifier);
+  session.account = account;
+  session.account.signKeyPrivate = signingKeys.sec;
+
+  var selfPeer = new crypton.Peer({
+    session: session,
+    pubKey: keypair.pub
+  });
+
+  // hmac keys
+  var encryptedHmacKey = selfPeer.encryptAndSign(JSON.stringify(hmacKey));
+  account.hmacKeyCiphertext = encryptedHmacKey;
+
+  var encryptedContainerNameHmacKey = selfPeer.encryptAndSign(JSON.stringify(containerNameHmacKey));
+  account.containerNameHmacKeyCiphertext = encryptedContainerNameHmacKey;
+
+  account.keypairCiphertext = JSON.parse(sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions));
+  account.signKeyPrivateCiphertext = JSON.parse(sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions));
+  return account;
+};
+
+describe('Account', function () {
   describe('save()', function () {
     // TODO should we just test this in the integration tests?
   });
 
   describe('unravel()', function () {
     it('should generate the correct fields from given values', function (done) {
-      account.unravel(function () {
+      account = setupAccount();
+      account.unravel(function (err) {
         var fields = [
           'srpVerifier',
           'srpSalt',
@@ -55,10 +85,36 @@ describe('Account', function () {
           'signKeyPrivate'
         ];
 
+        assert.equal(err, undefined);
+
         for (var i in fields) {
           assert(typeof account[fields[i]] !== undefined);
         }
 
+        done();
+      });
+    });
+    it('should fail if containerNameHmacKey does not verify', function (done) {
+      account = setupAccount();
+
+      // Modify the iv to provoke an invalid signature
+      var iv = account.containerNameHmacKeyCiphertext.ciphertext.iv;
+      account.containerNameHmacKeyCiphertext.ciphertext.iv = iv.substr(0, iv.length-2) + 'AA';
+
+      account.unravel(function (err) {
+        assert(err !== undefined);
+        done();
+      });
+    });
+    it('should fail if hmacKey does not verify', function (done) {
+      account = setupAccount();
+
+      // Modify the iv to provoke an invalid signature
+      var iv = account.hmacKeyCiphertext.ciphertext.iv;
+      account.hmacKeyCiphertext.ciphertext.iv = iv.substr(0, iv.length-2) + 'AA';
+
+      account.unravel(function (err) {
+        assert(err !== undefined);
         done();
       });
     });

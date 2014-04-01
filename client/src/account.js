@@ -141,7 +141,8 @@ Account.prototype.serialize = function () {
  */
 Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   // hash the ciphertext
-  var hash = sjcl.hash.sha256.hash(JSON.stringify(signedCiphertext.ciphertext));
+  var ciphertextString = JSON.stringify(signedCiphertext.ciphertext);
+  var hash = sjcl.hash.sha256.hash(ciphertextString);
   // verify the signature
   var verified = false;
   try {
@@ -149,7 +150,7 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   } catch (ex) { }
   // try to decrypt regardless of verification failure
   try {
-    var message = sjcl.decrypt(this.secretKey, signedCiphertext.ciphertext, crypton.cipherOptions);
+    var message = sjcl.decrypt(this.secretKey, ciphertextString, crypton.cipherOptions);
     if (verified) {
       return { plaintext: message, verified: verified, error: null };
     } else {

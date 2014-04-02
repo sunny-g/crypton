@@ -36,14 +36,18 @@ exports.saveAccount = function saveAccount(account, callback) {
   var requiredFields = [
     'username',
     'keypairCiphertext',
+    'keypairMac',
     'keypairSalt',
+    'keypairMacSalt',
+    'signKeyPrivateMacSalt',
     'pubKey',
     'containerNameHmacKeyCiphertext',
     'hmacKeyCiphertext',
     'srpVerifier',
     'srpSalt',
     'signKeyPub',
-    'signKeyPrivateCiphertext'
+    'signKeyPrivateCiphertext',
+    'signKeyPrivateMac'
   ];
 
   for (var i in requiredFields) {
@@ -85,23 +89,30 @@ exports.saveAccount = function saveAccount(account, callback) {
         text: '\
           insert into base_keyring ( \
             base_keyring_id, account_id, \
-            keypair, keypair_salt, pubkey, \
+            keypair, keypair_salt, keypair_mac_salt, \
+            keypair_mac, pubkey, \
             container_name_hmac_key, \
             hmac_key, srp_verifier, srp_salt, \
-            sign_key_pub, sign_key_private_ciphertext \
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+            sign_key_pub, sign_key_private_mac_salt, \
+            sign_key_private_ciphertext, \
+            sign_key_private_mac \
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
         values: [
           result.rows[0].base_keyring_id,
           result.rows[0].account_id,
           account.keypairCiphertext,
           account.keypairSalt,
+          account.keypairMacSalt,
+          account.keypairMac,
           account.pubKey,
           account.containerNameHmacKeyCiphertext,
           account.hmacKeyCiphertext,
           account.srpVerifier,
           account.srpSalt,
           account.signKeyPub,
-          account.signKeyPrivateCiphertext
+          account.signKeyPrivateMacSalt,
+          account.signKeyPrivateCiphertext,
+          account.signKeyPrivateMac
         ]
       };
 
@@ -147,9 +158,11 @@ exports.getAccount = function getAccount(username, callback) {
         select username, \
           account.account_id, base_keyring_id, \
           srp_verifier, srp_salt, \
-          keypair, keypair_salt, pubkey, \
+          keypair, keypair_salt, keypair_mac_salt, \
+          keypair_mac, pubkey, \
           container_name_hmac_key, hmac_key, \
-          sign_key_pub, sign_key_private_ciphertext \
+          sign_key_pub, sign_key_private_mac_salt, \
+          sign_key_private_ciphertext, sign_key_private_mac \
         from account left join base_keyring using (base_keyring_id) \
         where username = $1',
       values: [
@@ -175,15 +188,18 @@ exports.getAccount = function getAccount(username, callback) {
         accountId: result.rows[0].account_id,
         keyringId: result.rows[0].base_keyring_id,
         keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
+        keypairMacSalt: JSON.parse(result.rows[0].keypair_mac_salt.toString()),
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
+        keypairMac: result.rows[0].keypair_mac.toString(),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
         srpVerifier: result.rows[0].srp_verifier.toString(),
         srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
         hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString()),
         signKeyPub: JSON.parse(result.rows[0].sign_key_pub.toString()),
-        signKeyPrivateCiphertext:
-          JSON.parse(result.rows[0].sign_key_private_ciphertext.toString())
+        signKeyPrivateMacSalt: JSON.parse(result.rows[0].sign_key_private_mac_salt.toString()),
+        signKeyPrivateCiphertext: JSON.parse(result.rows[0].sign_key_private_ciphertext.toString()),
+        signKeyPrivateMac: result.rows[0].sign_key_private_mac.toString()
       });
     });
   });
@@ -207,9 +223,11 @@ exports.getAccountById = function getAccountById(accountId, callback) {
         select account.account_id, \
           account.username, base_keyring_id, \
           srp_verifier, srp_salt, \
-          keypair, keypair_salt, pubkey, \
+          keypair, keypair_salt, keypair_mac_salt, \
+          keypair_mac, pubkey, \
           container_name_hmac_key, hmac_key, \
-          sign_key_pub, sign_key_private_ciphertext \
+          sign_key_pub, sign_key_private_mac_salt, \
+          sign_key_private_ciphertext, sign_key_private_mac \
         from account left join base_keyring using (base_keyring_id) \
         where account.account_id = $1',
       values: [
@@ -235,15 +253,18 @@ exports.getAccountById = function getAccountById(accountId, callback) {
         accountId: result.rows[0].account_id,
         keyringId: result.rows[0].base_keyring_id,
         keypairSalt: JSON.parse(result.rows[0].keypair_salt.toString()),
+        keypairMacSalt: JSON.parse(result.rows[0].keypair_mac_salt.toString()),
         keypairCiphertext: JSON.parse(result.rows[0].keypair.toString()),
+        keypairMac: result.rows[0].keypair_mac.toString(),
         pubKey: JSON.parse(result.rows[0].pubkey.toString()),
         srpVerifier: result.rows[0].srp_verifier.toString(),
         srpSalt: result.rows[0].srp_salt.toString(),
         containerNameHmacKeyCiphertext: JSON.parse(result.rows[0].container_name_hmac_key.toString()),
         hmacKeyCiphertext: JSON.parse(result.rows[0].hmac_key.toString()),
         signKeyPub: JSON.parse(result.rows[0].sign_key_pub.toString()),
-        signKeyPrivateCiphertext:
-          JSON.parse(result.rows[0].sign_key_private_ciphertext.toString())
+        signKeyPrivateMacSalt: JSON.parse(result.rows[0].sign_key_private_mac_salt.toString()),
+        signKeyPrivateCiphertext: JSON.parse(result.rows[0].sign_key_private_ciphertext.toString()),
+        signKeyPrivateMac: result.rows[0].sign_key_private_mac.toString()
       });
     });
   });

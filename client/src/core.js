@@ -100,6 +100,7 @@ crypton.randomBytes = randomBytes;
  *
  * @param {String} str1
  * @param {String} str2
+ * @return {bool} equal
  */
 function constEqual (str1, str2) {
   // We only support string comparison, we could support Arrays but
@@ -150,6 +151,34 @@ crypton.randomBits = function (nbits) {
 };
 
 /**!
+ * ### mac(key, data)
+ * Generate an HMAC using `key` for `data`.
+ *
+ * @param {key} String
+ * @param {data} String
+ * @return {Array} bitArray
+ */
+crypton.hmac = function(key, data) {
+  var mac = new sjcl.misc.hmac(key);
+  return sjcl.codec.hex.fromBits(mac.mac(data));
+}
+
+/**!
+ * ### macAndCompare(key, data, otherMac)
+ * Generate an HMAC using `key` for `data` and compare it in
+ * constant time to `otherMac`.
+ *
+ * @param {key} String
+ * @param {data} String
+ * @param {otherMac} String
+ * @return {bool} vompare succeeded
+ */
+crypton.hmacAndCompare = function(key, data, otherMac) {
+  var ourMac = crypton.hmac(key, data);
+  return crypton.constEqual(ourMac, otherMac);
+}
+
+/**!
  * ### generateAccount(username, passphrase, callback, options)
  * Generate salts and keys necessary for an account
  *
@@ -179,8 +208,12 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   var account = new crypton.Account();
   var hmacKey = randomBytes(32);
   var keypairSalt = randomBytes(32);
+  var keypairMacSalt = randomBytes(32);
+  var signKeyPrivateMacSalt = randomBytes(32);
   var containerNameHmacKey = randomBytes(32);
   var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
+  var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt);
+  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt);
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
 
@@ -190,6 +223,8 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
   account.username = username;
   account.keypairSalt = JSON.stringify(keypairSalt);
+  account.keypairMacSalt = JSON.stringify(keypairMacSalt);
+  account.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
 
   // Pad verifier to 512 bytes
   // TODO: This length will change when a different SRP group is used
@@ -230,7 +265,9 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   // private keys
   // TODO: Check data auth with hmac
   account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
+  account.keypairMac = crypton.hmac(keypairMacKey, account.keypairCiphertext);
   account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
+  account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, account.signKeyPrivateCiphertext);
 
   if (save) {
     account.save(function (err) {
@@ -319,11 +356,15 @@ crypton.authorize = function (username, passphrase, callback) {
               session.account.containerNameHmacKeyCiphertext = res.body.account.containerNameHmacKeyCiphertext;
               session.account.hmacKeyCiphertext = res.body.account.hmacKeyCiphertext;
               session.account.keypairCiphertext = res.body.account.keypairCiphertext;
+              session.account.keypairMac = res.body.account.keypairMac;
               session.account.pubKey = res.body.account.pubKey;
               session.account.challengeKeySalt = res.body.account.challengeKeySalt;
               session.account.keypairSalt = res.body.account.keypairSalt;
+              session.account.keypairMacSalt = res.body.account.keypairMacSalt;
               session.account.signKeyPub = res.body.account.signKeyPub;
               session.account.signKeyPrivateCiphertext = res.body.account.signKeyPrivateCiphertext;
+              session.account.signKeyPrivateMacSalt = res.body.account.signKeyPrivateMacSalt;
+              session.account.signKeyPrivateMac = res.body.account.signKeyPrivateMac;
               session.account.unravel(function (err) {
                 if (err) {
                   return callback(err);

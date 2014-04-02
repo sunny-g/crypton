@@ -30,6 +30,8 @@ setupAccount = function() {
   account.srpVerifier = 'verifier';
   account.srpSalt = 'salt';
   account.keypairSalt = [-1601113307,-147606214,-62907260,1664396850,1038241656,596952288,-1676728508,-743835030];
+  account.keypairMacSalt = [-1601113307,-147606214,-62907260,1664396850,1038241656,596952288,-1676728508,-743835030];
+  account.signKeyPrivateMacSalt = [-1601113307,-147606214,-62907260,1664396850,1038241656,596952288,-1676728508,-743835030];
 
   var keypairCurve = 384;
 
@@ -37,6 +39,8 @@ setupAccount = function() {
   var containerNameHmacKey = crypton.randomBytes(32);
 
   var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
+  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt);
+  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt);
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var signingKeys = sjcl.ecc.ecdsa.generateKeys(384, crypton.paranoia);
 
@@ -61,7 +65,9 @@ setupAccount = function() {
   account.containerNameHmacKeyCiphertext = encryptedContainerNameHmacKey;
 
   account.keypairCiphertext = JSON.parse(sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions));
+  account.keypairMac = crypton.hmac(keypairMacKey, JSON.stringify(account.keypairCiphertext));
   account.signKeyPrivateCiphertext = JSON.parse(sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions));
+  account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, JSON.stringify(account.signKeyPrivateCiphertext));
   return account;
 };
 
@@ -118,6 +124,30 @@ describe('Account', function () {
         done();
       });
     });
+    it('should fail if secretKey does not verify', function (done) {
+      account = setupAccount();
+
+      // Modify the mac slightly to provoke an invalid one
+      var mac = account.keypairMac;
+      account.keypairMac = mac.substr(0, mac.length-2) + 'AA';
+
+      account.unravel(function (err) {
+        assert.notEqual(err, undefined);
+        done();
+      });
+    });
+    it('should fail if signKeyPrivate does not verify', function (done) {
+      account = setupAccount();
+
+      // Modify the mac slightly to provoke an invalid one
+      var mac = account.signKeyPrivateMac;
+      account.signKeyPrivateMac = mac.substr(0, mac.length-2) + 'AA';
+
+      account.unravel(function (err) {
+        assert.notEqual(err, undefined);
+        done();
+      });
+    });
   });
 
   describe('serialize()', function () {
@@ -128,11 +158,15 @@ describe('Account', function () {
         'containerNameHmacKeyCiphertext',
         'hmacKeyCiphertext',
         'keypairCiphertext',
+        'keypairMac',
         'pubKey',
         'keypairSalt',
+        'keypairMacSalt',
+        'signKeyPrivateMacSalt',
         'username',
         'signKeyPub',
-        'signKeyPrivateCiphertext'
+        'signKeyPrivateCiphertext',
+        'signKeyPrivateMac'
       ];
       var serialized = account.serialize();
       assert.deepEqual(Object.keys(serialized), expected);
@@ -147,12 +181,16 @@ describe('Account', function () {
       assert.deepEqual(ret.srpSalt, account.srpSalt);
       assert.deepEqual(ret.hmacKeyCiphertext, account.hmacKeyCiphertext);
       assert.deepEqual(ret.keypairCiphertext, account.keypairCiphertext);
+      assert.deepEqual(ret.keypairMac, account.keypairMac);
       assert.deepEqual(ret.pubKey, account.pubKey);
       assert.deepEqual(ret.challengeKeySalt, account.challengeKeySalt);
       assert.deepEqual(ret.keypairSalt, account.keypairSalt);
+      assert.deepEqual(ret.keypairMacSalt, account.keypairMacSalt);
+      assert.deepEqual(ret.signKeyPrivateMacSalt, account.signKeyPrivateMacSalt);
       assert.deepEqual(ret.username, account.username);
       assert.deepEqual(ret.signKeyPub, account.signKeyPub);
       assert.deepEqual(ret.signKeyPrivateCiphertext, account.signKeyPrivateCiphertext);
+      assert.deepEqual(ret.signKeyPrivateMac, account.signKeyPrivateMac);
     });
   });
 });

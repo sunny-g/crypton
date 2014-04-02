@@ -244,15 +244,19 @@ describe('Core', function () {
 
       var fields = [
         'username',
-        'srpSalt',
         'srpVerifier',
-        'keypairSalt',
-        'keypairCiphertext',
+        'srpSalt',
         'containerNameHmacKeyCiphertext',
         'hmacKeyCiphertext',
+        'keypairCiphertext',
+        'keypairMac',
         'pubKey',
+        'keypairSalt',
+        'keypairMacSalt',
+        'signKeyPrivateMacSalt',
         'signKeyPub',
-        'signKeyPrivateCiphertext'
+        'signKeyPrivateCiphertext',
+        'signKeyPrivateMac'
       ];
 
       for (var i in fields) {
@@ -293,5 +297,31 @@ describe('Core', function () {
     });
 
     // TODO should we just test this functionality in the integration tests?:q
+  });
+
+  describe('hmac()', function () {
+    it('should return the expected mac', function () {
+      var expected = '23eddb487287e7a20b4dca249cb6bd0190bef7115cb0e31669748277e262baff';
+
+      assert.equal(crypton.hmac('somekey', 'somedata'), expected);
+    });
+  });
+
+  describe('hmacAndCompare()', function() {
+    it('should be equal with the expected input', function(){
+      var expected = '23eddb487287e7a20b4dca249cb6bd0190bef7115cb0e31669748277e262baff';
+
+      assert(crypton.hmacAndCompare('somekey', 'somedata', expected));
+    });
+    it('should not be equal with different input data', function(){
+      var expected = '23eddb487287e7a20b4dca249cb6bd0190bef7115cb0e31669748277e262baff';
+
+      assert(!crypton.hmacAndCompare('somekey', 'somedata2', expected));
+    });
+    it('should not be equal with different key', function(){
+      var expected = '23eddb487287e7a20b4dca249cb6bd0190bef7115cb0e31669748277e262baff';
+
+      assert(!crypton.hmacAndCompare('somekey2', 'somedata', expected));
+    });
   });
 });

@@ -27,14 +27,18 @@ describe('Account model', function () {
       var requestedAccount = {
         username: 'pizza',
         keypairSalt: '[1,2,3]',
+        keypairMacSalt: '[1,2,3]',
         keypairCiphertext: { keypair: 'ciphertext' },
+        keypairMac: '[1,2,3]',
         pubKey: { pub: 'key' },
         srpSalt: 'saltstring',
         srpVerifier: 'verifierstring',
         containerNameHmacKeyCiphertext: '[1,2,3]',
         hmacKeyCiphertext: '[1,2,3]',
         signKeyPub: { pub: 'key' },
-        signKeyPrivateCiphertext: '[1,2,3]'
+        signKeyPrivateMacSalt: '[1,2,3]',
+        signKeyPrivateCiphertext: '[1,2,3]',
+        signKeyPrivateMac: '[1,2,3]'
       };
 
       account.update(requestedAccount);
@@ -112,14 +116,18 @@ describe('Account model', function () {
         'accountId',
         'keyringId',
         'keypairSalt',
+        'keypairMacSalt',
         'keypairCiphertext',
+        'keypairMac',
         'pubKey',
         'srpVerifier',
         'srpSalt',
         'containerNameHmacKeyCiphertext',
         'hmacKeyCiphertext',
         'signKeyPub',
-        'signKeyPrivateCiphertext'
+        'signKeyPrivateMacSalt',
+        'signKeyPrivateCiphertext',
+        'signKeyPrivateMac'
       ];
 
       account.get('pizza', function (err) {

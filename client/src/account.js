@@ -125,11 +125,15 @@ Account.prototype.serialize = function () {
     containerNameHmacKeyCiphertext: this.containerNameHmacKeyCiphertext,
     hmacKeyCiphertext: this.hmacKeyCiphertext,
     keypairCiphertext: this.keypairCiphertext,
+    keypairMac: this.keypairMac,
     pubKey: this.pubKey,
     keypairSalt: this.keypairSalt,
+    keypairMacSalt: this.keypairMacSalt,
+    signKeyPrivateMacSalt: this.signKeyPrivateMacSalt,
     username: this.username,
     signKeyPub: this.signKeyPub,
-    signKeyPrivateCiphertext: this.signKeyPrivateCiphertext
+    signKeyPrivateCiphertext: this.signKeyPrivateCiphertext,
+    signKeyPrivateMac: this.signKeyPrivateMac
   };
 };
 

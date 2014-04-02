@@ -128,24 +128,33 @@ work.unravelAccount = function (account, callback) {
 
     // regenerate keypair key from password
     var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
+    var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt);
+    var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt);
+
+    var macOk = false;
 
     // decrypt secret key
     try {
-      // TODO: verify this
-      ret.secret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.keypairCiphertext), crypton.cipherOptions));
-    } catch (e) {}
+      var ciphertextString = JSON.stringify(account.keypairCiphertext);
+      macOk = crypton.hmacAndCompare(keypairMacKey, ciphertextString, account.keypairMac);
+      ret.secret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
+    } catch (e) { console.log(e); console.log(e.stack); }
 
-    if (!ret.secret) {
+    if (!macOk || !ret.secret) {
       // TODO could be decryption or parse error - should we specify?
       return callback('Could not parse secret key');
     }
 
+    macOk = false;
+
     // decrypt signing key
     try {
-      ret.signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, JSON.stringify(account.signKeyPrivateCiphertext), crypton.cipherOptions));
+      var ciphertextString = JSON.stringify(account.signKeyPrivateCiphertext);
+      macOk = crypton.hmacAndCompare(signKeyPrivateMacKey, ciphertextString, account.signKeyPrivateMac);
+      ret.signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
     } catch (e) {}
 
-    if (!ret.signKeySecret) {
+    if (!macOk || !ret.signKeySecret) {
       return callback('Could not parse signKeySecret');
     }
 

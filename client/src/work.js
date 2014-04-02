@@ -53,6 +53,13 @@ var work = crypton.work = {};
  * @param {Function} callback
  */
 work.calculateSrpA = function (options, callback) {
+  // srpRandom uses sjcl.random
+  // and crypton.work might be in a different
+  // thread than where startCollectors was originally called
+  if (!crypton.collectorsStarted) {
+    crypton.startCollectors();
+  }
+
   try {
     var srp = new SRPClient(options.username, options.passphrase, 2048, 'sha-256');
     var a = srp.srpRandom();

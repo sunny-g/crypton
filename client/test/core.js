@@ -41,6 +41,28 @@ describe('Core', function () {
     });
   });
 
+  describe('startCollectors()', function () {
+    it('should trigger crypton collectorsStarted flag', function () {
+      crypton.collectorsStarted = false;
+      assert.doesNotThrow(crypton.startCollectors);
+      assert.equal(crypton.collectorsStarted, true);
+    });
+
+    it('should trigger sjcl collectorsStarted flag', function () {
+      crypton.collectorsStarted = false;
+      assert.doesNotThrow(crypton.startCollectors);
+      assert.equal(sjcl.random._collectorsStarted, true);
+    });
+
+    it('should add the expected listeners to the document object', function () {
+      // I couldn't figure out how to actually test that
+      // listeners were added. I tried to check document.onmousemove
+      // etc, but they were always null. Could have something to do with
+      // phantom? The listeners that it should add are here
+      // https://github.com/bitwiseshiftleft/sjcl/blob/master/core/random.js#L243..L254
+    });
+  });
+
   describe('url()', function () {
     it('should return the correct url', function () {
       assert.equal(crypton.url(), 'https://localhost:443');

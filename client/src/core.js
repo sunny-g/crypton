@@ -55,6 +55,21 @@ crypton.cipherOptions = {
 crypton.paranoia = 6;
 
 /**!
+ * ### collectorsStarted
+ * Internal flag to know if startCollectors has been called
+ */
+crypton.collectorsStarted = false;
+
+/**!
+ * ### startCollectors
+ * Start sjcl.random listeners for adding to entropy pool
+ */
+crypton.startCollectors = function () {
+  sjcl.random.startCollectors();
+  crypton.collectorsStarted = true;
+};
+
+/**!
  * ### url()
  * Generate URLs for server calls
  *
@@ -172,6 +187,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
     return callback('Must supply username and passphrase');
   }
 
+  if (!crypton.collectorsStarted) {
+    crypton.startCollectors();
+  }
+
   var SIGN_KEY_BIT_LENGTH = 384;
   var keypairCurve = options.keypairCurve || 384;
   var save = typeof options.save !== 'undefined' ? options.save : true;
@@ -261,6 +280,10 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 crypton.authorize = function (username, passphrase, callback) {
   if (!username || !passphrase) {
     return callback('Must supply username and passphrase');
+  }
+
+  if (!crypton.collectorsStarted) {
+    crypton.startCollectors();
   }
 
   var options = {

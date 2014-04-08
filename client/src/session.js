@@ -324,8 +324,7 @@ Session.prototype.getContainerWithHmac = function (containerNameHmac, peer, call
  */
 Session.prototype.getPeer = function (username, callback) {
   if (this.peers[username]) {
-    callback(null, this.peers[username]);
-    return;
+    return callback(null, this.peers[username]);
   }
 
   var that = this;
@@ -335,12 +334,32 @@ Session.prototype.getPeer = function (username, callback) {
 
   peer.fetch(function (err, peer) {
     if (err) {
-      callback(err);
-      return;
+      return callback(err);
     }
 
-    that.peers[username] = peer;
-    callback(err, peer);
+    that.load('_trust_state', function (err, container) {
+      if (err) {
+        return callback(err);
+      }
+
+      // if the peer has previously been trusted,
+      // we should check the saved fingerprint against
+      // what the server has given us
+      if (!container.keys[username]) {
+        peer.trusted = false;
+      } else {
+        var savedFingerprint = container.keys[username].fingerprint;
+
+        if (!crypton.constEqual(savedFingerprint, peer.fingerprint)) {
+          return callback('Server has provided malformed peer', peer);
+        }
+
+        peer.trusted = true;
+      }
+
+      that.peers[username] = peer;
+      callback(null, peer);
+    });
   });
 };
 

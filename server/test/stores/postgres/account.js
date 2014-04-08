@@ -28,13 +28,17 @@ describe('Postgres driver', function () {
       username: 'testuser',
       keypairCiphertext: { "keypair": "ciphertext" },
       keypairSalt: '[1,2,3]',
+      keypairMacSalt: '[1,2,3]',
+      keypairMac: '123',
       pubKey: { "pubkey": "ciphertext" },
       containerNameHmacKeyCiphertext: { "containerNameHmacKey": "ciphertext" },
       hmacKeyCiphertext: { "hmacKey": "ciphertext" },
       srpVerifier: 'verifierstring',
       srpSalt: 'saltstring',
       signKeyPub: { "pub": "key" },
-      signKeyPrivateCiphertext: '[1,2,3]'
+      signKeyPrivateMacSalt: '[1,2,3]',
+      signKeyPrivateCiphertext: '[1,2,3]',
+      signKeyPrivateMac: '123'
     };
 
     var expectedAccount = {
@@ -42,6 +46,8 @@ describe('Postgres driver', function () {
       accountId: 4,
       keyringId: 5,
       keypairSalt: [ 1, 2, 3 ],
+      keypairMacSalt: [ 1, 2, 3 ],
+      keypairMac: '123',
       keypairCiphertext: { keypair: 'ciphertext' },
       pubKey: { pubkey: 'ciphertext' },
       srpVerifier: 'verifierstring',
@@ -49,7 +55,9 @@ describe('Postgres driver', function () {
       containerNameHmacKeyCiphertext: { containerNameHmacKey: 'ciphertext' },
       hmacKeyCiphertext: { hmacKey: 'ciphertext' },
       signKeyPub: { "pub": "key" },
-      signKeyPrivateCiphertext: [ 1, 2, 3 ]
+      signKeyPrivateMacSalt: [ 1, 2, 3 ],
+      signKeyPrivateCiphertext: [ 1, 2, 3 ],
+      signKeyPrivateMac: '123'
     }
 
     describe('saveAccount', function () {

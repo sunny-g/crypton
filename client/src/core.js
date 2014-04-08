@@ -393,7 +393,22 @@ crypton.authorize = function (username, passphrase, callback) {
                   return callback(err);
                 }
 
-                callback(null, session);
+                // check for internal peer trust state container
+                session.load('_trust_state', function (err) {
+                  // if it exists, callback with session
+                  if (!err) {
+                    return callback(null, session);
+                  }
+
+                  // if not, create it
+                  session.create('_trust_state', function (err) {
+                    if (err) {
+                      return callback(err);
+                    }
+
+                    callback(null, session);
+                  });
+                });
               });
             });
         });

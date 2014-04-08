@@ -86,6 +86,9 @@ Peer.prototype.fetch = function (callback) {
       sjcl.ecc.curves['c' + peer.signKeyPub.curve].fromBits(peer.signKeyPub.point);
     that.signKeyPub = new sjcl.ecc.ecdsa.publicKey(peer.signKeyPub.curve, signPoint.curve, signPoint);
 
+    // calculate fingerprint for public key
+    that.fingerprint = crypton.fingerprint(that.pubKey, that.signKeyPub);
+
     callback(null, that);
   });
 };

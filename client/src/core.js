@@ -194,6 +194,25 @@ crypton.hmacAndCompare = function(key, data, otherMac) {
 }
 
 /**!
+ * ### fingerprint(pubKey, signKeyPub)
+ * Generate a fingerprint for an account or peer.
+ *
+ * @param {pubKey} PublicKey
+ * @param {signKeyPub} PublicKey
+ * @return {hash} String
+ */
+// TODO check inputs
+crypton.fingerprint = function (pubKey, signKeyPub) {
+  var pubKeys = sjcl.bitArray.concat(
+    pubKey._point.toBits(),
+    signKeyPub._point.toBits()
+  );
+
+  var pubKeyHash = sjcl.hash.sha256.hash(pubKeys);
+  return sjcl.codec.hex.fromBits(pubKeyHash);
+};
+
+/**!
  * ### generateAccount(username, passphrase, callback, options)
  * Generate salts and keys necessary for an account
  *

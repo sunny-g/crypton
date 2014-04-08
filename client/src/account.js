@@ -108,6 +108,9 @@ Account.prototype.regenerateKeys = function (data, callback) {
   var signExponent = sjcl.bn.fromBits(data.signKeySecret.exponent);
   this.signKeyPrivate = new sjcl.ecc.ecdsa.secretKey(data.signKeySecret.curve, sjcl.ecc.curves['c' + data.signKeySecret.curve], signExponent);
 
+  // calculate fingerprint for public key
+  this.fingerprint = crypton.fingerprint(this.pubKey, this.signKeyPub);
+
   callback(null);
 };
 

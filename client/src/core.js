@@ -169,9 +169,9 @@ crypton.randomBits = function (nbits) {
  * ### mac(key, data)
  * Generate an HMAC using `key` for `data`.
  *
- * @param {key} String
- * @param {data} String
- * @return {Array} bitArray
+ * @param {String} key
+ * @param {String} data
+ * @return {String} hmacHex
  */
 crypton.hmac = function(key, data) {
   var mac = new sjcl.misc.hmac(key);
@@ -183,10 +183,10 @@ crypton.hmac = function(key, data) {
  * Generate an HMAC using `key` for `data` and compare it in
  * constant time to `otherMac`.
  *
- * @param {key} String
- * @param {data} String
- * @param {otherMac} String
- * @return {bool} vompare succeeded
+ * @param {String} key
+ * @param {String} data
+ * @param {String} otherMac
+ * @return {Bool} compare succeeded
  */
 crypton.hmacAndCompare = function(key, data, otherMac) {
   var ourMac = crypton.hmac(key, data);
@@ -197,9 +197,9 @@ crypton.hmacAndCompare = function(key, data, otherMac) {
  * ### fingerprint(pubKey, signKeyPub)
  * Generate a fingerprint for an account or peer.
  *
- * @param {pubKey} PublicKey
- * @param {signKeyPub} PublicKey
- * @return {hash} String
+ * @param {PublicKey} pubKey
+ * @param {PublicKey} signKeyPub
+ * @return {String} hash
  */
 // TODO check inputs
 crypton.fingerprint = function (pubKey, signKeyPub) {

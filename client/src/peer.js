@@ -152,4 +152,42 @@ Peer.prototype.sendMessage = function (headers, payload, callback) {
   message.send(callback);
 };
 
+/**!
+ * ### trust(callback)
+ * Add peer's fingerprint to internal trust state container
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Peer.prototype.trust = function (callback) {
+  var that = this;
+
+  that.session.load('_trust_state', function (err, container) {
+    if (err) {
+      return callback(err);
+    }
+
+    if (container.keys[that.username]) {
+      return callback('Peer is already trusted');
+    }
+
+    container.keys[that.username] = {
+      trustedAt: +new Date(),
+      fingerprint: that.fingerprint
+    };
+
+    container.save(function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      that.trusted = true;
+      callback(null);
+    });
+  });
+};
+
 })();

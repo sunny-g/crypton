@@ -61,11 +61,9 @@ else
   exit 1;
 fi
 
-REDIS_VERSION=$(redis-server --version | grep -o -E "2.6|2.8")
-if [ "$REDIS_VERSION" = "2.6"  ]; then
-  echo "Found redis 2.6.x..."
-elif [ "$REDIS_VERSION" = "2.8"  ]; then
-  echo "Found redis 2.8.x..."
+REDIS_VERSION=$(redis-server --version | grep -o -E "2\.6|2\.8" | wc -c | awk {'print $1'})
+if [ "$REDIS_VERSION" -ne "0"  ]; then
+  echo "Found supported redis version..."
 else 
   echo "Redis 2.6.x or 2.8.x are required for Crypton"
   echo "You have: `redis-server --version`"

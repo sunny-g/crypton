@@ -38,7 +38,7 @@ describe('Public key verification', function () {
     var container;
 
     before(function (done) {
-      session.load('_trust_state', function (err, rawContainer) {
+      session.load(crypton.trustStateContainer, function (err, rawContainer) {
         if (err) throw err;
         container = rawContainer;
         done();
@@ -107,7 +107,7 @@ describe('Public key verification', function () {
         // force the session to load from server again
         session.containers = [];
 
-        session.load('_trust_state', function (err, trustContainer) {
+        session.load(crypton.trustStateContainer, function (err, trustContainer) {
           if (err) throw err;
           var savedKey = trustContainer.keys['notSoSmart'];
           assert.equal(typeof savedKey.trustedAt, 'number');

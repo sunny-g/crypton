@@ -177,7 +177,7 @@ Peer.prototype.sendMessage = function (headers, payload, callback) {
 Peer.prototype.trust = function (callback) {
   var that = this;
 
-  that.session.load('_trust_state', function (err, container) {
+  that.session.load(crypton.trustStateContainer, function (err, container) {
     if (err) {
       return callback(err);
     }

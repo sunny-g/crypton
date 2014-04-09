@@ -55,6 +55,12 @@ crypton.cipherOptions = {
 crypton.paranoia = 6;
 
 /**!
+ * ### trustStateContainer
+ * Internal name for trust state container
+ */
+crypton.trustStateContainer = '_trust_state';
+
+/**!
  * ### collectorsStarted
  * Internal flag to know if startCollectors has been called
  */
@@ -414,14 +420,14 @@ crypton.authorize = function (username, passphrase, callback) {
                 }
 
                 // check for internal peer trust state container
-                session.load('_trust_state', function (err) {
+                session.load(crypton.trustStateContainer, function (err) {
                   // if it exists, callback with session
                   if (!err) {
                     return callback(null, session);
                   }
 
                   // if not, create it
-                  session.create('_trust_state', function (err) {
+                  session.create(crypton.trustStateContainer, function (err) {
                     if (err) {
                       return callback(err);
                     }

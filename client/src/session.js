@@ -338,7 +338,7 @@ Session.prototype.getPeer = function (username, callback) {
       return callback(err);
     }
 
-    that.load('_trust_state', function (err, container) {
+    that.load(crypton.trustStateContainer, function (err, container) {
       if (err) {
         return callback(err);
       }

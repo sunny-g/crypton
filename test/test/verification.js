@@ -81,18 +81,14 @@ describe('Public key verification', function () {
       assert.equal(peer.trusted, false);
     });
 
-    it('should refuse to encrypt for untrusted peer', function (done) {
-      peer.encrypt('foo', function (err, ciphertext) {
-        assert.equal(err, 'Peer is untrusted');
-        done();
-      });
+    it('should refuse to encrypt for untrusted peer', function () {
+      var ret = peer.encrypt('foo');
+      assert.equal(ret.error, 'Peer is untrusted');
     });
 
-    it('should refuse to encryptAndSign for untrusted peer', function (done) {
-      peer.encryptAndSign('foo', function (err, ciphertext) {
-        assert.equal(err, 'Peer is untrusted');
-        done();
-      });
+    it('should refuse to encryptAndSign for untrusted peer', function () {
+      var ret = peer.encryptAndSign('foo');
+      assert.equal(ret.error, 'Peer is untrusted');
     });
 
     describe('trust()', function () {
@@ -125,18 +121,14 @@ describe('Public key verification', function () {
         });
       });
 
-      it('should allow encrypt to run', function (done) {
-        peer.encrypt('foo', function (err, ciphertext) {
-          assert.equal(err, null);
-          done();
-        });
+      it('should allow encrypt to run', function () {
+        var ret = peer.encrypt('foo');
+        assert.equal(ret.error, null);
       });
 
-      it('should allow encryptAndSign to run', function (done) {
-        peer.encryptAndSign('foo', function (err, ciphertext) {
-          assert.equal(err, null);
-          done();
-        });
+      it('should allow encryptAndSign to run', function () {
+        var ret = peer.encryptAndSign('foo');
+        assert.equal(ret.error, null);
       });
 
       it('should make peer trusted on next fetch', function (done) {

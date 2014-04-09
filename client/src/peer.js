@@ -101,6 +101,12 @@ Peer.prototype.fetch = function (callback) {
  * @return {Object} ciphertext
  */
 Peer.prototype.encrypt = function (payload) {
+  if (!this.trusted) {
+    return {
+      error: 'Peer is untrusted'
+    }
+  }
+
   // should this be async to callback with an error if there is no pubkey?
   var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(payload), crypton.cipherOptions);
   return ciphertext;
@@ -114,6 +120,12 @@ Peer.prototype.encrypt = function (payload) {
  * @return {Object}
  */
 Peer.prototype.encryptAndSign = function (payload) {
+  if (!this.trusted) {
+    return {
+      error: 'Peer is untrusted'
+    }
+  }
+
   try {
     var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(payload), crypton.cipherOptions);
     // hash the ciphertext and sign the hash:

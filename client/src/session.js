@@ -163,6 +163,7 @@ Session.prototype.create = function (containerName, callback) {
     pubKey: this.account.pubKey,
     signKeyPub: this.account.signKeyPub
   });
+  selfPeer.trusted = true;
 
   var sessionKey = crypton.randomBytes(32);
   var sessionKeyCiphertext = selfPeer.encryptAndSign(sessionKey);

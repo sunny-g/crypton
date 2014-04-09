@@ -282,6 +282,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
     session: session,
     pubKey: keypair.pub
   });
+  selfPeer.trusted = true;
 
   // hmac keys
   var encryptedHmacKey = selfPeer.encryptAndSign(JSON.stringify(hmacKey));

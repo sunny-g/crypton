@@ -33,7 +33,7 @@ describe('Transaction functionality', function () {
     it('should create a transaction', function (done) {
       tx = new crypton.Transaction(session, function (err) {
         assert.equal(err, null);
-        assert.equal(tx.id, 5);
+        assert.equal(tx.id, 14);
         done();
       });
     });

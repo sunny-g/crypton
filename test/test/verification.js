@@ -109,14 +109,9 @@ describe('Public key verification', function () {
 
         session.load('_trust_state', function (err, trustContainer) {
           if (err) throw err;
-
-          assert.deepEqual(trustContainer.keys, {
-            'notSoSmart': {
-              trustedAt: 123,
-              pubKey: 'foo'
-            }
-          });
-
+          var savedKey = trustContainer.keys['notSoSmart'];
+          assert.equal(typeof savedKey.trustedAt, 'number');
+          assert.equal(savedKey.fingerprint, peer.fingerprint);
           done();
         });
       });

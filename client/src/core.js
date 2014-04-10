@@ -136,7 +136,7 @@ function constEqual (str1, str2) {
   var len = Math.min(str1.length, str2.length);
 
   for (var i = 0; i < len; i++) {
-    mismatch |= str1[i] ^ str2[i];
+    mismatch |= str1.charCodeAt(i) ^ str2.charCodeAt(i);
   }
 
   return mismatch === 0;

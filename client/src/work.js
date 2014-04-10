@@ -130,86 +130,81 @@ work.calculateSrpM1 = function (options, callback) {
  * @param {Function} callback
  */
 work.unravelAccount = function (account, callback) {
+  var ret = {};
+
+  // regenerate keypair key from password
+  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
+  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt);
+  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt);
+
+  var macOk = false;
+
+  // decrypt secret key
   try {
-    var ret = {};
+    var ciphertextString = JSON.stringify(account.keypairCiphertext);
+    macOk = crypton.hmacAndCompare(keypairMacKey, ciphertextString, account.keypairMac);
+    ret.secret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
+  } catch (e) { console.log(e); console.log(e.stack); }
 
-    // regenerate keypair key from password
-    var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
-    var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt);
-    var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt);
-
-    var macOk = false;
-
-    // decrypt secret key
-    try {
-      var ciphertextString = JSON.stringify(account.keypairCiphertext);
-      macOk = crypton.hmacAndCompare(keypairMacKey, ciphertextString, account.keypairMac);
-      ret.secret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
-    } catch (e) { console.log(e); console.log(e.stack); }
-
-    if (!macOk || !ret.secret) {
-      // TODO could be decryption or parse error - should we specify?
-      return callback('Could not parse secret key');
-    }
-
-    macOk = false;
-
-    // decrypt signing key
-    try {
-      var ciphertextString = JSON.stringify(account.signKeyPrivateCiphertext);
-      macOk = crypton.hmacAndCompare(signKeyPrivateMacKey, ciphertextString, account.signKeyPrivateMac);
-      ret.signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
-    } catch (e) {}
-
-    if (!macOk || !ret.signKeySecret) {
-      return callback('Could not parse signKeySecret');
-    }
-
-    var exponent = sjcl.bn.fromBits(ret.secret.exponent);
-    var secretKey = new sjcl.ecc.elGamal.secretKey(ret.secret.curve, sjcl.ecc.curves['c' + ret.secret.curve], exponent);
-
-    account.secretKey = secretKey;
-
-    var sessionIdentifier = 'dummySession';
-    var session = new crypton.Session(sessionIdentifier);
-    session.account = account;
-    session.account.signKeyPrivate = ret.signKeySecret;
-
-    var signPoint = sjcl.ecc.curves['c' + account.signKeyPub.curve].fromBits(account.signKeyPub.point);
-
-    var selfPeer = new crypton.Peer({
-      session: session,
-      pubKey: account.pubKey,
-      signKeyPub: new sjcl.ecc.ecdsa.publicKey(account.signKeyPub.curve, signPoint.curve, signPoint)
-    });
-
-    var selfAccount = new crypton.Account();
-    selfAccount.secretKey = secretKey;
-
-    // decrypt hmac keys
-    try {
-      ret.containerNameHmacKey = selfAccount.verifyAndDecrypt(account.containerNameHmacKeyCiphertext, selfPeer);
-    } catch (e) { }
-
-    if (!ret.containerNameHmacKey.verified) {
-      // TODO could be decryption or parse error - should we specify?
-      return callback('Could not parse containerNameHmacKey');
-    }
-
-    try {
-      ret.hmacKey = selfAccount.verifyAndDecrypt(account.hmacKeyCiphertext, selfPeer);
-    } catch (e) {}
-
-    if (!ret.hmacKey.verified) {
-      // TODO could be decryption or parse error - should we specify?
-      return callback('Could not parse hmacKey');
-    }
-
-    callback(null, ret);
-  } catch (e) {
-    console.log(e);
-    callback(e);
+  if (!macOk || !ret.secret) {
+    // TODO could be decryption or parse error - should we specify?
+    return callback('Could not parse secret key');
   }
+
+  macOk = false;
+
+  // decrypt signing key
+  try {
+    var ciphertextString = JSON.stringify(account.signKeyPrivateCiphertext);
+    macOk = crypton.hmacAndCompare(signKeyPrivateMacKey, ciphertextString, account.signKeyPrivateMac);
+    ret.signKeySecret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
+  } catch (e) {}
+
+  if (!macOk || !ret.signKeySecret) {
+    return callback('Could not parse signKeySecret');
+  }
+
+  var exponent = sjcl.bn.fromBits(ret.secret.exponent);
+  var secretKey = new sjcl.ecc.elGamal.secretKey(ret.secret.curve, sjcl.ecc.curves['c' + ret.secret.curve], exponent);
+
+  account.secretKey = secretKey;
+
+  var sessionIdentifier = 'dummySession';
+  var session = new crypton.Session(sessionIdentifier);
+  session.account = account;
+  session.account.signKeyPrivate = ret.signKeySecret;
+
+  var signPoint = sjcl.ecc.curves['c' + account.signKeyPub.curve].fromBits(account.signKeyPub.point);
+
+  var selfPeer = new crypton.Peer({
+    session: session,
+    pubKey: account.pubKey,
+    signKeyPub: new sjcl.ecc.ecdsa.publicKey(account.signKeyPub.curve, signPoint.curve, signPoint)
+  });
+
+  var selfAccount = new crypton.Account();
+  selfAccount.secretKey = secretKey;
+
+  // decrypt hmac keys
+  try {
+    ret.containerNameHmacKey = selfAccount.verifyAndDecrypt(account.containerNameHmacKeyCiphertext, selfPeer);
+  } catch (e) {}
+
+  if (!ret.containerNameHmacKey.verified) {
+    // TODO could be decryption or parse error - should we specify?
+    return callback('Could not parse containerNameHmacKey');
+  }
+
+  try {
+    ret.hmacKey = selfAccount.verifyAndDecrypt(account.hmacKeyCiphertext, selfPeer);
+  } catch (e) {}
+
+  if (!ret.hmacKey.verified) {
+    // TODO could be decryption or parse error - should we specify?
+    return callback('Could not parse hmacKey');
+  }
+
+  callback(null, ret);
 };
 
 /**!

@@ -174,7 +174,10 @@ Session.prototype.create = function (containerName, callback) {
 
   delete sessionKeyCiphertext.error;
 
-  var signature = 'hello'; // TODO sign with private key
+  // TODO is signing the sessionKey even necessary if we're
+  // signing the sessionKeyShare? what could the container
+  // creator attack by wrapping a different sessionKey?
+  var signature = 'hello';
   var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
   containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac.encrypt(containerName));
 
@@ -191,7 +194,7 @@ Session.prototype.create = function (containerName, callback) {
   var payloadCiphertext = {
     ciphertext: rawPayloadCiphertext,
     signature: payloadSignature
-  }
+  };
 
   var that = this;
   new crypton.Transaction(this, function (err, tx) {
@@ -219,7 +222,9 @@ Session.prototype.create = function (containerName, callback) {
       tx.save(chunk, callback2);
     }, function (err) {
       if (err) {
-        return callback(err);
+        return tx.abort(function () {
+          callback(err);
+        });
       }
 
       tx.commit(function () {

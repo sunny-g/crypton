@@ -215,13 +215,11 @@ Session.prototype.create = function (containerName, callback) {
       }
     ];
 
-    async.each(chunks, function (chunk, callback) {
-      tx.save(chunk, callback);
+    async.each(chunks, function (chunk, callback2) {
+      tx.save(chunk, callback2);
     }, function (err) {
-      // TODO handle err
       if (err) {
-        console.log(err);
-        return;
+        return callback(err);
       }
 
       tx.commit(function () {

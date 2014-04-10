@@ -144,7 +144,7 @@ work.unravelAccount = function (account, callback) {
     var ciphertextString = JSON.stringify(account.keypairCiphertext);
     macOk = crypton.hmacAndCompare(keypairMacKey, ciphertextString, account.keypairMac);
     ret.secret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
-  } catch (e) { console.log(e); console.log(e.stack); }
+  } catch (e) {}
 
   if (!macOk || !ret.secret) {
     // TODO could be decryption or parse error - should we specify?
@@ -185,20 +185,24 @@ work.unravelAccount = function (account, callback) {
   selfAccount.secretKey = secretKey;
 
   // decrypt hmac keys
+  var containerNameHmacKey;
   try {
-    ret.containerNameHmacKey = selfAccount.verifyAndDecrypt(account.containerNameHmacKeyCiphertext, selfPeer);
+    containerNameHmacKey = selfAccount.verifyAndDecrypt(account.containerNameHmacKeyCiphertext, selfPeer);
+    ret.containerNameHmacKey = JSON.parse(containerNameHmacKey.plaintext);
   } catch (e) {}
 
-  if (!ret.containerNameHmacKey.verified) {
+  if (!containerNameHmacKey.verified) {
     // TODO could be decryption or parse error - should we specify?
     return callback('Could not parse containerNameHmacKey');
   }
 
+  var hmacKey;
   try {
-    ret.hmacKey = selfAccount.verifyAndDecrypt(account.hmacKeyCiphertext, selfPeer);
+    hmacKey = selfAccount.verifyAndDecrypt(account.hmacKeyCiphertext, selfPeer);
+    ret.hmacKey = JSON.parse(hmacKey.plaintext);
   } catch (e) {}
 
-  if (!ret.hmacKey.verified) {
+  if (!hmacKey.verified) {
     // TODO could be decryption or parse error - should we specify?
     return callback('Could not parse hmacKey');
   }

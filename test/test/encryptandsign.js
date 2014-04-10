@@ -16,8 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-describe('encryptAndSign+verifyAndDecrypt()', function () {
-  this.timeout(100000);
+describe.only('encryptAndSign+verifyAndDecrypt()', function () {
+  this.timeout(15000);
 
   var alice;
   var bob;
@@ -31,74 +31,72 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
   describe('Create 2 accounts and exchange a message and decrypt it', function () {
     it('Create Alice', function (done) {
       crypton.generateAccount('alice', 'pass', function (err, acct) {
-        assert.equal(err, null);
+        if (err) throw err;
         alice = acct;
-        assert(alice);
         done();
-      }, {
-          save: true
-        });
       });
+    });
 
     it('Get Alice\'s session', function (done) {
       crypton.authorize('alice', 'pass', function (err, sess) {
-        assert.equal(err, null);
+        if (err) throw err;
         aliceSession = sess;
-        assert(aliceSession);
         done();
       });
     });
 
     it('Create Bob', function (done) {
       crypton.generateAccount('bob', 'pass', function (err, acct) {
-        assert.equal(err, null);
+        if (err) throw err;
         bob = acct;
-        assert(bob);
         done();
-      }, {
-        save: true
       });
     });
 
     it('Get Bob\'s session', function (done) {
       crypton.authorize('bob', 'pass', function (err, sess) {
-        assert.equal(err, null);
+        if (err) throw err;
         bobSession = sess;
-        assert(bobSession);
         done();
       });
     });
 
     it('Get Alice as peer', function (done) {
-      bobSession.getPeer("alice", function (err, peer) {
-        assert.equal(err, null);
-        alicePeer = peer;
-        done();
+      bobSession.getPeer('alice', function (err, peer) {
+        if (err) throw err;
+
+        peer.trust(function (err) {
+          if (err) throw err;
+          alicePeer = peer;
+          done();
+        });
       });
     });
 
-    it('encryptAndSign a message for Alice', function (done) {
+    it('encryptAndSign a message for Alice', function () {
       messageResult = alicePeer.encryptAndSign(plaintext, aliceSession);
       assert.equal(messageResult.error, null);
       assert(messageResult.ciphertext && messageResult.signature);
       messageResult = JSON.stringify(messageResult);
-      done();
     });
 
     it('Alice needs to login again so Alice\'s session is valid', function (done) {
       crypton.authorize('alice', 'pass', function (err, sess) {
-        assert.equal(err, null);
+        if (err) throw err;
         aliceSession = sess;
-        assert(aliceSession);
         done();
       });
     });
 
     it('Get Bob as peer', function (done) {
       aliceSession.getPeer('bob', function (err, peer) {
-        assert.equal(err, null);
-        bobPeer = peer;
-        done();
+        if (err) throw err;
+
+        peer.trust(function (err) {
+          if (err) throw err;
+          bobPeer = peer;
+          done();
+        });
       });
     });
 
@@ -119,6 +117,5 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
       assert.equal(verified.verified, false);
       done();
     });
-
   });
 });

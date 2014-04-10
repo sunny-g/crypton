@@ -169,8 +169,7 @@ work.unravelAccount = function (account, callback) {
 
   account.secretKey = secretKey;
 
-  var sessionIdentifier = 'dummySession';
-  var session = new crypton.Session(sessionIdentifier);
+  var session = {};
   session.account = account;
   session.account.signKeyPrivate = ret.signKeySecret;
 

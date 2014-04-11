@@ -16,7 +16,7 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-describe.only('encryptAndSign+verifyAndDecrypt()', function () {
+describe('encryptAndSign+verifyAndDecrypt()', function () {
   this.timeout(15000);
 
   var alice;

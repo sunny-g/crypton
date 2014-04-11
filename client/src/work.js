@@ -180,6 +180,7 @@ work.unravelAccount = function (account, callback) {
     pubKey: account.pubKey,
     signKeyPub: new sjcl.ecc.ecdsa.publicKey(account.signKeyPub.curve, signPoint.curve, signPoint)
   });
+  selfPeer.trusted = true;
 
   var selfAccount = new crypton.Account();
   selfAccount.secretKey = secretKey;

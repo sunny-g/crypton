@@ -165,6 +165,12 @@ Account.prototype.serialize = function () {
  * @return {Object}
  */
 Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
+  if (!peer.trusted) {
+    return {
+      error: 'Peer is untrusted'
+    }
+  }
+
   // hash the ciphertext
   var ciphertextString = JSON.stringify(signedCiphertext.ciphertext);
   var hash = sjcl.hash.sha256.hash(ciphertextString);

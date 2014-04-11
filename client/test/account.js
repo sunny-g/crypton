@@ -156,7 +156,42 @@ describe('Account', function () {
     });
 
     it('should fail if pubKey is malformed', function (done) {
+      var account = setupAccount();
 
+      // we can't just munge the pubKey point here
+      // because SJCL will just throw, so we have to
+      // find another point on the curve
+      var curve = sjcl.ecc.curves['c' + account.pubKey.curve];
+      var newExponent = sjcl.bn.random(curve.r, crypton.paranoia);
+      var newPoint = curve.G.mult(newExponent);
+      account.pubKey.point = newPoint.toBits();
+
+      account.unravel(function (err) {
+        assert.equal(err, 'Server provided incorrect public key');
+        done();
+      });
+    });
+
+    it('should fail if signKeyPub is malformed', function (done) {
+      var account = setupAccount();
+
+      // we can't just munge the pubKey point here
+      // because SJCL will just throw, so we have to
+      // find another point on the curve
+      var curve = sjcl.ecc.curves['c' + account.pubKey.curve];
+      var newExponent = sjcl.bn.random(curve.r, crypton.paranoia);
+      var newPoint = curve.G.mult(newExponent);
+      account.signKeyPub.point = newPoint.toBits();
+
+      account.unravel(function (err) {
+        // XXX ecto
+        // if the the public signing key is bad,
+        // verifyAndDecrypt will fail to verify
+        // containerNameHmacKey and hmacKey
+        // inside work.unravelAccount
+        assert.equal(err, 'Could not parse containerNameHmacKey');
+        done();
+      });
     });
   });
 

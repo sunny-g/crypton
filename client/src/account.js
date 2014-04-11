@@ -111,6 +111,24 @@ Account.prototype.regenerateKeys = function (data, callback) {
   // calculate fingerprint for public key
   this.fingerprint = crypton.fingerprint(this.pubKey, this.signKeyPub);
 
+  // recalculate the public points from secret exponents
+  // and verify that they match what the server sent us
+  var pubKeyHex = sjcl.codec.hex.fromBits(this.pubKey._point.toBits());
+  var pubKeyShouldBe = this.secretKey._curve.G.mult(exponent);
+  var pubKeyShouldBeHex = sjcl.codec.hex.fromBits(pubKeyShouldBe.toBits());
+
+  if (!crypton.constEqual(pubKeyHex, pubKeyShouldBeHex)) {
+    return callback('Server provided incorrect public key');
+  }
+
+  var signKeyPubHex = sjcl.codec.hex.fromBits(this.signKeyPub._point.toBits());
+  var signKeyPubShouldBe = this.signKeyPrivate._curve.G.mult(signExponent);
+  var signKeyPubShouldBeHex = sjcl.codec.hex.fromBits(signKeyPubShouldBe.toBits());
+
+  if (!crypton.constEqual(signKeyPubHex, signKeyPubShouldBeHex)) {
+    return callback('Server provided incorrect public signing key');
+  }
+
   callback(null);
 };
 

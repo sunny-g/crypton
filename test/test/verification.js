@@ -91,6 +91,11 @@ describe('Public key verification', function () {
       assert.equal(ret.error, 'Peer is untrusted');
     });
 
+    it('should refuse to verifyAndDecrypt for untrusted peer', function () {
+      var ret = session.account.verifyAndDecrypt('foo', peer);
+      assert.equal(ret.error, 'Peer is untrusted');
+    });
+
     describe('trust()', function () {
       it('should callback without error', function (done) {
         peer.trust(function (err) {
@@ -124,6 +129,15 @@ describe('Public key verification', function () {
       it('should allow encryptAndSign to run', function () {
         var ret = peer.encryptAndSign('foo');
         assert.equal(ret.error, null);
+      });
+
+      it('should allow verifyAndDecrypt to run', function () {
+        var ret = session.account.verifyAndDecrypt({
+          ciphertext: 'foo'
+        }, peer);
+
+        // means it got past trust check
+        assert.equal(ret.error, 'Cannot verify ciphertext');
       });
 
       it('should make peer trusted on next fetch', function (done) {

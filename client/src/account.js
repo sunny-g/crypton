@@ -129,6 +129,13 @@ Account.prototype.regenerateKeys = function (data, callback) {
     return callback('Server provided incorrect public signing key');
   }
 
+  // sometimes the account object is used as a peer
+  // to make the code simpler. verifyAndDecrypt checks
+  // that the peer it is passed is trusted, or returns
+  // an error. if we've gotten this far, we can be sure
+  // that the public keys are trustable.
+  this.trusted = true;
+
   callback(null);
 };
 

@@ -163,6 +163,7 @@ Session.prototype.create = function (containerName, callback) {
     pubKey: this.account.pubKey,
     signKeyPub: this.account.signKeyPub
   });
+  selfPeer.trusted = true;
 
   var sessionKey = crypton.randomBytes(32);
   var sessionKeyCiphertext = selfPeer.encryptAndSign(sessionKey);
@@ -173,7 +174,10 @@ Session.prototype.create = function (containerName, callback) {
 
   delete sessionKeyCiphertext.error;
 
-  var signature = 'hello'; // TODO sign with private key
+  // TODO is signing the sessionKey even necessary if we're
+  // signing the sessionKeyShare? what could the container
+  // creator attack by wrapping a different sessionKey?
+  var signature = 'hello';
   var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
   containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac.encrypt(containerName));
 
@@ -190,7 +194,7 @@ Session.prototype.create = function (containerName, callback) {
   var payloadCiphertext = {
     ciphertext: rawPayloadCiphertext,
     signature: payloadSignature
-  }
+  };
 
   var that = this;
   new crypton.Transaction(this, function (err, tx) {
@@ -214,13 +218,13 @@ Session.prototype.create = function (containerName, callback) {
       }
     ];
 
-    async.each(chunks, function (chunk, callback) {
-      tx.save(chunk, callback);
+    async.each(chunks, function (chunk, callback2) {
+      tx.save(chunk, callback2);
     }, function (err) {
-      // TODO handle err
       if (err) {
-        console.log(err);
-        return;
+        return tx.abort(function () {
+          callback(err);
+        });
       }
 
       tx.commit(function () {
@@ -324,8 +328,7 @@ Session.prototype.getContainerWithHmac = function (containerNameHmac, peer, call
  */
 Session.prototype.getPeer = function (username, callback) {
   if (this.peers[username]) {
-    callback(null, this.peers[username]);
-    return;
+    return callback(null, this.peers[username]);
   }
 
   var that = this;
@@ -335,12 +338,32 @@ Session.prototype.getPeer = function (username, callback) {
 
   peer.fetch(function (err, peer) {
     if (err) {
-      callback(err);
-      return;
+      return callback(err);
     }
 
-    that.peers[username] = peer;
-    callback(err, peer);
+    that.load(crypton.trustStateContainer, function (err, container) {
+      if (err) {
+        return callback(err);
+      }
+
+      // if the peer has previously been trusted,
+      // we should check the saved fingerprint against
+      // what the server has given us
+      if (!container.keys[username]) {
+        peer.trusted = false;
+      } else {
+        var savedFingerprint = container.keys[username].fingerprint;
+
+        if (!crypton.constEqual(savedFingerprint, peer.fingerprint)) {
+          return callback('Server has provided malformed peer', peer);
+        }
+
+        peer.trusted = true;
+      }
+
+      that.peers[username] = peer;
+      callback(null, peer);
+    });
   });
 };
 

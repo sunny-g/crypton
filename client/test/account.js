@@ -23,7 +23,7 @@ sjcl.random.addEntropy("foo", 1024);
 
 var assert = chai.assert;
 
-setupAccount = function() {
+function setupAccount () {
   var account = new crypton.Account();
   account.passphrase = 'pass';
   account.username = 'user';
@@ -56,6 +56,7 @@ setupAccount = function() {
     session: session,
     pubKey: keypair.pub
   });
+  selfPeer.trusted = true;
 
   // hmac keys
   var encryptedHmacKey = selfPeer.encryptAndSign(JSON.stringify(hmacKey));
@@ -78,7 +79,8 @@ describe('Account', function () {
 
   describe('unravel()', function () {
     it('should generate the correct fields from given values', function (done) {
-      account = setupAccount();
+      var account = setupAccount();
+
       account.unravel(function (err) {
         var fields = [
           'srpVerifier',
@@ -100,8 +102,9 @@ describe('Account', function () {
         done();
       });
     });
+
     it('should fail if containerNameHmacKey does not verify', function (done) {
-      account = setupAccount();
+      var account = setupAccount();
 
       // Modify the iv to provoke an invalid signature
       var iv = account.containerNameHmacKeyCiphertext.ciphertext.iv;
@@ -112,8 +115,9 @@ describe('Account', function () {
         done();
       });
     });
+
     it('should fail if hmacKey does not verify', function (done) {
-      account = setupAccount();
+      var account = setupAccount();
 
       // Modify the iv to provoke an invalid signature
       var iv = account.hmacKeyCiphertext.ciphertext.iv;
@@ -124,8 +128,9 @@ describe('Account', function () {
         done();
       });
     });
+
     it('should fail if secretKey does not verify', function (done) {
-      account = setupAccount();
+      var account = setupAccount();
 
       // Modify the mac slightly to provoke an invalid one
       var mac = account.keypairMac;
@@ -136,8 +141,9 @@ describe('Account', function () {
         done();
       });
     });
+
     it('should fail if signKeyPrivate does not verify', function (done) {
-      account = setupAccount();
+      var account = setupAccount();
 
       // Modify the mac slightly to provoke an invalid one
       var mac = account.signKeyPrivateMac;
@@ -148,10 +154,49 @@ describe('Account', function () {
         done();
       });
     });
+
+    it('should fail if pubKey is malformed', function (done) {
+      var account = setupAccount();
+
+      // we can't just munge the pubKey point here
+      // because SJCL will just throw, so we have to
+      // find another point on the curve
+      var curve = sjcl.ecc.curves['c' + account.pubKey.curve];
+      var newExponent = sjcl.bn.random(curve.r, crypton.paranoia);
+      var newPoint = curve.G.mult(newExponent);
+      account.pubKey.point = newPoint.toBits();
+
+      account.unravel(function (err) {
+        assert.equal(err, 'Server provided incorrect public key');
+        done();
+      });
+    });
+
+    it('should fail if signKeyPub is malformed', function (done) {
+      var account = setupAccount();
+
+      // we can't just munge the pubKey point here
+      // because SJCL will just throw, so we have to
+      // find another point on the curve
+      var curve = sjcl.ecc.curves['c' + account.pubKey.curve];
+      var newExponent = sjcl.bn.random(curve.r, crypton.paranoia);
+      var newPoint = curve.G.mult(newExponent);
+      account.signKeyPub.point = newPoint.toBits();
+
+      account.unravel(function (err) {
+        // XXX ecto
+        // if the the public signing key is bad,
+        // verifyAndDecrypt will fail to verify
+        // containerNameHmacKey and hmacKey
+        // inside work.unravelAccount
+        assert.equal(err, 'Could not parse containerNameHmacKey');
+        done();
+      });
+    });
   });
 
   describe('serialize()', function () {
-    it('should return the correct fields', function (done) {
+    it('should return the correct fields', function () {
       var expected = [
         'srpVerifier',
         'srpSalt',
@@ -168,13 +213,14 @@ describe('Account', function () {
         'signKeyPrivateCiphertext',
         'signKeyPrivateMac'
       ];
+
+      var account = setupAccount();
       var serialized = account.serialize();
       assert.deepEqual(Object.keys(serialized), expected);
-
-      done();
     });
 
     it('should return the correct values', function () {
+      var account = setupAccount();
       var ret = account.serialize();
       assert.deepEqual(ret.containerNameHmacKeyCiphertext, account.containerNameHmacKeyCiphertext);
       assert.deepEqual(ret.srpVerifier, account.srpVerifier);

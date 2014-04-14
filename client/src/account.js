@@ -108,6 +108,34 @@ Account.prototype.regenerateKeys = function (data, callback) {
   var signExponent = sjcl.bn.fromBits(data.signKeySecret.exponent);
   this.signKeyPrivate = new sjcl.ecc.ecdsa.secretKey(data.signKeySecret.curve, sjcl.ecc.curves['c' + data.signKeySecret.curve], signExponent);
 
+  // calculate fingerprint for public key
+  this.fingerprint = crypton.fingerprint(this.pubKey, this.signKeyPub);
+
+  // recalculate the public points from secret exponents
+  // and verify that they match what the server sent us
+  var pubKeyHex = sjcl.codec.hex.fromBits(this.pubKey._point.toBits());
+  var pubKeyShouldBe = this.secretKey._curve.G.mult(exponent);
+  var pubKeyShouldBeHex = sjcl.codec.hex.fromBits(pubKeyShouldBe.toBits());
+
+  if (!crypton.constEqual(pubKeyHex, pubKeyShouldBeHex)) {
+    return callback('Server provided incorrect public key');
+  }
+
+  var signKeyPubHex = sjcl.codec.hex.fromBits(this.signKeyPub._point.toBits());
+  var signKeyPubShouldBe = this.signKeyPrivate._curve.G.mult(signExponent);
+  var signKeyPubShouldBeHex = sjcl.codec.hex.fromBits(signKeyPubShouldBe.toBits());
+
+  if (!crypton.constEqual(signKeyPubHex, signKeyPubShouldBeHex)) {
+    return callback('Server provided incorrect public signing key');
+  }
+
+  // sometimes the account object is used as a peer
+  // to make the code simpler. verifyAndDecrypt checks
+  // that the peer it is passed is trusted, or returns
+  // an error. if we've gotten this far, we can be sure
+  // that the public keys are trustable.
+  this.trusted = true;
+
   callback(null);
 };
 
@@ -144,6 +172,12 @@ Account.prototype.serialize = function () {
  * @return {Object}
  */
 Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
+  if (!peer.trusted) {
+    return {
+      error: 'Peer is untrusted'
+    }
+  }
+
   // hash the ciphertext
   var ciphertextString = JSON.stringify(signedCiphertext.ciphertext);
   var hash = sjcl.hash.sha256.hash(ciphertextString);

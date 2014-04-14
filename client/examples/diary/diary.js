@@ -196,7 +196,7 @@ function renderDate () {
   $('#date').text('Dated ' + prettyDate(entry.time));
   dateRenderLoop = setInterval(function () {
     $('#date').text('Dated ' + prettyDate(entry.time));
-  });
+  }, 1000);
 }
 
 function checkEntry () {

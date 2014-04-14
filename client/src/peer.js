@@ -86,6 +86,9 @@ Peer.prototype.fetch = function (callback) {
       sjcl.ecc.curves['c' + peer.signKeyPub.curve].fromBits(peer.signKeyPub.point);
     that.signKeyPub = new sjcl.ecc.ecdsa.publicKey(peer.signKeyPub.curve, signPoint.curve, signPoint);
 
+    // calculate fingerprint for public key
+    that.fingerprint = crypton.fingerprint(that.pubKey, that.signKeyPub);
+
     callback(null, that);
   });
 };
@@ -98,6 +101,12 @@ Peer.prototype.fetch = function (callback) {
  * @return {Object} ciphertext
  */
 Peer.prototype.encrypt = function (payload) {
+  if (!this.trusted) {
+    return {
+      error: 'Peer is untrusted'
+    }
+  }
+
   // should this be async to callback with an error if there is no pubkey?
   var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(payload), crypton.cipherOptions);
   return ciphertext;
@@ -111,6 +120,12 @@ Peer.prototype.encrypt = function (payload) {
  * @return {Object}
  */
 Peer.prototype.encryptAndSign = function (payload) {
+  if (!this.trusted) {
+    return {
+      error: 'Peer is untrusted'
+    }
+  }
+
   try {
     var ciphertext = sjcl.encrypt(this.pubKey, JSON.stringify(payload), crypton.cipherOptions);
     // hash the ciphertext and sign the hash:
@@ -147,6 +162,44 @@ Peer.prototype.sendMessage = function (headers, payload, callback) {
   message.toAccount = this.accountId;
   message.encrypt(this);
   message.send(callback);
+};
+
+/**!
+ * ### trust(callback)
+ * Add peer's fingerprint to internal trust state container
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Peer.prototype.trust = function (callback) {
+  var that = this;
+
+  that.session.load(crypton.trustStateContainer, function (err, container) {
+    if (err) {
+      return callback(err);
+    }
+
+    if (container.keys[that.username]) {
+      return callback('Peer is already trusted');
+    }
+
+    container.keys[that.username] = {
+      trustedAt: +new Date(),
+      fingerprint: that.fingerprint
+    };
+
+    container.save(function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      that.trusted = true;
+      callback(null);
+    });
+  });
 };
 
 })();

@@ -55,6 +55,12 @@ crypton.cipherOptions = {
 crypton.paranoia = 6;
 
 /**!
+ * ### trustStateContainer
+ * Internal name for trust state container
+ */
+crypton.trustStateContainer = '_trust_state';
+
+/**!
  * ### collectorsStarted
  * Internal flag to know if startCollectors has been called
  */
@@ -130,7 +136,7 @@ function constEqual (str1, str2) {
   var len = Math.min(str1.length, str2.length);
 
   for (var i = 0; i < len; i++) {
-    mismatch |= str1[i] ^ str2[i];
+    mismatch |= str1.charCodeAt(i) ^ str2.charCodeAt(i);
   }
 
   return mismatch === 0;
@@ -169,9 +175,9 @@ crypton.randomBits = function (nbits) {
  * ### mac(key, data)
  * Generate an HMAC using `key` for `data`.
  *
- * @param {key} String
- * @param {data} String
- * @return {Array} bitArray
+ * @param {String} key
+ * @param {String} data
+ * @return {String} hmacHex
  */
 crypton.hmac = function(key, data) {
   var mac = new sjcl.misc.hmac(key);
@@ -183,15 +189,34 @@ crypton.hmac = function(key, data) {
  * Generate an HMAC using `key` for `data` and compare it in
  * constant time to `otherMac`.
  *
- * @param {key} String
- * @param {data} String
- * @param {otherMac} String
- * @return {bool} vompare succeeded
+ * @param {String} key
+ * @param {String} data
+ * @param {String} otherMac
+ * @return {Bool} compare succeeded
  */
 crypton.hmacAndCompare = function(key, data, otherMac) {
   var ourMac = crypton.hmac(key, data);
   return crypton.constEqual(ourMac, otherMac);
 }
+
+/**!
+ * ### fingerprint(pubKey, signKeyPub)
+ * Generate a fingerprint for an account or peer.
+ *
+ * @param {PublicKey} pubKey
+ * @param {PublicKey} signKeyPub
+ * @return {String} hash
+ */
+// TODO check inputs
+crypton.fingerprint = function (pubKey, signKeyPub) {
+  var pubKeys = sjcl.bitArray.concat(
+    pubKey._point.toBits(),
+    signKeyPub._point.toBits()
+  );
+
+  var pubKeyHash = sjcl.hash.sha256.hash(pubKeys);
+  return sjcl.codec.hex.fromBits(pubKeyHash);
+};
 
 /**!
  * ### generateAccount(username, passphrase, callback, options)
@@ -263,6 +288,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
     session: session,
     pubKey: keypair.pub
   });
+  selfPeer.trusted = true;
 
   // hmac keys
   var encryptedHmacKey = selfPeer.encryptAndSign(JSON.stringify(hmacKey));
@@ -393,7 +419,22 @@ crypton.authorize = function (username, passphrase, callback) {
                   return callback(err);
                 }
 
-                callback(null, session);
+                // check for internal peer trust state container
+                session.load(crypton.trustStateContainer, function (err) {
+                  // if it exists, callback with session
+                  if (!err) {
+                    return callback(null, session);
+                  }
+
+                  // if not, create it
+                  session.create(crypton.trustStateContainer, function (err) {
+                    if (err) {
+                      return callback(err);
+                    }
+
+                    callback(null, session);
+                  });
+                });
               });
             });
         });

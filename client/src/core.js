@@ -22,6 +22,8 @@ var crypton = {};
 
 'use strict';
 
+var MISMATCH_ERR = 'Server and client version mismatch';
+
 /**!
  * ### version
  * Holds framework version for potential future backward compatibility
@@ -29,25 +31,19 @@ var crypton = {};
 crypton.version = '0.0.2';
 
 /**!
- * ### version mismatch
+ * ### clientVersionMismatch
  * Holds cleint <-> server version mismatch status
  */
 crypton.clientVersionMismatch = undefined;
 
-/**!
- * ### Application name that is consuming Crypton
- * Should be overridden to use the version check function
- */
-crypton.clientAppName = 'Crypton Framework';
-
 crypton.versionCheck = function (callback) {
-  var url = '/versioncheck/?' + 'v=' + crypton.version;
+  var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version;
   superagent.get(url)
-    .end(function (res) {
-    if (res.body.success !== true && res.body.versionMismatchErr) {
-      callback(res.body.versionMismatchErr);
+  .end(function (res) {
+    if (res.body.success !== true && res.body.error !== undefined) {
+      callback(res.body.error);
       crypton.clientVersionMismatch = true;
-      return;
+      callback(res.body.error);
     }
   });
 };
@@ -260,12 +256,12 @@ crypton.fingerprint = function (pubKey, signKeyPub) {
 // TODO consider moving non-callback arguments to single object
 crypton.generateAccount = function (username, passphrase, callback, options) {
   if (crypton.clientVersionMismatch) {
-    return callback('Server and client verison mismatch');
+    return callback(MISMATCH_ERR);
   }
 
   crypton.versionCheck(function (err){
     if (err) {
-      return callback('Server and client verison mismatch');
+      return callback(MISMATCH_ERR);
     } else {
 
       options = options || {};
@@ -377,12 +373,12 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  */
 crypton.authorize = function (username, passphrase, callback) {
   if (crypton.clientVersionMismatch) {
-    return callback('Server and client version mismatch');
+    return callback(MISMATCH_ERR);
   }
 
   crypton.versionCheck(function (err) {
     if (err) {
-      return callback('Server and client verison mismatch');
+      return callback(MISMATCH_ERR);
     } else {
 
       if (!username || !passphrase) {

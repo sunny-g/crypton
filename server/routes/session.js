@@ -40,20 +40,19 @@ app.get('/', function (req, res) {
  * ### GET /versioncheck/
  * Get '/versioncheck/' - see if the current client has the same version as the server
 */
-app.get('/versioncheck/', function (req, res) {
-  app.log('debug', 'handling GET /versioncheck/');
+app.get('/versioncheck', function (req, res) {
+  app.log('debug', 'handling GET /versioncheck');
+  app.log('debug', 'server version: ' + app.SERVER_VERSION);
   if (req.params.v != app.SERVER_VERSION) {
-    res.send({
+    return res.send({
       success: false,
-      versionMismatchErr: 'version mismatch detected',
+      error: 'version mismatch detected',
       data: { server: 'crypton'}
     });
-    return;
   }
 
-  res.send({
+  return res.send({
     success: true,
-    versionMismatchErr: null,
     data: { server: 'crypton'}
   });
 });

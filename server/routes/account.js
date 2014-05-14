@@ -23,8 +23,6 @@ var db = app.datastore;
 var middleware = require('../lib/middleware');
 var Account = require('../lib/account');
 
-app.SERVER_VERSION = '0.0.2';
-
 /**!
  * ### POST /account
  * Translate posted body to an account object,

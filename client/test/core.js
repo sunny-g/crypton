@@ -23,6 +23,8 @@ describe('Core', function () {
     sjcl.random.setDefaultParanoia(0);
   });
 
+  this.timeout(20000);
+
   describe('default properties', function () {
     it('should have the correct version', function () {
       assert.equal(crypton.version, '0.0.2');

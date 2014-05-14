@@ -19,6 +19,8 @@
 describe('Core functionality', function () {
   this.timeout(15000);
 
+  var REAL_VERSION = new String(crypton.version);
+
   describe('Account generation', function () {
     it('should refuse registrations without a username', function (done) {
       crypton.generateAccount('', '', function (err, account) {
@@ -30,6 +32,15 @@ describe('Core functionality', function () {
     it('should refuse registrations without a passphrase', function (done) {
       crypton.generateAccount('notSoSmart', '', function (err, account) {
         assert.equal(err, 'Must supply username and passphrase');
+        done();
+      });
+    });
+
+    it('should refuse registrations when versions mismatch', function (done) {
+      crypton.version = 'pizza';
+      crypton.generateAccount('mismatchname', '', function (err, account) {
+        assert.equal(err, 'Server and client version mismatch');
+        crypton.version = REAL_VERSION;
         done();
       });
     });
@@ -61,6 +72,15 @@ describe('Core functionality', function () {
     it('should refuse invalid usernames', function (done) {
       crypton.authorize('iDontExist', 'neitherDoI', function (err, session) {
         assert.equal(err, 'Account not found.');
+        done();
+      });
+    });
+
+    it('should refuse authorization when verisons mismatch', function (done) {
+      crypton.verison = 'pizzapizza';
+      crypton.authorize('notSoSmart', 'pass', function (err, session) {
+        assert.equal(err, 'Server and client verison mismatch');
+        crypton.verison = REAL_VERSION;
         done();
       });
     });

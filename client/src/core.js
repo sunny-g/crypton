@@ -29,6 +29,30 @@ var crypton = {};
 crypton.version = '0.0.2';
 
 /**!
+ * ### version mismatch
+ * Holds cleint <-> server version mismatch status
+ */
+crypton.clientVersionMismatch = undefined;
+
+/**!
+ * ### Application name that is consuming Crypton
+ * Should be overridden to use the version check function
+ */
+crypton.clientAppName = 'Crypton Framework';
+
+crypton.versionCheck = function (callback) {
+  var url = '/versioncheck/?' + 'v=' + crypton.version;
+  superagent.get(url)
+    .end(function (res) {
+    if (res.body.success !== true && res.body.versionMismatchErr) {
+      callback(res.body.versionMismatchErr);
+      crypton.clientVersionMismatch = true;
+      return;
+    }
+  });
+};
+
+/**!
  * ### host
  * Holds location of Crypton server
  */
@@ -235,93 +259,104 @@ crypton.fingerprint = function (pubKey, signKeyPub) {
  */
 // TODO consider moving non-callback arguments to single object
 crypton.generateAccount = function (username, passphrase, callback, options) {
-  options = options || {};
-
-  if (!username || !passphrase) {
-    return callback('Must supply username and passphrase');
+  if (crypton.clientVersionMismatch) {
+    return callback('Server and client verison mismatch');
   }
 
-  if (!crypton.collectorsStarted) {
-    crypton.startCollectors();
-  }
+  crypton.versionCheck(function (err){
+    if (err) {
+      return callback('Server and client verison mismatch');
+    } else {
 
-  var SIGN_KEY_BIT_LENGTH = 384;
-  var keypairCurve = options.keypairCurve || 384;
-  var save = typeof options.save !== 'undefined' ? options.save : true;
+      options = options || {};
 
-  var account = new crypton.Account();
-  var hmacKey = randomBytes(32);
-  var keypairSalt = randomBytes(32);
-  var keypairMacSalt = randomBytes(32);
-  var signKeyPrivateMacSalt = randomBytes(32);
-  var containerNameHmacKey = randomBytes(32);
-  var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
-  var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt);
-  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt);
-  var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
-  var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
+      if (!username || !passphrase) {
+        return callback('Must supply username and passphrase');
+      }
 
-  var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
-  var srpSalt = srp.randomHexSalt();
-  var srpVerifier = srp.calculateV(srpSalt).toString(16);
+      if (!crypton.collectorsStarted) {
+        crypton.startCollectors();
+      }
 
-  account.username = username;
-  account.keypairSalt = JSON.stringify(keypairSalt);
-  account.keypairMacSalt = JSON.stringify(keypairMacSalt);
-  account.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
+      var SIGN_KEY_BIT_LENGTH = 384;
+      var keypairCurve = options.keypairCurve || 384;
+      var save = typeof options.save !== 'undefined' ? options.save : true;
 
-  // Pad verifier to 512 bytes
-  // TODO: This length will change when a different SRP group is used
-  account.srpVerifier = srp.nZeros(512 - srpVerifier.length) + srpVerifier;
-  account.srpSalt = srpSalt;
+      var account = new crypton.Account();
+      var hmacKey = randomBytes(32);
+      var keypairSalt = randomBytes(32);
+      var keypairMacSalt = randomBytes(32);
+      var signKeyPrivateMacSalt = randomBytes(32);
+      var containerNameHmacKey = randomBytes(32);
+      var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
+      var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt);
+      var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt);
+      var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
+      var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
 
-  // pubkeys
-  account.pubKey = JSON.stringify(keypair.pub.serialize());
-  account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
+      var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
+      var srpSalt = srp.randomHexSalt();
+      var srpVerifier = srp.calculateV(srpSalt).toString(16);
 
-  var sessionIdentifier = 'dummySession';
-  var session = new crypton.Session(sessionIdentifier);
-  session.account = account;
-  session.account.signKeyPrivate = signingKeys.sec;
+      account.username = username;
+      account.keypairSalt = JSON.stringify(keypairSalt);
+      account.keypairMacSalt = JSON.stringify(keypairMacSalt);
+      account.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
 
-  var selfPeer = new crypton.Peer({
-    session: session,
-    pubKey: keypair.pub
+      // Pad verifier to 512 bytes
+      // TODO: This length will change when a different SRP group is used
+      account.srpVerifier = srp.nZeros(512 - srpVerifier.length) + srpVerifier;
+      account.srpSalt = srpSalt;
+
+      // pubkeys
+      account.pubKey = JSON.stringify(keypair.pub.serialize());
+      account.signKeyPub = JSON.stringify(signingKeys.pub.serialize());
+
+      var sessionIdentifier = 'dummySession';
+      var session = new crypton.Session(sessionIdentifier);
+      session.account = account;
+      session.account.signKeyPrivate = signingKeys.sec;
+
+      var selfPeer = new crypton.Peer({
+        session: session,
+        pubKey: keypair.pub
+      });
+      selfPeer.trusted = true;
+
+      // hmac keys
+      var encryptedHmacKey = selfPeer.encryptAndSign(JSON.stringify(hmacKey));
+      if (encryptedHmacKey.error) {
+        callback(encryptedHmacKey.error, null);
+        return;
+      }
+
+      account.hmacKeyCiphertext = JSON.stringify(encryptedHmacKey);
+
+      var encryptedContainerNameHmacKey = selfPeer.encryptAndSign(JSON.stringify(containerNameHmacKey));
+      if (encryptedContainerNameHmacKey.error) {
+        callback(encryptedContainerNameHmacKey.error, null);
+        return;
+      }
+
+      account.containerNameHmacKeyCiphertext = JSON.stringify(encryptedContainerNameHmacKey);
+
+      // private keys
+      // TODO: Check data auth with hmac
+      account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
+      account.keypairMac = crypton.hmac(keypairMacKey, account.keypairCiphertext);
+      account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
+      account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, account.signKeyPrivateCiphertext);
+
+      if (save) {
+        account.save(function (err) {
+          callback(err, account);
+        });
+        return;
+      }
+
+      callback(null, account);
+    }
   });
-  selfPeer.trusted = true;
-
-  // hmac keys
-  var encryptedHmacKey = selfPeer.encryptAndSign(JSON.stringify(hmacKey));
-  if (encryptedHmacKey.error) {
-    callback(encryptedHmacKey.error, null);
-    return;
-  }
-
-  account.hmacKeyCiphertext = JSON.stringify(encryptedHmacKey);
-
-  var encryptedContainerNameHmacKey = selfPeer.encryptAndSign(JSON.stringify(containerNameHmacKey));
-  if (encryptedContainerNameHmacKey.error) {
-    callback(encryptedContainerNameHmacKey.error, null);
-    return;
-  }
-
-  account.containerNameHmacKeyCiphertext = JSON.stringify(encryptedContainerNameHmacKey);
-
-  // private keys
-  // TODO: Check data auth with hmac
-  account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
-  account.keypairMac = crypton.hmac(keypairMacKey, account.keypairCiphertext);
-  account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
-  account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, account.signKeyPrivateCiphertext);
-
-  if (save) {
-    account.save(function (err) {
-      callback(err, account);
-    });
-    return;
-  }
-
-  callback(null, account);
 };
 
 /**!
@@ -341,48 +376,57 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  * @param {Function} callback
  */
 crypton.authorize = function (username, passphrase, callback) {
-  if (!username || !passphrase) {
-    return callback('Must supply username and passphrase');
+  if (crypton.clientVersionMismatch) {
+    return callback('Server and client version mismatch');
   }
 
-  if (!crypton.collectorsStarted) {
-    crypton.startCollectors();
-  }
-
-  var options = {
-    username: username,
-    passphrase: passphrase
-  };
-
-  crypton.work.calculateSrpA(options, function (err, data) {
+  crypton.versionCheck(function (err) {
     if (err) {
-      return callback(err);
-    }
+      return callback('Server and client verison mismatch');
+    } else {
 
-    var response = {
-      srpA: data.srpAstr
-    };
+      if (!username || !passphrase) {
+        return callback('Must supply username and passphrase');
+      }
 
-    superagent.post(crypton.url() + '/account/' + username)
-      .withCredentials()
-      .send(response)
-      .end(function (res) {
-        if (!res.body || res.body.success !== true) {
-          return callback(res.body.error);
+      if (!crypton.collectorsStarted) {
+        crypton.startCollectors();
+      }
+
+      var options = {
+        username: username,
+        passphrase: passphrase
+      };
+
+      crypton.work.calculateSrpA(options, function (err, data) {
+        if (err) {
+          return callback(err);
         }
 
-        options.a = data.a;
-        options.srpA = data.srpA;
-        options.srpB = res.body.srpB;
-        options.srpSalt = res.body.srpSalt;
+        var response = {
+          srpA: data.srpAstr
+        };
 
-        // calculateSrpM1
-        crypton.work.calculateSrpM1(options, function (err, srpM1, ourSrpM2) {
-          response = {
-            srpM1: srpM1
-          };
+        superagent.post(crypton.url() + '/account/' + username)
+        .withCredentials()
+        .send(response)
+        .end(function (res) {
+          if (!res.body || res.body.success !== true) {
+            return callback(res.body.error);
+          }
 
-          superagent.post(crypton.url() + '/account/' + username + '/answer')
+          options.a = data.a;
+          options.srpA = data.srpA;
+          options.srpB = res.body.srpB;
+          options.srpSalt = res.body.srpSalt;
+
+          // calculateSrpM1
+          crypton.work.calculateSrpM1(options, function (err, srpM1, ourSrpM2) {
+            response = {
+              srpM1: srpM1
+            };
+
+            superagent.post(crypton.url() + '/account/' + username + '/answer')
             .withCredentials()
             .send(response)
             .end(function (res) {
@@ -437,9 +481,10 @@ crypton.authorize = function (username, passphrase, callback) {
                 });
               });
             });
+          });
         });
       });
+    }
   });
 };
-
 })();

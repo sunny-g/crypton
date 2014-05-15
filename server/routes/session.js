@@ -43,7 +43,7 @@ app.get('/', function (req, res) {
 app.get('/versioncheck', function (req, res) {
   app.log('debug', 'handling GET /versioncheck');
   app.log('debug', 'server version: ' + app.SERVER_VERSION);
-  if (req.params.v != app.SERVER_VERSION) {
+  if (req.query.v != app.SERVER_VERSION) {
     return res.send({
       success: false,
       error: 'version mismatch detected',

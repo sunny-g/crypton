@@ -41,10 +41,10 @@ crypton.versionCheck = function (callback) {
   superagent.get(url)
   .end(function (res) {
     if (res.body.success !== true && res.body.error !== undefined) {
-      callback(res.body.error);
       crypton.clientVersionMismatch = true;
-      callback(res.body.error);
+      return callback(res.body.error);
     }
+    callback(null);
   });
 };
 

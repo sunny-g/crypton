@@ -23,7 +23,7 @@ describe('Core', function () {
     sjcl.random.setDefaultParanoia(0);
   });
 
-  this.timeout(20000);
+  this.timeout(30000);
 
   describe('default properties', function () {
     it('should have the correct version', function () {
@@ -247,6 +247,7 @@ describe('Core', function () {
   describe('generateAccount()', function () {
     var err;
     var user;
+    this.timeout(30000);
 
     before(function (done) {
       crypton.generateAccount('user', 'pass', function () {

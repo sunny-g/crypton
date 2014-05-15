@@ -39,9 +39,11 @@ var program = require('commander');
 program
   .version('0.0.2')
   .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
+  .option('-d, --docker', 'Enable docker mode to use environment variables rather than a config file [default false]')
   .parse(process.argv);
 
 process.configFile = program.config;
+process.docker = program.docker;
 
 if (require.main === module) {
   var app = require('../app');

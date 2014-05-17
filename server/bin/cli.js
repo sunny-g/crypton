@@ -20,16 +20,28 @@
 'use strict';
 
 /**!
- * A simple CLI to start the server
+ * A CLI to manage running and daemonizing the Crypton server
  *
  * ````
- * Usage: crypton [options]
+ *  Usage: crypton-server [options] [command]
  *
- * Options:
+ *  Commands:
  *
- *   -h, --help           output usage information
- *   -V, --version        output the version number
- *   -c, --config [file]  Specify a custom configuration file [default config]
+ *    run                    Run the Crypton server
+ *    status                 Print the status of the daemonized the Crypton server
+ *    start                  Daemonize the Crypton server
+ *    stop                   Stop the daemonized Crypton server
+ *    restart                Restart the daemonized Crypton server
+ *    logs                   Print the latest Crypton server logs
+ *    tail                   Tail Crypton server logs to stdout
+ *    cleanlogs              Remove the log files
+ *
+ *  Options:
+ *
+ *    -h, --help           output usage information
+ *    -V, --version        output the version number
+ *    -c, --config [file]  Specify a custom configuration file [default config]
+ *    -d, --docker         Enable docker mode to use environment variables rather than a config file [default false]
  * ````
  */
 

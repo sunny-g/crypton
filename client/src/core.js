@@ -36,7 +36,11 @@ crypton.version = '0.0.2';
  */
 crypton.clientVersionMismatch = undefined;
 
-crypton.versionCheck = function (callback) {
+crypton.versionCheck = function (skip, callback) {
+  if (skip) {
+    return callback(null);
+  }
+
   var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version;
   superagent.get(url)
   .end(function (res) {
@@ -259,12 +263,13 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
     return callback(MISMATCH_ERR);
   }
 
-  crypton.versionCheck(function (err){
+  options = options || {};
+  var save = typeof options.save !== 'undefined' ? options.save : true;
+
+  crypton.versionCheck(!options.save, function (err) {
     if (err) {
       return callback(MISMATCH_ERR);
     } else {
-
-      options = options || {};
 
       if (!username || !passphrase) {
         return callback('Must supply username and passphrase');
@@ -276,7 +281,6 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       var SIGN_KEY_BIT_LENGTH = 384;
       var keypairCurve = options.keypairCurve || 384;
-      var save = typeof options.save !== 'undefined' ? options.save : true;
 
       var account = new crypton.Account();
       var hmacKey = randomBytes(32);

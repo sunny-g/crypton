@@ -266,7 +266,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   options = options || {};
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
-  crypton.versionCheck(!options.save, function (err) {
+  crypton.versionCheck(!save, function (err) {
     if (err) {
       return callback(MISMATCH_ERR);
     } else {
@@ -384,7 +384,7 @@ crypton.authorize = function (username, passphrase, callback, options) {
   options = options || {};
   var check = typeof options.check !== 'undefined' ? options.check : true;
 
-  crypton.versionCheck(!options.check, function (err) {
+  crypton.versionCheck(!check, function (err) {
     if (err) {
       return callback(MISMATCH_ERR);
     } else {

@@ -12,7 +12,7 @@ test: test-unit
 
 test-unit: node_modules clean compile
 	@echo "Running client tests..."
-	@./node_modules/karma/bin/karma start --browsers PhantomJS --single-run;
+	@./node_modules/karma/bin/karma start --browsers PhantomJS --single-run
 
 node_modules:
 	@echo "Installing node modules for client testing..."

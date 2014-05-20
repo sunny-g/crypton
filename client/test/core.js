@@ -243,11 +243,9 @@ describe('Core', function () {
     // any further tests would just be repeats of randomBytes tests
   });
 
-
   describe('generateAccount()', function () {
     var err;
     var user;
-    this.timeout(30000);
 
     before(function (done) {
       crypton.generateAccount('user', 'pass', function () {

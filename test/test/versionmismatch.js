@@ -23,23 +23,25 @@ describe('Version Mismatch checking', function () {
 
   describe('Account generation', function () {
     it('should refuse registrations when versions mismatch', function (done) {
+      var options = { save: true };
       crypton.version = '0.0.1';
       crypton.generateAccount('mismatchname', 'pass', function (err, account) {
         crypton.version = REAL_VERSION;
         assert.equal(err, 'Server and client version mismatch');
         done();
-      });
+      }, options);
     });
   });
 
   describe('Authorization', function () {
     it('should refuse authorization when versions mismatch', function (done) {
+      var options = { check: true };
       crypton.version = '0.27';
       crypton.authorize('mismatchedname2', 'pass', function (err, session) {
         crypton.version = REAL_VERSION;
         assert.equal(err, 'Server and client version mismatch');
         done();
-      });
+      }, options);
     });
   });
 });

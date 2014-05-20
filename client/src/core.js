@@ -374,13 +374,17 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
  * @param {String} username
  * @param {String} passphrase
  * @param {Function} callback
+ * @param {Object} options
  */
-crypton.authorize = function (username, passphrase, callback) {
+crypton.authorize = function (username, passphrase, callback, options) {
   if (crypton.clientVersionMismatch) {
     return callback(MISMATCH_ERR);
   }
 
-  crypton.versionCheck(function (err) {
+  options = options || {};
+  var check = typeof options.check !== 'undefined' ? options.check : true;
+
+  crypton.versionCheck(!options.check, function (err) {
     if (err) {
       return callback(MISMATCH_ERR);
     } else {

@@ -257,6 +257,7 @@ crypton.fingerprint = function (pubKey, signKeyPub) {
  * @param {Function} callback
  * @param {Object} options
  */
+
 // TODO consider moving non-callback arguments to single object
 crypton.generateAccount = function (username, passphrase, callback, options) {
   if (crypton.clientVersionMismatch) {

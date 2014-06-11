@@ -121,14 +121,22 @@ app.sessionStore = new RedisStore({
   prefix: 'crypton.sid:'
 });
 
-app.use(express.session({
+var sessionMiddleware = express.session({
   secret: app.secret,
   store: app.sessionStore,
   key: 'crypton.sid',
   cookie: {
     secure: true
   }
-}));
+});
+
+app.use(function (req, res, next) {
+  if (req._parsedUrl.pathname == '/') {
+    return next();
+  }
+
+  sessionMiddleware(req, res, next);
+});
 
 app.use(express.logger(function (info, req, res) {
   var color = 'green';

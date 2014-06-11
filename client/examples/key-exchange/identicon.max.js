@@ -410,7 +410,7 @@ Usage with options: $('li').identicon5({rotate:true, size:100});
       ctx.fillStyle = "rgb(" + cfr + "," + cfg + "," + cfb + ")";
 
       if (rotate === false) {
-	cro = 0;
+        cro = 0;
       }
       drawRotatedPolygon(ctx, corner, 0, 0, cro, 0, size);
       drawRotatedPolygon(ctx, corner, totalsize, 0, cro, 90, size);
@@ -419,7 +419,7 @@ Usage with options: $('li').identicon5({rotate:true, size:100});
 
       /* draw sides */
       if (rotate === false) {
-	sro = 0;
+        sro = 0;
       }
       var side = getsprite(ssh, size);
       ctx.fillStyle = "rgb(" + sfr + "," + sfg + "," + sfb + ")";
@@ -439,6 +439,104 @@ Usage with options: $('li').identicon5({rotate:true, size:100});
 
       drawRotatedPolygon(ctx, center, size, size, 0, 0, size);
     };
+
+
+
+
+    // // override, experiment
+    // var draw = function (ctx, hash, width, rotate) {
+
+    //   var csh = parseInt(hash.substr(0, 1), 16); // corner sprite shape
+    //   var ssh = parseInt(hash.substr(1, 1), 16); // side sprite shape
+    //   var ssh2 = parseInt(hash.substr(2, 1), 16); // side sprite shape
+    //   var xsh = parseInt(hash.substr(3, 1), 16) & 7; // center sprite shape
+    //   var xsh2 = parseInt(hash.substr(4, 1), 16) & 7; // center sprite shape
+
+
+    //   var halfPi = Math.PI/2;
+    //   var cro = halfPi * (parseInt(hash.substr(5, 1), 16) & 3); // corner sprite rotation
+    //   var sro = halfPi * (parseInt(hash.substr(6, 1), 16) & 3); // side sprite rotation
+    //   var sro2 = halfPi * (parseInt(hash.substr(7, 1), 16) & 3); // side sprite rotation
+    //   var xbg = parseInt(hash.substr(8, 1), 16) % 2; // center sprite background
+    //   var xbg2 = parseInt(hash.substr(9, 1), 16) % 2; // center sprite background
+
+    //   /* corner sprite foreground color */
+    //   var cfr = parseInt(hash.substr(10, 2), 16);
+    //   console.log("cfr", cfr);
+    //   var cfg = parseInt(hash.substr(12, 2), 16);
+    //   console.log("cfg", cfg);
+    //   var cfb = parseInt(hash.substr(14, 2), 16);
+    //   console.log("cfb", cfb);
+
+    //   /* side sprite foreground color */
+    //   var sfr = parseInt(hash.substr(16, 2), 16);
+    //   var sfg = parseInt(hash.substr(18, 2), 16);
+    //   var sfb = parseInt(hash.substr(20, 2), 16);
+
+    //   /* side sprite2 foreground color */
+    //   var sfr2 = parseInt(hash.substr(22, 2), 16);
+    //   var sfg2 = parseInt(hash.substr(24, 2), 16);
+    //   var sfb2 = parseInt(hash.substr(26, 2), 16);
+
+    //   /* final angle of rotation */
+    //   // not used
+    //   // var angle = parseInt(hash.substr(18, 2), 16);
+
+    //   /* size of each sprite */
+    //   var size = width / 4;
+    //   var totalsize = width;
+
+    //   /* start with blank 4x4 identicon */
+
+    //   /* generate corner sprites */
+    //   var corner = getsprite(csh, size);
+    //   ctx.fillStyle = "rgb(" + cfr + "," + cfg + "," + cfb + ")";
+
+    //   if (rotate === false) {
+    //     cro = 0;
+    //   }
+    //   drawRotatedPolygon(ctx, corner, 0, 0, cro, 0, size);
+    //   drawRotatedPolygon(ctx, corner, totalsize, 0, cro, 90, size);
+    //   drawRotatedPolygon(ctx, corner, totalsize, totalsize, cro, 180, size);
+    //   drawRotatedPolygon(ctx, corner, 0, totalsize, cro, 270, size);
+
+    //   /* draw sides */
+    //   if (rotate === false) {
+    //     sro = 0;
+    //     sro2 = 0;
+    //   }
+    //   var side = getsprite(ssh, size);
+    //   ctx.fillStyle = "rgb(" + sfr + "," + sfg + "," + sfb + ")";
+    //   drawRotatedPolygon(ctx, side, 0, size, sro, 0, size);
+    //   drawRotatedPolygon(ctx, side, 2 * size, 0, sro, 90, size);
+    //   drawRotatedPolygon(ctx, side, 3 * size, 2 * size, sro, 180, size);
+    //   drawRotatedPolygon(ctx, side, size, 3 * size, sro, 270, size);
+
+
+    //   var side2 = getsprite(ssh2, size);
+    //   ctx.fillStyle = "rgb(" + sfr2 + "," + sfg2 + "," + sfb2 + ")";
+    //   drawRotatedPolygon(ctx, side, 0, size, sro2, 0, size);
+    //   drawRotatedPolygon(ctx, side, 2 * size, 0, sro2, 90, size);
+    //   drawRotatedPolygon(ctx, side, 3 * size, 2 * size, sro2, 180, size);
+    //   drawRotatedPolygon(ctx, side, size, 3 * size, sro2, 270, size);
+
+    //   var center = getcenter(xsh, size);
+    //   var center2 = getcenter(xsh2, size);
+
+    //   /* make sure there's enough contrast before we use background color of side sprite */
+    //   if (xbg > 0 && (Math.abs(cfr - sfr) > 127 || Math.abs(cfg - sfg) > 127 || Math.abs(cfb - sfb) > 127)) {
+    //     ctx.fillStyle = "rgb(" + sfr + "," + sfg + "," + sfb + ")";
+    //   } else {
+    //     ctx.fillStyle = "rgb(" + cfr + "," + cfg + "," + cfb + ")";
+    //   }
+
+    //   drawRotatedPolygon(ctx, center, size, size, 0, 0, size);
+    //   drawRotatedPolygon(ctx, center2, size, size, 0, 0, size);
+    // };
+
+
+
+
 
     // return the object back to the chained call flow
     return this.each(function () {

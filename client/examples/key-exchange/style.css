@@ -95,6 +95,14 @@ body {
   text-decoration: none;
 }
 
+#header span {
+  color: #fff;
+  float: right;
+  height: 50px;
+  padding: 0 15px;
+  text-decoration: none;
+}
+
 #header a:hover {
   background: #000;
 }

@@ -109,24 +109,15 @@ app.boot = function (isNewAccount) {
 app.displayFingerprintInstructions = function (fingerprint, username) {
   var html = '<div class="modal-dialog">'
              + '<p class="modal-content">'
-             + '<span class="modal-content-header">Your Fingerprint is:</span>'
-             + '<div class="fingerprint-txt" id="' + fingerprint  + '">' // XXXddahl: make this "Fingerprint card and identicon downloadbale as an image"
-             + fingerprint
-             + '</div>'
              + '<p class="identicon-header">'
-             + '<span class="modal-content-header">Your Identicon is:</span>'
+             + '<span class="modal-content-header">Your Identigrid:</span>'
              + '</p>'
              + '<p id="placeholder"></p>'
-             + '<div class="modal-content-header">Your Account ID is: '
-             + '<span>'
-             + username
-             + '</span>'
-             + '</div>'
              + '<div class="instruction">'
              + '<p>'
              + 'In order to share messages and data with others, you must first share your Fingerprint, Account ID and this application with others. '
              + '</p>'
-             + '<p>Your Identicon is also helpful to your friend as it is a graphic representation of your Fingerprint. '
+             + '<p>Your Identigrid is also helpful to your friend as it is a graphic representation of your Fingerprint. '
              + '</p>'
              + '<p>'
              + 'Your friend will need to install this application, create an account, lookup your account ID and verifiy the Fingerprint the application provides against this one.'
@@ -142,30 +133,80 @@ app.displayFingerprintInstructions = function (fingerprint, username) {
 
   $('#app').prepend(dialog);
 
-  // XXXddahl: make 2 fingerprints for now, 1 larger one is better than 2
-  var str = fingerprint;
-  var halfway = Math.round(str.length/2);
-  var first = str.slice(0, halfway);
-  var second = str.slice(halfway);
-  html = '<span>'
-       + first
-       + '</span>'
-       + '<span>'
-       + second
-       + '</span>';
+  var canvas = app.createIdentigridCanvas(fingerprint, username, app.APPNAME)
+  $('#placeholder').append(canvas);
 
-  var nodes = $(html);
-  $('#placeholder').append(nodes);
+  // Make it downloadable
+  var link = $('<p><a id="download-identigrid">Download Identigrid Image</a></p>');
+  // XXXddahl: add another link to download just the QR code by itself
+  //           for a script to parse via: https://github.com/LazarSoft/jsqrcode
+  $('#placeholder').append(link);
 
-  $('#placeholder span').identicon5({
-    rotate: true,
-    size: 175
-  });
+  document.getElementById('download-identigrid').
+    addEventListener('click', function() {
+    var filename = username + 'identigrid.png';
+    app.downloadCanvas(this, 'identigrid', filename);
+  }, false);
 
   $('.modal-dialog-close').click(function (){ $('.modal-dialog').remove(); });
 };
 
-app.dismissModalDialog = function (){
+app.APPNAME = 'Crypton Account Verifier';
+
+app.url = 'https://localhost/';
+
+app.generateQRCodeInput = function (fingerprint, username, application, url) {
+  var json = JSON.stringify({ fingerprint: fingerprint, username: username,
+                              application: application, url: url });
+  return json;
+};
+
+app.createFingerprintArr = function (fingerprint) {
+  if (fingerprint.length != 64) {
+    var err = 'Fingerprint has incorrect length';
+    console.error(err);
+    throw new Error(err);
+  }
+  fingerprint = fingerprint.toUpperCase();
+  var fingerArr = [];
+  var i = 0;
+  var segment = '';
+  for (var chr in fingerprint) {
+    segment = segment + fingerprint[chr];
+    i++;
+    if (i == 4) {
+      fingerArr.push(segment);
+      i = 0;
+      segment = '';
+      continue;
+    }
+  }
+  return fingerArr;
+};
+
+app.createColorArr = function (fingerArr) {
+  // pad the value out to 6 digits:
+  var count = 0;
+  var paddingData = fingerArr.join('');
+  var colorArr = [];
+  var REQUIRED_LENGTH = 6;
+  for (var idx in fingerArr) {
+    var pad  = (REQUIRED_LENGTH - fingerArr[idx].length);
+    if ( pad == 0) {
+      colorArr.push('#' + fingerArr[idx]);
+    } else {
+      var color = '#' + fingerArr[idx];
+      for (var i = 0; i < pad; i++) {
+        color = color + paddingData[count];
+        count++;
+      }
+      colorArr.push(color);
+    }
+  }
+  return colorArr;
+};
+
+app.dismissModalDialog = function () {
   $('.modal-dialog').remove();
 };
 
@@ -191,28 +232,98 @@ app.findSomeone = function () {
       return;
     }
     var fingerprint = peer.fingerprint;
-    app.displayPeerFingerPrint(peer.username, fingerprint);
+    app.displayPeerFingerprint(peer.username, fingerprint);
   });
 };
 
-app.displayPeerFingerPrint = function (username, fingerprint) {
+app.createIdentigridCanvas = function (fingerprint, username, application) {
+  var fingerArr = app.createFingerprintArr(fingerprint);
+  var colorArr = app.createColorArr(fingerArr);
+  var canvas = $('<canvas id="identigrid" width="420" height="420"></canvas>');
+  var ctx = canvas[0].getContext("2d");
+  var x = 0;
+  var y = 0;
+  var w = 50;
+  var h = 50;
+
+  ctx.fillStyle = "black";
+
+  y = y + 20;
+  ctx.font = "bold 24px sans-serif";
+  ctx.fillText(username, x, y);
+
+  y = y + 30;
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText(application, x, y);
+
+  y = y + 30;
+  ctx.font = "bold 24px sans-serif";
+  ctx.fillText('FINGERPRINT', x, y);
+  ctx.font = "24px sans-serif";
+
+  var i = 0;
+  var line = '';
+  idx = 0;
+  for (var j = 0; j < fingerArr.length; j++) {
+    if (i == 3) {
+      line = line + fingerArr[j];
+      y = (y + 25);
+      ctx.fillText(line, x, y);
+      i = 0;
+      line = '';
+    } else {
+      line = line + fingerArr[j] + ' ';
+      i++;
+    }
+  }
+
+  y = y + 20;
+
+  for (var idx in colorArr) {
+    ctx.fillStyle = colorArr[idx];
+    ctx.fillRect(x, y , w, h);
+    x = (x + 50);
+    if (x == 200) {
+      x = 0;
+      y = (y + 50);
+    }
+  }
+
+  // generate QRCode
+  var qrData = app.generateQRCodeInput(fingerArr.join(" "), username,
+                                     application, app.URL);
+  new QRCode(document.getElementById("hidden-qrcode"),
+             { text: qrData,
+               width: 200,
+               height: 200,
+               colorDark : "#000000",
+               colorLight : "#ffffff",
+               correctLevel : QRCode.CorrectLevel.H
+             });
+
+  var qrCanvas = $('#hidden-qrcode canvas')[0];
+  ctx.drawImage(qrCanvas, 210, 200);
+  $('#hidden-qrcode canvas').remove();
+
+  return canvas;
+};
+
+app.downloadCanvas = function (link, canvasId, filename) {
+  link.href = document.getElementById(canvasId).toDataURL();
+  link.download = filename;
+}
+
+app.displayPeerFingerprint = function (username, fingerprint) {
   var trusted = app.peers[username].trusted;
 
   var html = '<div class="modal-dialog">'
            + '<p class="modal-content">'
-           + '<span class="modal-content-header">Fingerprint:</span>'
-           + '<div class="fingerprint-txt" id="' + fingerprint  + '">' // XXXddahl: make this "Fingerprint card and identicon downloadbale as an image"
-           + fingerprint
-           + '</div>'
-           + '<p class="identicon-header">'
-           + '<span class="modal-content-header">Identicon:</span>'
-           + '</p>'
-           + '<p id="placeholder"></p>'
-           + '<div class="modal-content-header">Account ID: '
+           + '<div class="modal-content-header">Username: '
            + '<span>'
            + username
            + '</span>'
-           + '<br />';
+           + '<br />'
+           + '<div id="placeholder"></div>';
   if (trusted){
     html = html + '<span id="trusted-peer-label">VERIFIED PEER</span>';
   } else {
@@ -223,28 +334,22 @@ app.displayPeerFingerPrint = function (username, fingerprint) {
        + '</p>'
        + '</div>';
   var dialog = $(html);
+  var identigrid =
+    app.createIdentigridCanvas(fingerprint, username, app.APPNAME);
+  // Make it downloadable
+  var link = $('<p><a id="download-identigrid">Download Identigrid Image</a></p>');
+  // XXXddahl: add another link to download just the QR code by itself
+  //           for a script to parse via: https://github.com/LazarSoft/jsqrcode
+  dialog.append(link);
 
   $('#app').prepend(dialog);
+  $('#placeholder').append(identigrid);
 
-  // XXXddahl: make 2 fingerprints for now, 1 larger one will be better
-  var str = fingerprint;
-  var halfway = Math.round(str.length/2);
-  var first = str.slice(0, halfway);
-  var second = str.slice(halfway);
-  html = '<span>'
-       + first
-       + '</span>'
-       + '<span>'
-       + second
-       + '</span>';
-
-  var nodes = $(html);
-  $('#placeholder').append(nodes);
-
-  $('#placeholder span').identicon5({
-    rotate: true,
-    size: 175
-  });
+  document.getElementById('download-identigrid').
+    addEventListener('click', function() {
+    var filename = username + 'identigrid.png';
+    app.downloadCanvas(this, 'identigrid', filename);
+  }, false);
 
   $('.modal-dialog-close').click(function (){
     $('.modal-dialog').remove();

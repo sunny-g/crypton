@@ -26,6 +26,7 @@ var app = require('../app');
  * Attempt to load a provided `config.json` file, falling back to the example file
  */
 
+var data;
 var configFile;
 
 if (process.configFile) {
@@ -36,8 +37,27 @@ if (process.configFile) {
 
 try {
   var file = fs.readFileSync(configFile).toString();
-  module.exports = JSON.parse(file);
+  data = JSON.parse(file);
 } catch (e) {
   app.log('fatal', 'could not parse config file');
   throw e;
 }
+
+if (process.docker) {
+  data.redis = {
+    host: process.env.REDIS_PORT_6379_TCP_ADDR,
+    port: process.env.REDIS_PORT_6379_TCP_PORT,
+    pass: process.env.REDIS_PASS
+  };
+
+  data.database = {
+    type: 'postgres',
+    host: process.env.DB_PORT_5432_TCP_ADDR,
+    port: process.env.DB_PORT_5432_TCP_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+  };
+}
+
+module.exports = data;

@@ -23,6 +23,8 @@ describe('Core', function () {
     sjcl.random.setDefaultParanoia(0);
   });
 
+  this.timeout(30000);
+
   describe('default properties', function () {
     it('should have the correct version', function () {
       assert.equal(crypton.version, '0.0.2');
@@ -240,7 +242,6 @@ describe('Core', function () {
 
     // any further tests would just be repeats of randomBytes tests
   });
-
 
   describe('generateAccount()', function () {
     var err;

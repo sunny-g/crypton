@@ -35,3 +35,24 @@ app.get('/', function (req, res) {
     data: { server: 'crypton'}
   });
 });
+
+/**!
+ * ### GET /versioncheck/
+ * Get '/versioncheck/' - see if the current client has the same version as the server
+*/
+app.get('/versioncheck', function (req, res) {
+  app.log('debug', 'handling GET /versioncheck');
+  app.log('debug', 'server version: ' + app.SERVER_VERSION);
+  if (req.query.v != app.SERVER_VERSION) {
+    return res.send({
+      success: false,
+      error: 'version mismatch detected',
+      data: { server: 'crypton'}
+    });
+  }
+
+  return res.send({
+    success: true,
+    data: { server: 'crypton'}
+  });
+});

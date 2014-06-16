@@ -18,7 +18,6 @@
 
 describe('Core functionality', function () {
   this.timeout(15000);
-
   describe('Account generation', function () {
     it('should refuse registrations without a username', function (done) {
       crypton.generateAccount('', '', function (err, account) {

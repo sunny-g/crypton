@@ -223,8 +223,15 @@ app.dismissModalDialog = function () {
 app.bind = function () {
   $('#fingerprint-instructions').click(function (){
     app.displayFingerprintInstructions(app.session.account.fingerprint,
-                                       app.session.account.username);});
+                                       app.session.account.username);
+  });
+
+  $('#my-contacts').click(function (){
+    app.displayContacts();
+  });
+
   $('#find-someone-btn').click(function () { app.findSomeone(); });
+
   $('#find-someone').keyup(
     function (event) {
       var keycode = (event.keyCode ? event.keyCode : event.which);
@@ -249,11 +256,56 @@ app.findSomeone = function () {
 
   app.getPeer(username, function (err, peer){
     if (err) {
-      console.log(err);
       return alert(err);
     }
     var fingerprint = peer.fingerprint;
     app.displayPeerFingerprint(peer.username, fingerprint);
+  });
+};
+
+app.displayContacts = function () {
+  $('#contacts-list').remove();
+  app.getContactsFromServer(function (err, contacts) {
+    if (err) {
+      console.error(err);
+      alert('Error: cannot get contacts from server');
+    }
+    var html = '<table id="contacts-list">'
+             + '<tr class="contacts-header">'
+             + '<td>Username</td>'
+             + '<td>&nbsp;</td>'
+             + '<td>Fingerprint</td>'
+             + '<td>Verified On</td>'
+             + '</tr>'
+             + '</table>';
+    var list = $(html);
+    $('#contacts').append(list);
+    for (var prop in contacts) {
+      list.append(app.formatContact(prop, contacts[prop]));
+    }
+  });
+};
+
+app.formatContact = function (username, metaData) {
+  var html = '<tr class="contact-item">'
+             + '<td>'
+             + username
+             + '</td>'
+             + '<td id="' + username  + '">'
+             + '<button id="' + username  + '-btn">View Fingerprint</button>'
+             + '</td>'
+             + '<td>'
+             + app.createFingerprintArr(metaData.fingerprint).join(" ")
+             + '</td>'
+             + '<td>'
+             + new Date(metaData.trustedAt)
+             + '</td>'
+             + '</tr>';
+  var node = $(html);
+
+  $('#contacts-list').append(node);
+  $('#' + username + '-btn').click(function (){
+    app.displayPeerFingerprint(username, metaData.fingerprint, true);
   });
 };
 
@@ -335,10 +387,29 @@ app.downloadCanvas = function (link, canvasId, filename) {
   link.download = filename;
 }
 
-app.displayPeerFingerprint = function (username, fingerprint) {
-  var trusted = app.peers[username].trusted;
+app.getContactsFromServer = function (callback) {
+  app.session.load(crypton.trustStateContainer, function (err, rawContainer) {
+    if (err) {
+      console.error(err);
+      return callback(err);
+    }
+    app.contactsContainer = rawContainer;
+    callback(null, app.contactsContainer.keys);
+  });
+};
 
-  var html = '<div class="modal-dialog">'
+app.displayPeerFingerprint = function (username, fingerprint, isTrusted) {
+  $('#peer-fingerprint').remove();
+  var trusted;
+  if (isTrusted) {
+    trusted = true;
+  } else {
+    if (app.peers[username]) {
+      trusted = app.peers[username].trusted;
+    }
+  }
+
+  var html = '<div id="peer-fingerprint" class="modal-dialog">'
            + '<p class="modal-content">'
            + '<div class="modal-content-header">Username: '
            + '<span>'

@@ -110,23 +110,9 @@ body {
 #main {
   position: absolute;
   top: 50px;
-  left: 300px;
+  left: 50px;
   right: 0;
   bottom: 0;
-}
-
-#bob { 
-    float: right;
-    margin-right: 2em;
-    width: 600px;
-    height: 600px;
-}
-
-#alice {
-    float: left;
-    margin-left: 2em;
-    width: 600px;
-    height: 600px;
 }
 
 .modal-dialog {
@@ -196,4 +182,12 @@ div.instruction {
     color: blue;
     text-decoration: underline;
     cursor: pointer;
+}
+
+.contacts-header {
+    font-weight: bold;
+}
+
+#contacts-list {
+    margin-top: 1em;
 }

@@ -69,7 +69,7 @@ body {
   bottom: 0;
   /* pointer-events: none; */
   transition: all 0.1s ease;
-  margin-top: 1em;
+/*  margin-top: 1em; */
 }
 
 #app.active {
@@ -143,7 +143,6 @@ body {
 .modal-content-header {
     font-weight: bold;
     font-size: 1.5em;
-    margin: 1em;
 }
 
 .account-wrap {
@@ -174,4 +173,27 @@ div.instruction {
 
 #placeholder {
     margin: 1em;
+}
+
+#hidden-qrcode {
+    display: none;
+}
+
+#find-someone-btn {
+    font-size: 20px;
+    margin-left: 1em;
+}
+
+#find-someone {
+    font-size: 20px;
+}
+
+#search {
+    margin-top: 1em;
+}
+
+#download-identigrid {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
 }

@@ -110,20 +110,28 @@ app.displayFingerprintInstructions = function (fingerprint, username) {
   var html = '<div class="modal-dialog">'
              + '<p class="modal-content">'
              + '<p class="identicon-header">'
-             + '<span class="modal-content-header">Your Identigrid:</span>'
+             + '<span class="modal-content-header">Your Fingerprint:</span>'
              + '</p>'
              + '<p id="placeholder"></p>'
              + '<div class="instruction">'
              + '<p>'
-             + 'In order to share messages and data with others, you must first share your Fingerprint, Account ID and this application with others. '
+             + 'In order to share messages and data with others, you must first share your '
+             + 'Fingerprint, Account ID and this application with others. '
              + '</p>'
-             + '<p>Your Identigrid is also helpful to your friend as it is a graphic representation of your Fingerprint. '
+             + '<p>Your Identigrid (color blocks) is also helpful to your friend as it is a graphic '
+             + 'human recognizable representation of your Fingerprint. '
              + '</p>'
              + '<p>'
-             + 'Your friend will need to install this application, create an account, lookup your account ID and verifiy the Fingerprint the application provides against this one.'
+             + 'You should download this Fingerprint and send it to your friend. You have to deliver it to your friend via an out of band mechanism like email or SMS.'
              + '</p>'
              + '<p>'
-             + 'You will also verify their Fingerprint. Only then can you safely exchange data or messages.'
+             + 'Your friend will need to install this application, create an account, '
+             + 'lookup your account ID and verify the Fingerprint the '
+             + 'application provides against this one.'
+             + '</p>'
+             + '<p>'
+             + 'You will also verify their Fingerprint. '
+             + 'Only then can you safely exchange data or messages.'
              + '</p>'
              + '</div>'
              + '<button class="modal-dialog-close">close</button>'
@@ -137,14 +145,14 @@ app.displayFingerprintInstructions = function (fingerprint, username) {
   $('#placeholder').append(canvas);
 
   // Make it downloadable
-  var link = $('<p><a id="download-identigrid">Download Identigrid Image</a></p>');
+  var link = $('<p><a id="download-identigrid">Download Fingerprint Image</a></p>');
   // XXXddahl: add another link to download just the QR code by itself
   //           for a script to parse via: https://github.com/LazarSoft/jsqrcode
   $('#placeholder').append(link);
 
   document.getElementById('download-identigrid').
     addEventListener('click', function() {
-    var filename = username + 'identigrid.png';
+    var filename = username + '-' + app.SHORTAPPNAME + '-identigrid.png';
     app.downloadCanvas(this, 'identigrid', filename);
   }, false);
 
@@ -152,6 +160,8 @@ app.displayFingerprintInstructions = function (fingerprint, username) {
 };
 
 app.APPNAME = 'Crypton Account Verifier';
+
+app.SHORTAPPNAME = 'account-verifier';
 
 app.url = 'https://localhost/';
 
@@ -215,21 +225,32 @@ app.bind = function () {
     app.displayFingerprintInstructions(app.session.account.fingerprint,
                                        app.session.account.username);});
   $('#find-someone-btn').click(function () { app.findSomeone(); });
+  $('#find-someone').keyup(
+    function (event) {
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+      if (event.target == $('#find-someone')[0]) {
+        if(keycode == '13'){
+          $('#find-someone-btn').focus();
+	  app.findSomeone();
+        }
+      }
+    });
 };
 
 app.findSomeone = function () {
-  var username = $('#find-username').val();
+  var username = $('#find-someone').val();
   if (!username) {
-    var err = "Please enter a username";
-    console.error(err);
-    alert(err);
+    var errtxt = "Please enter a username";
+    console.error(errtxt);
+    alert(errtxt);
+    $('#find-someone-btn').focus();
+    return;
   }
 
   app.getPeer(username, function (err, peer){
     if (err) {
       console.log(err);
-      alert(err);
-      return;
+      return alert(err);
     }
     var fingerprint = peer.fingerprint;
     app.displayPeerFingerprint(peer.username, fingerprint);
@@ -241,13 +262,14 @@ app.createIdentigridCanvas = function (fingerprint, username, application) {
   var colorArr = app.createColorArr(fingerArr);
   var canvas = $('<canvas id="identigrid" width="420" height="420"></canvas>');
   var ctx = canvas[0].getContext("2d");
-  var x = 0;
-  var y = 0;
+  var x = 5;
+  var y = 5;
   var w = 50;
   var h = 50;
 
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, 420, 420);
   ctx.fillStyle = "black";
-
   y = y + 20;
   ctx.font = "bold 24px sans-serif";
   ctx.fillText(username, x, y);
@@ -283,8 +305,8 @@ app.createIdentigridCanvas = function (fingerprint, username, application) {
     ctx.fillStyle = colorArr[idx];
     ctx.fillRect(x, y , w, h);
     x = (x + 50);
-    if (x == 200) {
-      x = 0;
+    if (x == 205) {
+      x = 5;
       y = (y + 50);
     }
   }
@@ -302,7 +324,7 @@ app.createIdentigridCanvas = function (fingerprint, username, application) {
              });
 
   var qrCanvas = $('#hidden-qrcode canvas')[0];
-  ctx.drawImage(qrCanvas, 210, 200);
+  ctx.drawImage(qrCanvas, 210, 205);
   $('#hidden-qrcode canvas').remove();
 
   return canvas;
@@ -337,7 +359,7 @@ app.displayPeerFingerprint = function (username, fingerprint) {
   var identigrid =
     app.createIdentigridCanvas(fingerprint, username, app.APPNAME);
   // Make it downloadable
-  var link = $('<p><a id="download-identigrid">Download Identigrid Image</a></p>');
+  var link = $('<p><a id="download-identigrid">Download Fingerprint Image</a></p>');
   // XXXddahl: add another link to download just the QR code by itself
   //           for a script to parse via: https://github.com/LazarSoft/jsqrcode
   dialog.append(link);
@@ -347,7 +369,7 @@ app.displayPeerFingerprint = function (username, fingerprint) {
 
   document.getElementById('download-identigrid').
     addEventListener('click', function() {
-    var filename = username + 'identigrid.png';
+    var filename = username + '-' + app.SHORTAPPNAME + '-identigrid.png';
     app.downloadCanvas(this, 'identigrid', filename);
   }, false);
 
@@ -368,7 +390,7 @@ app.verifyPeer = function () {
     console.error("currentPeer not available");
     return;
   }
-  var conf = 'Does the Identicon and Fingerprint match the ones sent to you by '
+  var conf = 'Does the Fingerprint and Identigrid match the ones sent to you by '
            + app._currentPeer + '?'
            + '\n\nJust clicking \'OK\' without '
            + 'visually verifying is a cop-out!';
@@ -379,7 +401,7 @@ app.verifyPeer = function () {
         var msg = "Peer.trust failed: " + err;
         console.error(msg);
       } else {
-        alert('Peer ' + app._currentPeer + 'is now trusted ');
+        alert('Peer ' + app._currentPeer + ' is now trusted ');
         $('.modal-dialog').remove();
       }
     });

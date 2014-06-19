@@ -1,5 +1,4 @@
 {
-  "logLevel": "debug",
   "database": {
     "type": "postgres",
     "user": "crypton_test_user",

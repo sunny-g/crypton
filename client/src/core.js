@@ -197,7 +197,20 @@ crypton.hmac = function(key, data) {
 crypton.hmacAndCompare = function(key, data, otherMac) {
   var ourMac = crypton.hmac(key, data);
   return crypton.constEqual(ourMac, otherMac);
-}
+};
+
+/**!
+ * ### fingerprintUtils()
+ * Get the fingerprint prettifier, ID Card canvas,
+ * Identigrid canvas, QRCode canvas generator
+ *
+ * See fingerprintUtils.js for API
+ *
+ * @return {Object} FingerprintUtils
+ */
+crypton.fingerprintUtils = function () {
+  return new crypton.FingerprintUtils();
+};
 
 /**!
  * ### fingerprint(pubKey, signKeyPub)

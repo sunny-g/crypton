@@ -174,7 +174,6 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
 */
 app.del('/transaction/:id', verifySession, function (req, res) {
   app.log('debug', 'handling DEL /transaction/:id');
-  app.log('debug', 'id: ' + req.params.id);
 
   var transactionId = req.params.id;
   var accountId = req.session.accountId;

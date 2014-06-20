@@ -40,14 +40,21 @@ $(document).ready(function () {
           app.setLoginStatus(err);
           return;
         }
-
         app.login(user, pass, true);
       });
     }
   });
 });
 
-var app = {};
+var app = {
+  _utils: null,
+  get utils() {
+    if (!this._utils) {
+      this._utils =  crypton.fingerprintUtils();
+    }
+    return this._utils;
+  }
+};
 
 app.setLoginStatus = function (m) {
   $('#login .status').text(m);
@@ -61,7 +68,6 @@ app.login = function (user, pass, isNewAccount) {
       app.setLoginStatus(err);
       return;
     }
-
     app.session = session;
     app.boot(isNewAccount);
   });
@@ -141,7 +147,10 @@ app.displayFingerprintInstructions = function (fingerprint, username) {
 
   $('#app').prepend(dialog);
 
-  var canvas = app.createIdentigridCanvas(fingerprint, username, app.APPNAME)
+  // var canvas = app.createIdentigridCanvas(fingerprint, username, app.APPNAME)
+
+  var canvas =
+    app.utils.createIdCard(fingerprint, username, app.APPNAME, 'https://myapp.com');
   $('#placeholder').append(canvas);
 
   // Make it downloadable
@@ -153,7 +162,7 @@ app.displayFingerprintInstructions = function (fingerprint, username) {
   document.getElementById('download-identigrid').
     addEventListener('click', function() {
     var filename = username + '-' + app.SHORTAPPNAME + '-identigrid.png';
-    app.downloadCanvas(this, 'identigrid', filename);
+    app.downloadCanvas(this, 'id-card', filename);
   }, false);
 
   $('.modal-dialog-close').click(function (){ $('.modal-dialog').remove(); });
@@ -171,50 +180,6 @@ app.generateQRCodeInput = function (fingerprint, username, application, url) {
   return json;
 };
 
-app.createFingerprintArr = function (fingerprint) {
-  if (fingerprint.length != 64) {
-    var err = 'Fingerprint has incorrect length';
-    console.error(err);
-    throw new Error(err);
-  }
-  fingerprint = fingerprint.toUpperCase();
-  var fingerArr = [];
-  var i = 0;
-  var segment = '';
-  for (var chr in fingerprint) {
-    segment = segment + fingerprint[chr];
-    i++;
-    if (i == 4) {
-      fingerArr.push(segment);
-      i = 0;
-      segment = '';
-      continue;
-    }
-  }
-  return fingerArr;
-};
-
-app.createColorArr = function (fingerArr) {
-  // pad the value out to 6 digits:
-  var count = 0;
-  var paddingData = fingerArr.join('');
-  var colorArr = [];
-  var REQUIRED_LENGTH = 6;
-  for (var idx in fingerArr) {
-    var pad  = (REQUIRED_LENGTH - fingerArr[idx].length);
-    if ( pad == 0) {
-      colorArr.push('#' + fingerArr[idx]);
-    } else {
-      var color = '#' + fingerArr[idx];
-      for (var i = 0; i < pad; i++) {
-        color = color + paddingData[count];
-        count++;
-      }
-      colorArr.push(color);
-    }
-  }
-  return colorArr;
-};
 
 app.dismissModalDialog = function () {
   $('.modal-dialog').remove();
@@ -295,7 +260,7 @@ app.formatContact = function (username, metaData) {
              + '<button id="' + username  + '-btn">View Fingerprint</button>'
              + '</td>'
              + '<td>'
-             + app.createFingerprintArr(metaData.fingerprint).join(" ")
+             + app.utils.createFingerprintArr(metaData.fingerprint).join(" ")
              + '</td>'
              + '<td>'
              + new Date(metaData.trustedAt)
@@ -307,79 +272,6 @@ app.formatContact = function (username, metaData) {
   $('#' + username + '-btn').click(function (){
     app.displayPeerFingerprint(username, metaData.fingerprint, true);
   });
-};
-
-app.createIdentigridCanvas = function (fingerprint, username, application) {
-  var fingerArr = app.createFingerprintArr(fingerprint);
-  var colorArr = app.createColorArr(fingerArr);
-  var canvas = $('<canvas id="identigrid" width="420" height="420"></canvas>');
-  var ctx = canvas[0].getContext("2d");
-  var x = 5;
-  var y = 5;
-  var w = 50;
-  var h = 50;
-
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, 420, 420);
-  ctx.fillStyle = "black";
-  y = y + 20;
-  ctx.font = "bold 24px sans-serif";
-  ctx.fillText(username, x, y);
-
-  y = y + 30;
-  ctx.font = "bold 18px sans-serif";
-  ctx.fillText(application, x, y);
-
-  y = y + 30;
-  ctx.font = "bold 24px sans-serif";
-  ctx.fillText('FINGERPRINT', x, y);
-  ctx.font = "24px sans-serif";
-
-  var i = 0;
-  var line = '';
-  idx = 0;
-  for (var j = 0; j < fingerArr.length; j++) {
-    if (i == 3) {
-      line = line + fingerArr[j];
-      y = (y + 25);
-      ctx.fillText(line, x, y);
-      i = 0;
-      line = '';
-    } else {
-      line = line + fingerArr[j] + ' ';
-      i++;
-    }
-  }
-
-  y = y + 20;
-
-  for (var idx in colorArr) {
-    ctx.fillStyle = colorArr[idx];
-    ctx.fillRect(x, y , w, h);
-    x = (x + 50);
-    if (x == 205) {
-      x = 5;
-      y = (y + 50);
-    }
-  }
-
-  // generate QRCode
-  var qrData = app.generateQRCodeInput(fingerArr.join(" "), username,
-                                     application, app.URL);
-  new QRCode(document.getElementById("hidden-qrcode"),
-             { text: qrData,
-               width: 200,
-               height: 200,
-               colorDark : "#000000",
-               colorLight : "#ffffff",
-               correctLevel : QRCode.CorrectLevel.H
-             });
-
-  var qrCanvas = $('#hidden-qrcode canvas')[0];
-  ctx.drawImage(qrCanvas, 210, 205);
-  $('#hidden-qrcode canvas').remove();
-
-  return canvas;
 };
 
 app.downloadCanvas = function (link, canvasId, filename) {
@@ -428,7 +320,7 @@ app.displayPeerFingerprint = function (username, fingerprint, isTrusted) {
        + '</div>';
   var dialog = $(html);
   var identigrid =
-    app.createIdentigridCanvas(fingerprint, username, app.APPNAME);
+    app.utils.createIdCard(fingerprint, username, app.APPNAME, app.url);
   // Make it downloadable
   var link = $('<p><a id="download-identigrid">Download Fingerprint Image</a></p>');
   // XXXddahl: add another link to download just the QR code by itself
@@ -441,7 +333,7 @@ app.displayPeerFingerprint = function (username, fingerprint, isTrusted) {
   document.getElementById('download-identigrid').
     addEventListener('click', function() {
     var filename = username + '-' + app.SHORTAPPNAME + '-identigrid.png';
-    app.downloadCanvas(this, 'identigrid', filename);
+    app.downloadCanvas(this, 'id-card', filename);
   }, false);
 
   $('.modal-dialog-close').click(function (){

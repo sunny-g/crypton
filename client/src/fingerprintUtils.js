@@ -35,8 +35,6 @@ var FingerprintUtils = crypton.FingerprintUtils = function FingerprintUtils () {
  *
  * returns canvas element
  *
- * @param {canvas} qrCode
- * @param {canvas} identigrid
  * @param {String} fingerprint
  * @param {String} username
  * @param {String} appname
@@ -45,13 +43,14 @@ var FingerprintUtils = crypton.FingerprintUtils = function FingerprintUtils () {
  * @param {String} domId [optional]
  */
 FingerprintUtils.prototype.createIdCard =
-  function (qrCode, identigrid, fingerprint, username, appname, url, domId) {
+  function (fingerprint, username, appname, url, domId) {
   if (!domId) {
-    domId = appname + '-' + 'identigrid';
+    domId = 'id-card';
   }
   if (!url) {
     url = '';
   }
+
   var fingerArr = this.createFingerprintArr(fingerprint);
   var colorArr = this.createColorArr(fingerArr);
 
@@ -110,13 +109,14 @@ FingerprintUtils.prototype.createIdCard =
 };
 
 /**!
- * ### createQRCode(fingerprint, username, appname)
+ * ### createQRCode(fingerprint, username, appname, url)
  *
  * returns canvas element
  *
  * @param {Array} fingerArr
  * @param {String} username
  * @param {String} appname
+ * @param {String} url
  */
 FingerprintUtils.prototype.createQRCode = function (fingerArr, username, appname, url) {
 
@@ -134,8 +134,8 @@ FingerprintUtils.prototype.createQRCode = function (fingerArr, username, appname
                colorLight : "#ffffff",
                correctLevel : QRCode.CorrectLevel.H
              });
-
-  return qrCanvas;
+  // XXXddahl: QRCode wraps the canvas in another one
+  return qrCanvas.childNodes[0];
 };
 
 /**!
@@ -159,8 +159,8 @@ FingerprintUtils.prototype.createIdentigrid = function (colorArr) {
     ctx.fillStyle = colorArr[idx];
     ctx.fillRect(x, y , w, h);
     x = (x + 50);
-    if (x == 205) {
-      x = 5;
+    if (x == 200) {
+      x = 0;
       y = (y + 50);
     }
   }
@@ -235,6 +235,9 @@ FingerprintUtils.prototype.createFingerprintArr = function (fingerprint) {
  * @param {String} fingerprint
  */
 FingerprintUtils.prototype.generateQRCodeInput = function (fingerprint, username, application, url) {
+  if (!url) {
+    url = '';
+  }
   var json = JSON.stringify({ fingerprint: fingerprint, username: username,
                               application: application, url: url });
   return json;

@@ -209,7 +209,8 @@ crypton.hmacAndCompare = function(key, data, otherMac) {
  * @return {Object} FingerprintUtils
  */
 crypton.fingerprintUtils = function () {
-  return new crypton.FingerprintUtils();
+  var utils = new crypton.FingerprintUtils();
+  return utils;
 };
 
 /**!

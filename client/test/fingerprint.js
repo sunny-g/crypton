@@ -94,13 +94,8 @@ describe('FingerprintUtils', function () {
       var fingerArr = utils.createFingerprintArr(fingerprint);
       var colorArr = utils.createColorArr(fingerArr);
 
-      var identigrid = utils.createIdentigrid(colorArr);
-      var qrCode = utils.createQRCode(fingerArr, username, appname, url);
       var domId = 'my-dom-id-is-the-best';
-      var idCard =
-        utils.createIdCard(qrCode, identigrid,
-                           fingerprint, username, appname, url, domId);
-
+      var idCard = utils.createIdCard(fingerprint, username, appname, url, domId);
       testCanvasColorAt(colorArr[0], idCard, 12, 205);
       done();
     });

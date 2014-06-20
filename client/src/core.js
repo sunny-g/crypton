@@ -228,8 +228,7 @@ crypton.fingerprint = function (pubKey, signKeyPub) {
     signKeyPub._point.toBits()
   );
 
-  var pubKeyHash = sjcl.hash.sha256.hash(pubKeys);
-  return sjcl.codec.hex.fromBits(pubKeyHash);
+  return crypton.hmac('', pubKeys);
 };
 
 /**!

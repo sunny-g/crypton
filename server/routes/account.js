@@ -20,6 +20,7 @@
 
 var app = process.app;
 var db = app.datastore;
+var config = app.config;
 var middleware = require('../lib/middleware');
 var Account = require('../lib/account');
 
@@ -162,3 +163,33 @@ app.post('/account/:username/keyring',
     });
   }
 );
+
+/**!
+ * ### GET /accountBuffer
+ * If there is a maximumUsers configuration variable set,
+ * return the amount of free accounts - otherwise, return null.
+*/
+app.get('/accountBuffer', function (req, res) {
+  if (!config.maximumUsers) {
+    return res.send({
+      success: true,
+      accountBuffer: null
+    });
+  }
+
+  db.getUserCount(function (err, userCount) {
+    if (err) {
+      return res.send({
+        success: false,
+        error: 'Database error'
+      });
+    }
+
+    var accountBuffer = config.maximumUsers - userCount;
+
+    res.send({
+      success: true,
+      accountBuffer: accountBuffer
+    });
+  });
+});

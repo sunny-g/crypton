@@ -311,3 +311,33 @@ exports.saveMessage = function (options, callback) {
     });
   });
 };
+
+/**
+ * ### getUserCount(callback)
+ * Get the number of registered users
+ *
+ * Calls back with user count and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options
+ * @param {Function} callback
+ */
+exports.getUserCount = function (callback) {
+  connect(function (client, done) {
+    var userCountQuery = {
+      text: 'select count(*) from account'
+    };
+
+    client.query(userCountQuery, function (err, result) {
+      done();
+
+      if (err) {
+        console.log('Unhandled database error: ' + err);
+        return callback('Database error.');
+      }
+
+      callback(null, result.rows[0].count);
+    });
+  });
+};

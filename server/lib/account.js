@@ -20,6 +20,7 @@
 
 var app = require('../app');
 var db = app.datastore;
+var config = app.config;
 var bcrypt = require('bcrypt');
 var srp = require('srp');
 var validator = require('validator');
@@ -239,20 +240,38 @@ Account.prototype.toJSON = function () {
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
 
-  if (!this.username) {
-    return callback('undefined is not a valid username');
+  if (!config.maximumUsers) {
+    _saveUser();
+  } else {
+    db.getUserCount(function (err, userCount) {
+      if (err) {
+        return callback(err);
+      }
+
+      if (userCount >= config.maximumUsers) {
+        return callback('Maximum user count reached');
+      }
+
+      _saveUser();
+    });
   }
 
-  // TODO: additional validation on any other account properties that need validation
-  if (this.username.length > 32) {
-    return callback('Username is not valid: exceeds 32 charcters!');
-  }
+  function _saveUser () {
+    if (!this.username) {
+      return callback('undefined is not a valid username');
+    }
 
-  if (!validator.isAlphanumeric(this.username)) {
-    return callback('Username is not valid: it is not alphanumeric!');
-  }
+    // TODO: additional validation on any other account properties that need validation
+    if (this.username.length > 32) {
+      return callback('Username is not valid: exceeds 32 charcters!');
+    }
 
-  db.saveAccount(this.toJSON(), callback);
+    if (!validator.isAlphanumeric(this.username)) {
+      return callback('Username is not valid: it is not alphanumeric!');
+    }
+
+    db.saveAccount(this.toJSON(), callback);
+  }
 };
 
 /**!

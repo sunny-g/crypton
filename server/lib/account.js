@@ -240,37 +240,39 @@ Account.prototype.toJSON = function () {
 Account.prototype.save = function (callback) {
   app.log('debug', 'saving account');
 
+  var that = this;
+
   if (!config.maximumUsers) {
-    _saveUser();
-  } else {
-    db.getUserCount(function (err, userCount) {
-      if (err) {
-        return callback(err);
-      }
-
-      if (userCount >= config.maximumUsers) {
-        return callback('Maximum user count reached');
-      }
-
-      _saveUser();
-    });
+    return _saveUser();
   }
 
+  db.getUserCount(function (err, userCount) {
+    if (err) {
+      return callback(err);
+    }
+
+    if (userCount >= config.maximumUsers) {
+      return callback('Maximum user count reached');
+    }
+
+    _saveUser();
+  });
+
   function _saveUser () {
-    if (!this.username) {
+    if (!that.username) {
       return callback('undefined is not a valid username');
     }
 
     // TODO: additional validation on any other account properties that need validation
-    if (this.username.length > 32) {
+    if (that.username.length > 32) {
       return callback('Username is not valid: exceeds 32 charcters!');
     }
 
-    if (!validator.isAlphanumeric(this.username)) {
+    if (!validator.isAlphanumeric(that.username)) {
       return callback('Username is not valid: it is not alphanumeric!');
     }
 
-    db.saveAccount(this.toJSON(), callback);
+    db.saveAccount(that.toJSON(), callback);
   }
 };
 

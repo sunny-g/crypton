@@ -99,5 +99,16 @@ describe('Postgres driver', function () {
         });
       });
     });
+
+    describe('getUserCount', function () {
+      it('returns the correct number of users', function (done) {
+        crypton.account.getUserCount(function (err, userCount) {
+          assert.equal(err, null);
+          var shouldBe = 2; // at this point in the tests
+          assert.deepEqual(userCount, shouldBe);
+          done();
+        });
+      });
+    });
   });
 });

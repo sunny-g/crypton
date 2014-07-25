@@ -62,7 +62,7 @@ crypton.host = location.hostname;
  * ### port
  * Holds port of Crypton server
  */
-crypton.port = 443;
+crypton.port = 1025;
 
 /**!
  * ### cipherOptions

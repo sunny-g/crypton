@@ -17,8 +17,6 @@
 */
 
 $(document).ready(function () {
-  crypton.host = window.location.host;
-
   $('#login input').first().focus();
   $('#login input[type=submit]').click(function (e) {
     e.preventDefault();

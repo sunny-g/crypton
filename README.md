@@ -1,7 +1,7 @@
 ![Crypton logo](https://i.imgur.com/2Q5Qpek.png)
 
 
-[![NPM version](https://img.shields.io/npm/v/crypton.svg?style=flat)](https://travis-ci.org/SpiderOak/crypton)
+[![NPM version](https://img.shields.io/npm/v/crypton-server.svg?style=flat)](https://npmjs.org/package/crypton-server)
 [![Build Status](https://img.shields.io/travis/SpiderOak/crypton.svg?style=flat)](https://travis-ci.org/SpiderOak/crypton)
 [![Test coverage](https://img.shields.io/coveralls/SpiderOak/crypton.svg?style=flat)](https://coveralls.io/r/SpiderOak/crypton?branch=master)
 

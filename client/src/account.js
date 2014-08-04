@@ -20,6 +20,8 @@
 
 'use strict';
 
+var MIN_PBKDF2_ROUNDS = 10000;
+
 /**!
  * # Account()
  *
@@ -197,5 +199,112 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   } catch (ex) {
     return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
   }
+};
+
+/**!
+ * ### changePassword()
+ * Convienence function to change the user's password
+ *
+ * @param {String} oldPassword
+ * @param {String} newPassword
+ * @param {Function} callback
+ * @param {Object} keygenProgressObj [optional]
+ * @param {numRounds} Number [optional] (Integer > 4999)
+ * @return void
+ */
+Account.prototype.changePassword =
+  function (oldPassword, newPassword,
+            callback, keygenProgressObj, numRounds) {
+  if (oldPassword == newPassword) {
+    var err = 'New password cannot be the same as current password';
+    return callback(err);
+  }
+
+  if (!numRounds) {
+    numRounds = MIN_PBKDF2_ROUNDS;
+  }
+  if (typeof numRounds != 'number') {
+    numRounds = MIN_PBKDF2_ROUNDS;
+  } else if (numRounds < 5000) {
+    numRounds = MIN_PBKDF2_ROUNDS;
+  }
+  // You can play with numRounds from 5000+,
+  // but cannot set numRounds below 5000
+  //
+  // XXXdahl: numRounds must be saved in the database
+
+  // XXXddahl: check server version mismatch, etc
+  if (keygenProgressObj.beginProgress) {
+    if (typeof keygenProgressObj.beginProgress == 'function') {
+      keygenProgressObj.beginProgress();
+    }
+  }
+
+  function endProgress(success) {
+    if (keygenProgressObj.endProgress) {
+      if (typeof keygenProgressObj.endProgress == 'function') {
+        keygenProgressObj.endProgress();
+      }
+    }
+  }
+
+  var keypairKey =
+    sjcl.misc.pbkdf2(newPassword, this.keypairSalt, numRounds);
+
+  var keypairMacKey =
+    sjcl.misc.pbkdf2(newPassword, this.keypairMacSalt, numRounds);
+
+  var signKeyPrivateMacKey =
+    sjcl.misc.pbkdf2(newPassword, this.signKeyPrivateMacSalt, numRounds);
+
+  // Re-encrypt the stored keyring
+
+  var keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(this.keypair.sec.serialize()), crypton.cipherOptions);
+
+  var tmpAcct = {};
+
+  tmpAcct.keypairCiphertext =
+    sjcl.encrypt(keypairKey,
+                 JSON.stringify(this.keypair.sec.serialize()),
+                 crypton.cipherOptions);
+  tmpAcct.keypairMac =
+    crypton.hmac(keypairMacKey, this.keypairCiphertext);
+
+  tmpAcct.signKeyPrivateCiphertext =
+    sjcl.encrypt(keypairKey,
+                 JSON.stringify(this.signingKeys.sec.serialize()),
+                 crypton.cipherOptions);
+
+  tmpAcct.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey,
+                                           this.signKeyPrivateCiphertext);
+
+  // save existing account data into new object
+  var originalAcct = Object.create(this);
+
+  // Set the new properties of the account before we save
+  tmpAcct.keypairKey = keypairKey;
+  tmpAcct.keypairMacKey = keypairMacKey;
+  tmpAcct.signKeyPrivateMacKey = signKeyPrivateMacKey;
+  tmpAcct.keypairCiphertext = keypairCiphertext;
+
+  for (var prop in tmpAcct) {
+    this[prop] = tmpAcct[prop];
+  }
+
+  this.numRounds = numRounds; // Save the # of rounds for PBKDF2
+
+  this.save(function (err) {
+    if (err) {
+      // The acount save failed, but we still have the original data yet
+      // Revert back to what we had before the process started...
+      for (var prop in tmpAcct) {
+        this[prop] = originalAcct[prop];
+      }
+      endProgress(false);
+      callback(err, this);
+    }
+    endProgress(true);
+    callback(null, this);
+  });
 };
 })();

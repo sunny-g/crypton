@@ -20,7 +20,7 @@
 
 'use strict';
 
-var MIN_PBKDF2_ROUNDS = 10000;
+var MIN_PBKDF2_ROUNDS = 5000;
 
 /**!
  * # Account()
@@ -208,13 +208,13 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
  * @param {String} oldPassword
  * @param {String} newPassword
  * @param {Function} callback
- * @param {Object} keygenProgressObj [optional]
+ * @param {Function} keygenProgressCallback [optional]
  * @param {numRounds} Number [optional] (Integer > 4999)
  * @return void
  */
 Account.prototype.changePassword =
   function (oldPassword, newPassword,
-            callback, keygenProgressObj, numRounds) {
+            callback, keygenProgressCallback, numRounds) {
   if (oldPassword == newPassword) {
     var err = 'New password cannot be the same as current password';
     return callback(err);
@@ -230,45 +230,31 @@ Account.prototype.changePassword =
   }
   // You can play with numRounds from 5000+,
   // but cannot set numRounds below 5000
-  //
-  // XXXdahl: numRounds must be saved in the database
 
   // XXXddahl: check server version mismatch, etc
-  if (keygenProgressObj.beginProgress) {
-    if (typeof keygenProgressObj.beginProgress == 'function') {
-      keygenProgressObj.beginProgress();
+  if (keygenProgressCallback) {
+    if (typeof keygenProgressCallback == 'function') {
+      keygenProgressCallback();
     }
   }
 
-  function endProgress(success) {
-    if (keygenProgressObj.endProgress) {
-      if (typeof keygenProgressObj.endProgress == 'function') {
-        keygenProgressObj.endProgress();
-      }
-    }
-  }
+  // Replace all salts with new ones
+  var keypairSalt = randomBytes(32);
+  var keypairMacSalt = randomBytes(32);
+  var signKeyPrivateMacSalt = randomBytes(32);
 
   var keypairKey =
-    sjcl.misc.pbkdf2(newPassword, this.keypairSalt, numRounds);
+    sjcl.misc.pbkdf2(newPassword, keypairSalt, numRounds);
 
   var keypairMacKey =
-    sjcl.misc.pbkdf2(newPassword, this.keypairMacSalt, numRounds);
+    sjcl.misc.pbkdf2(newPassword, keypairMacSalt, numRounds);
 
   var signKeyPrivateMacKey =
-    sjcl.misc.pbkdf2(newPassword, this.signKeyPrivateMacSalt, numRounds);
+    sjcl.misc.pbkdf2(newPassword, signKeyPrivateMacSalt, numRounds);
 
   // Re-encrypt the stored keyring
 
-  var keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(this.keypair.sec.serialize()), crypton.cipherOptions);
-
   var tmpAcct = {};
-
-  tmpAcct.keypairCiphertext =
-    sjcl.encrypt(keypairKey,
-                 JSON.stringify(this.keypair.sec.serialize()),
-                 crypton.cipherOptions);
-  tmpAcct.keypairMac =
-    crypton.hmac(keypairMacKey, this.keypairCiphertext);
 
   tmpAcct.signKeyPrivateCiphertext =
     sjcl.encrypt(keypairKey,
@@ -278,33 +264,113 @@ Account.prototype.changePassword =
   tmpAcct.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey,
                                            this.signKeyPrivateCiphertext);
 
-  // save existing account data into new object
-  var originalAcct = Object.create(this);
+  var wrappingJWK = this.makeJWK('wrappingKey', { keyArray: keypairKey,
+                                                  salt: keypairSalt,
+                                                  numRounds: numRounds});
+  if (!wrappingJWK) {
+    return callback('Cannot generate wrappingJWK');
+  }
+  // save existing account data into new JSON string
+  var originalAcct = this.serialize();
 
   // Set the new properties of the account before we save
   tmpAcct.keypairKey = keypairKey;
+  tmpAcct.keypairSalt = keypairSalt;
   tmpAcct.keypairMacKey = keypairMacKey;
+  tmpAcct.keypairMacSalt = keypairMacSalt;
   tmpAcct.signKeyPrivateMacKey = signKeyPrivateMacKey;
-  tmpAcct.keypairCiphertext = keypairCiphertext;
+  tmpAcct.signKeyPrivateMacSalt = signKeyPrivateMacSalt;
+
+  var keypairCiphertext =
+    sjcl.encrypt(wrappingJWK,
+                 JSON.stringify(this.keypair.sec.serialize()),
+                 crypton.cipherOptions);
+
+  tmpAcct.keypairCiphertext = numRounds
+                            + '__key__'
+                            + JSON.stringify(keypairCiphertext);
+
+  tmpAcct.keypairMac =
+    crypton.hmac(keypairMacKey, tmpAcct.keypairCiphertext);
 
   for (var prop in tmpAcct) {
     this[prop] = tmpAcct[prop];
   }
 
-  this.numRounds = numRounds; // Save the # of rounds for PBKDF2
-
   this.save(function (err) {
     if (err) {
       // The acount save failed, but we still have the original data yet
       // Revert back to what we had before the process started...
+      var origAcctObj = JSON.parse(originalAcct);
       for (var prop in tmpAcct) {
-        this[prop] = originalAcct[prop];
+        this[prop] = origAcctObj[prop];
       }
-      endProgress(false);
       callback(err, this);
     }
-    endProgress(true);
     callback(null, this);
   });
+};
+
+/**!
+ * ### changePassword()
+ * Convienence function to change the user's password
+ *
+ * When using this function you must check for null result to know it failed
+ *
+ * See: http://tools.ietf.org/html/draft-ietf-jose-json-web-key-31#appendix-A.3
+ *
+ * @param {String} keyType
+ * @param {Object} values
+ * @return {Object}
+ */
+Account.prototype.makeJWK = function (keyType, values) {
+  var KEYPAIR_KEY = 'wrappingKey';
+
+  if (typeof values != 'object' || typeof keyType != 'string') {
+    console.error('makeJWK: Illegal arguments');
+    return null;
+  }
+
+  var keypairKeyObj = {
+    kty: 'PBES2', // 'PBKDF2-HMAC-SHA256'
+    use: 'enc',
+    key_ops: ['wrap_key', 'unwrap_key'],
+    p2s: null, // salt
+    alg: 'PBES2-HS256+A128KW', // XXXddahl: not sure if the spec works for SJCL PBKDF2 alg of 'PBKDF2-HMAC-SHA256'??
+    p2c: 5000, // 'num rounds' or 'count' of PBKDF2 iterations
+    kid: 'key wrapping key',
+    k: null
+  };
+
+  switch (keyType) {
+    case KEYPAIR_KEY:
+    // Check for required values
+    if (!values.salt || !values.keyArray || !values.numRounds) {
+      console.error('makeJWK: values object missing salt, keyArray or numRounds');
+      return null;
+    }
+    // Type check the values
+    if (!(typeof values.salt == 'string')) {
+      console.error('makeJWK: values.salt is not a string!');
+      return null;
+    }
+    if (!(typeof values.keyArray == 'object')) { // Actually an array
+      console.error('makeJWK: values.keyArray is not an array!');
+      return null;
+    }
+    if (!(typeof values.numRounds == 'number')) {
+      console.error('makeJWK: values.numRounds is not a number!');
+      return null;
+    }
+    // Add salt and base64'd key data to keypairKeyObj
+    var base64Key = btoa(JSON.stringify(values.keyArray));
+    keypairKeyObj.k = base64Key;
+    keypairKeyObj.p2c = values.numRounds;
+    keypairKeyObj.p2s = values.salt;
+    return keypairKeyObj;
+
+    default:
+    return null;
+  }
 };
 })();

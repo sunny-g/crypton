@@ -132,16 +132,29 @@ work.calculateSrpM1 = function (options, callback) {
 work.unravelAccount = function (account, callback) {
   var ret = {};
 
+  console.log(account);
+
+  // XXXddahl: need to store and extract the numRounds from the keypairCiphertext
+  var keypairCiphertextArr = account.keypairCiphertext.split('__key__');
+  var keypairCiphertext;
+  var numRounds = null; // Old style generation will set this in SJCL to 1000
+  if(keypairCiphertextArr[1]) {
+    keypairCiphertext = keypairCiphertextArr[1];
+    numRounds = parseInt(keypairCiphertextArr[1]);
+  } else {
+    keypairCiphertext = account.keypairCiphertext;
+  }
+
   // regenerate keypair key from password
-  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
-  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt);
-  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt);
+  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt, numRounds);
+  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt, numRounds);
+  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt, numRounds);
 
   var macOk = false;
 
   // decrypt secret key
   try {
-    var ciphertextString = JSON.stringify(account.keypairCiphertext);
+    var ciphertextString = JSON.stringify(keypairCiphertext);
     macOk = crypton.hmacAndCompare(keypairMacKey, ciphertextString, account.keypairMac);
     ret.secret = JSON.parse(sjcl.decrypt(keypairKey, ciphertextString, crypton.cipherOptions));
   } catch (e) {}

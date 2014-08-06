@@ -267,6 +267,17 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   options = options || {};
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
+  var KEYPAIR_KEY = 'wrappingKey';
+  var MIN_PBKDF2_ROUNDS = 5000;
+  var numRounds = MIN_PBKDF2_ROUNDS;
+  if (options.numRounds) {
+    if (typeof options.numRounds != 'number') {
+      numRounds = MIN_PBKDF2_ROUNDS;
+    } else if (options.numRounds < MIN_PBKDF2_ROUNDS) {
+      numRounds = options.numRounds;
+    }
+  }
+
   crypton.versionCheck(!save, function (err) {
     if (err) {
       return callback(MISMATCH_ERR);
@@ -289,7 +300,12 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
       var keypairMacSalt = randomBytes(32);
       var signKeyPrivateMacSalt = randomBytes(32);
       var containerNameHmacKey = randomBytes(32);
-      var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
+      var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt, numRounds);
+      var jwkOptions = { salt: keypairSalt, keyArray: keypairKey, numRounds: numRounds };
+      var wrappingJWK = account.makeJWK(KEYPAIR_KEY, jwkOptions);
+      if (!wrappingJWK) {
+        return callback('GenerateAccount failed while creating wrappingJWK');
+      }
       var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt);
       var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt);
       var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
@@ -343,7 +359,12 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       // private keys
       // TODO: Check data auth with hmac
-      account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
+      var keypairCiphertext = sjcl.encrypt(wrappingJWK, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
+      var fullKeypairCiphertext = numRounds + '__key__' + keypairCiphertext;
+      console.log('fullKeypairCiphertext');
+      console.log(fullKeypairCiphertext);
+      account.keypairCiphertext = fullKeypairCiphertext;
+
       account.keypairMac = crypton.hmac(keypairMacKey, account.keypairCiphertext);
       account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
       account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, account.signKeyPrivateCiphertext);

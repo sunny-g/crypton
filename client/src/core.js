@@ -267,8 +267,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   options = options || {};
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
-  var KEYPAIR_KEY = 'wrappingKey';
-  var MIN_PBKDF2_ROUNDS = 5000;
+  var MIN_PBKDF2_ROUNDS = 2000;
   var numRounds = MIN_PBKDF2_ROUNDS;
   if (options.numRounds) {
     if (typeof options.numRounds != 'number') {
@@ -276,6 +275,8 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
     } else if (options.numRounds < MIN_PBKDF2_ROUNDS) {
       numRounds = options.numRounds;
     }
+  } else {
+    numRounds = MIN_PBKDF2_ROUNDS;
   }
 
   crypton.versionCheck(!save, function (err) {
@@ -301,13 +302,8 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
       var signKeyPrivateMacSalt = randomBytes(32);
       var containerNameHmacKey = randomBytes(32);
       var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt, numRounds);
-      var jwkOptions = { salt: keypairSalt, keyArray: keypairKey, numRounds: numRounds };
-      var wrappingJWK = account.makeJWK(KEYPAIR_KEY, jwkOptions);
-      if (!wrappingJWK) {
-        return callback('GenerateAccount failed while creating wrappingJWK');
-      }
-      var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt);
-      var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt);
+      var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt, numRounds);
+      var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt, numRounds);
       var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
       var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
 
@@ -359,12 +355,23 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       // private keys
       // TODO: Check data auth with hmac
-      var keypairCiphertext = sjcl.encrypt(wrappingJWK, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
-      var fullKeypairCiphertext = numRounds + '__key__' + keypairCiphertext;
-      console.log('fullKeypairCiphertext');
-      console.log(fullKeypairCiphertext);
-      account.keypairCiphertext = fullKeypairCiphertext;
+      var keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
+      // Add numRounds to temp ciphertext object
+      var _keyPairCt = JSON.parse(keypairCiphertext);
+      _keyPairCt['pbkdf2NumRounds'] = numRounds;
+      keypairCiphertext = JSON.stringify(_keyPairCt);
+      // XXXddahl
+      // NOTE:
+      // The original numRounds chosen by the developer is
+      // tacked onto this object for the time being.
+      // A bit of a hack, but makes
+      // the implementation simpler until we refactor key structures
+      // while adding the Web Crypto API crypto module, see issue #251
+      // https://github.com/SpiderOak/crypton/issues/251
 
+      account.keypairCiphertext = keypairCiphertext;
+      console.log("\n\n...... keypairCiphertext ......\n\n");
+      console.log(keypairCiphertext);
       account.keypairMac = crypton.hmac(keypairMacKey, account.keypairCiphertext);
       account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
       account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, account.signKeyPrivateCiphertext);

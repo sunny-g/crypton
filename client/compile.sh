@@ -63,7 +63,7 @@ compile () {
     src/inbox.js \
     src/diff.js \
     src/work.js \
-    src/fingerprintUtils.js \
+    src/card.js \
     src/vendor/*.js \
     > dist/crypton.js
   $UGLIFY_PATH dist/crypton.js > dist/crypton.min.js

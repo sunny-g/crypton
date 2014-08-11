@@ -3,7 +3,7 @@ all: test
 # the order of these files matters
 SRC = src/core.js src/account.js src/session.js src/container.js \
 	src/transaction.js src/peer.js src/message.js src/inbox.js \
-	src/diff.js src/fingerprintUtils.js src/vendor/*.js
+	src/diff.js src/card.js src/vendor/*.js
 
 compile:
 	@./compile.sh --once

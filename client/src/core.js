@@ -200,20 +200,6 @@ crypton.hmacAndCompare = function(key, data, otherMac) {
 };
 
 /**!
- * ### fingerprintUtils()
- * Get the fingerprint prettifier, ID Card canvas,
- * Identigrid canvas, QRCode canvas generator
- *
- * See fingerprintUtils.js for API
- *
- * @return {Object} FingerprintUtils
- */
-crypton.fingerprintUtils = function () {
-  var utils = new crypton.FingerprintUtils();
-  return utils;
-};
-
-/**!
  * ### fingerprint(pubKey, signKeyPub)
  * Generate a fingerprint for an account or peer.
  *

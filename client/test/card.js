@@ -16,8 +16,8 @@
  * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-describe('FingerprintUtils', function () {
-  var utils = crypton.fingerprintUtils();
+describe('Card', function () {
+  var card = new crypton.Card();
   var username = 'drzhivago';
   var appname = 'noneofyourfingbizness';
   var fingerprint = 'fbc42d5f1dc4e42b3b02338eef5364670461f4bb02b80b66263407011619d092';
@@ -51,7 +51,7 @@ describe('FingerprintUtils', function () {
 
   describe('createFingerprintArr()', function () {
     it('should create an array with 16 members', function (done) {
-      var arr = utils.createFingerprintArr(fingerprint);
+      var arr = card.createFingerprintArr(fingerprint);
       assert.equal(arr.length, 16);
       done();
     });
@@ -59,8 +59,8 @@ describe('FingerprintUtils', function () {
 
   describe('createColorArr()', function () {
     it('should create an array of hex color values', function (done) {
-      var fingerArr = utils.createFingerprintArr(fingerprint);
-      var arr = utils.createColorArr(fingerArr);
+      var fingerArr = card.createFingerprintArr(fingerprint);
+      var arr = card.createColorArr(fingerArr);
       assert.equal(arr.length, 16);
       assert.equal(arr[0].length, 7);
       assert.equal(arr[0][0], '#');
@@ -70,8 +70,8 @@ describe('FingerprintUtils', function () {
 
   describe('createQRCode()', function () {
     it('should generate a QR code in a canvas element', function (done) {
-      var fingerArr = utils.createFingerprintArr(fingerprint);
-      var canvas = utils.createQRCode(fingerArr, username, appname, url);
+      var fingerArr = card.createFingerprintArr(fingerprint);
+      var canvas = card.createQRCode(fingerArr, username, appname, url);
       testCanvasColorAt('#000000', canvas, 100, 100);
       done();
     });
@@ -79,10 +79,10 @@ describe('FingerprintUtils', function () {
 
   describe('createIdentigrid()', function () {
     it('should generate a grid of colors based on the fingerprint', function (done) {
-      var fingerArr = utils.createFingerprintArr(fingerprint);
-      var colorArr = utils.createColorArr(fingerArr);
+      var fingerArr = card.createFingerprintArr(fingerprint);
+      var colorArr = card.createColorArr(fingerArr);
 
-      var canvas = utils.createIdentigrid(colorArr);
+      var canvas = card.createIdentigrid(colorArr);
       testCanvasColorAt(colorArr[0], canvas, 2, 2);
       testCanvasColorAt(colorArr[1], canvas, 52, 2);
       done();
@@ -91,11 +91,11 @@ describe('FingerprintUtils', function () {
 
   describe('createIDCard()', function () {
     it('should generate the full ID Card',  function (done) {
-      var fingerArr = utils.createFingerprintArr(fingerprint);
-      var colorArr = utils.createColorArr(fingerArr);
+      var fingerArr = card.createFingerprintArr(fingerprint);
+      var colorArr = card.createColorArr(fingerArr);
 
       var domId = 'my-dom-id-is-the-best';
-      var idCard = utils.createIdCard(fingerprint, username, appname, url, domId);
+      var idCard = card.createIdCard(fingerprint, username, appname, url, domId);
       testCanvasColorAt(colorArr[0], idCard, 12, 205);
       done();
     });

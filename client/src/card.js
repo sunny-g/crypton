@@ -22,13 +22,13 @@
 'use strict';
 
 /**!
- * # Fingerprint Utilities
+ * # Card
  *
  * ````
- * var  = new crypton.FingerprintUtils();
+ * var  = new crypton.Card();
  * ````
  */
-var FingerprintUtils = crypton.FingerprintUtils = function FingerprintUtils () {};
+var Card = crypton.Card = function Card () {};
 
 /**!
  * ### createIdCard(fingerprint, username, appname, domId)
@@ -42,7 +42,7 @@ var FingerprintUtils = crypton.FingerprintUtils = function FingerprintUtils () {
  *                 The application homepage
  * @param {String} domId [optional]
  */
-FingerprintUtils.prototype.createIdCard =
+Card.prototype.createIdCard =
   function (fingerprint, username, appname, url, domId) {
   if (!domId) {
     domId = 'id-card';
@@ -118,7 +118,7 @@ FingerprintUtils.prototype.createIdCard =
  * @param {String} appname
  * @param {String} url
  */
-FingerprintUtils.prototype.createQRCode = function (fingerArr, username, appname, url) {
+Card.prototype.createQRCode = function (fingerArr, username, appname, url) {
 
   // generate QRCode
   var qrData = this.generateQRCodeInput(fingerArr.join(" "), username, appname, url);
@@ -145,7 +145,7 @@ FingerprintUtils.prototype.createQRCode = function (fingerArr, username, appname
  *
  * @param {Array} colorArr
  */
-FingerprintUtils.prototype.createIdentigrid = function (colorArr) {
+Card.prototype.createIdentigrid = function (colorArr) {
   var canvas = document.createElement('canvas');
   canvas.width = 200;
   canvas.height = 200;
@@ -175,7 +175,7 @@ FingerprintUtils.prototype.createIdentigrid = function (colorArr) {
  *
  * @param {String} fingerArr
  */
-FingerprintUtils.prototype.createColorArr = function (fingerArr) {
+Card.prototype.createColorArr = function (fingerArr) {
   // pad the value out to 6 digits:
   var count = 0;
   var paddingData = fingerArr.join('');
@@ -204,7 +204,7 @@ FingerprintUtils.prototype.createColorArr = function (fingerArr) {
  *
  * @param {String} fingerprint
  */
-FingerprintUtils.prototype.createFingerprintArr = function (fingerprint) {
+Card.prototype.createFingerprintArr = function (fingerprint) {
   if (fingerprint.length != 64) {
     var err = 'Fingerprint has incorrect length';
     console.error(err);
@@ -234,7 +234,7 @@ FingerprintUtils.prototype.createFingerprintArr = function (fingerprint) {
  *
  * @param {String} fingerprint
  */
-FingerprintUtils.prototype.generateQRCodeInput = function (fingerprint, username, application, url) {
+Card.prototype.generateQRCodeInput = function (fingerprint, username, application, url) {
   if (!url) {
     url = '';
   }

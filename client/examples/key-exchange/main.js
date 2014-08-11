@@ -16,7 +16,11 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var app = {};
+
 $(document).ready(function () {
+  app.card = new crypton.Card();
+
   $('#login input').first().focus();
 
   $('#login button').click(function () {
@@ -45,16 +49,6 @@ $(document).ready(function () {
     }
   });
 });
-
-var app = {
-  _utils: null,
-  get utils() {
-    if (!this._utils) {
-      this._utils =  crypton.fingerprintUtils();
-    }
-    return this._utils;
-  }
-};
 
 app.setLoginStatus = function (m) {
   $('#login .status').text(m);
@@ -147,10 +141,8 @@ app.displayFingerprintInstructions = function (fingerprint, username) {
 
   $('#app').prepend(dialog);
 
-  // var canvas = app.createIdentigridCanvas(fingerprint, username, app.APPNAME)
-
   var canvas =
-    app.utils.createIdCard(fingerprint, username, app.APPNAME, 'https://myapp.com');
+    app.card.createIdCard(fingerprint, username, app.APPNAME, 'myapp.com');
   $('#placeholder').append(canvas);
 
   // Make it downloadable
@@ -186,6 +178,8 @@ app.dismissModalDialog = function () {
 };
 
 app.bind = function () {
+  var RETURN_KEY = 13;
+
   $('#fingerprint-instructions').click(function (){
     app.displayFingerprintInstructions(app.session.account.fingerprint,
                                        app.session.account.username);
@@ -201,7 +195,7 @@ app.bind = function () {
     function (event) {
       var keycode = (event.keyCode ? event.keyCode : event.which);
       if (event.target == $('#find-someone')[0]) {
-        if(keycode == '13'){
+        if(keycode == RETURN_KEY){
           $('#find-someone-btn').focus();
 	  app.findSomeone();
         }
@@ -260,7 +254,7 @@ app.formatContact = function (username, metaData) {
              + '<button id="' + username  + '-btn">View Fingerprint</button>'
              + '</td>'
              + '<td>'
-             + app.utils.createFingerprintArr(metaData.fingerprint).join(" ")
+             + app.card.createFingerprintArr(metaData.fingerprint).join(" ")
              + '</td>'
              + '<td>'
              + new Date(metaData.trustedAt)
@@ -320,7 +314,7 @@ app.displayPeerFingerprint = function (username, fingerprint, isTrusted) {
        + '</div>';
   var dialog = $(html);
   var identigrid =
-    app.utils.createIdCard(fingerprint, username, app.APPNAME, app.url);
+    app.card.createIdCard(fingerprint, username, app.APPNAME, app.url);
   // Make it downloadable
   var link = $('<p><a id="download-identigrid">Download Fingerprint Image</a></p>');
   // XXXddahl: add another link to download just the QR code by itself

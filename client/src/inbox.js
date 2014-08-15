@@ -132,7 +132,7 @@ Inbox.prototype.clear = function (callback) {
 Inbox.prototype.parseRawMessages = function () {
   var that = this;
 
-  for (var i in this.rawMessages) {
+  for (var i = 0; i < this.rawMessages.length; i++) {
     var rawMessage = this.rawMessages[i];
 
     if (this.messages[rawMessage.messageId]) {

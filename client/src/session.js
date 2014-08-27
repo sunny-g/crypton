@@ -268,6 +268,19 @@ Session.prototype.deleteContainer = function (containerName, callback) {
 
       tx.commit(function (err) {
         callback(err);
+
+        //if there was no error
+        if (err === undefined) {
+          //delete it from the list of containers
+          for (var i in this.containers) {
+            if (crypton.constEqual(this.containers[i].name, containerName)) {
+              if (i != -1) {
+                this.containers.splice(i - 1, 1);
+              }
+            }
+          }
+        }
+
       });
     });
   });

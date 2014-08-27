@@ -276,6 +276,7 @@ Session.prototype.deleteContainer = function (containerName, callback) {
             if (crypton.constEqual(this.containers[i].name, containerName)) {
               if (i != -1) {
                 this.containers.splice(i - 1, 1);
+                return;
               }
             }
           }

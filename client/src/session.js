@@ -272,12 +272,11 @@ Session.prototype.deleteContainer = function (containerName, callback) {
         //if there was no error
         if (err === undefined) {
           //delete it from the list of containers
-          for (var i in this.containers) {
+          var i;
+          for (i=0; i<this.containers.length; i++) {
             if (crypton.constEqual(this.containers[i].name, containerName)) {
-              if (i != -1) {
-                this.containers.splice(i - 1, 1);
-                return;
-              }
+              this.containers.splice(i - 1, 1);
+              return;
             }
           }
         }

@@ -267,20 +267,20 @@ Session.prototype.deleteContainer = function (containerName, callback) {
       }
 
       tx.commit(function (err) {
-        callback(err);
-
         //if there was no error
         if (err === undefined) {
           //delete it from the list of containers
           var i;
-          for (i=0; i<this.containers.length; i++) {
-            if (crypton.constEqual(this.containers[i].name, containerName)) {
-              this.containers.splice(i - 1, 1);
-              return;
+          for (i = 0; i < that.containers.length; i++) {
+            if (crypton.constEqual(that.containers[i].name, containerName)) {
+              that.containers.splice(i, 1);
+              break;
             }
           }
         }
 
+        //then call our callback
+        callback(err);
       });
     });
   });

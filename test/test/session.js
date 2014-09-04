@@ -87,60 +87,32 @@ describe('Session functionality', function () {
         if (err) throw err;
         that.session = session;
         that.before = that.session.containers.length;
+
+        //creating the container
+        that.session.create('container1', function (err, container) {
+          assert.equal(err, null);
+          assert.equal(container.name, 'container1');
+        });
         done();
       });
     });
 
-    //Creating 3 containers
-    it('Creating container1', function (done) {
-      this.session.create('container1', function (err, container) {
-        assert.equal(err, null);
-        assert.equal(container.name, 'container1');
-        done();
-      });
-    });
-
-    it('Creating container2', function (done) {
-      this.session.create('container2', function (err, container) {
-        assert.equal(err, null);
-        assert.equal(container.name, 'container2');
-        done();
-      });
-    });
-
-    it('Creating container3', function (done) {
-      this.session.create('container3', function (err, container) {
-        assert.equal(err, null);
-        assert.equal(container.name, 'container3');
-        done();
-      });
-    });
-
-    it('Confirming we have 3 new containers', function () {
-      assert.equal(this.session.containers.length - this.before, 3);
-    });
-
-    it('Deleting container2', function (done) {
-      this.session.deleteContainer('container2', function (err) {
+    it('should delete the container with no errors', function (done) {
+      this.session.deleteContainer('container1', function (err, container) {
         assert.equal(err, undefined);
         done();
       });
     });
 
-    it('Checking cache was updated', function (done) {
-      assert.equal(this.session.containers.length - this.before, 2);
-      done();
-    });
-
-    it('Deleting container1', function (done) {
-      this.session.deleteContainer('container1', function(err) {
-        assert.equal(err, undefined);
+    it('should not load deleted container', function (done) {
+      this.session.load('container1', function (err, container) {
+        assert.notEqual(err, null);
         done();
       });
     });
 
-    it('Checking cache was updated', function (done) {
-      assert.equal(this.session.containers.length - this.before, 1);
+    it('should check cache was updated correctly', function (done) {
+      assert.equal(this.before, this.session.containers.length);
       done();
     });
   });

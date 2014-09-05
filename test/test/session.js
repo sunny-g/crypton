@@ -106,13 +106,15 @@ describe('Session functionality', function () {
 
     it('should not load deleted container', function (done) {
       this.session.load('container1', function (err, container) {
-        assert.notEqual(err, null);
+        assert.equal(err, 'No new records');
         done();
       });
     });
 
     it('should check cache was updated correctly', function (done) {
-      assert.equal(this.before, this.session.containers.length);
+      for (var i in this.session.containers) {
+        assert.notEqual(this.session.containers[i].name, 'container1');
+      }
       done();
     });
   });

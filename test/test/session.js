@@ -78,4 +78,44 @@ describe('Session functionality', function () {
       });
     });
   });
+
+  describe('deleteContainer()', function () {
+    before(function (done) {
+      var that = this;
+
+      crypton.authorize('notSoSmart', 'pass', function (err, session) {
+        if (err) throw err;
+        that.session = session;
+        that.before = that.session.containers.length;
+
+        //creating the container
+        that.session.create('container1', function (err, container) {
+          assert.equal(err, null);
+          assert.equal(container.name, 'container1');
+        });
+        done();
+      });
+    });
+
+    it('should delete the container with no errors', function (done) {
+      this.session.deleteContainer('container1', function (err, container) {
+        assert.equal(err, undefined);
+        done();
+      });
+    });
+
+    it('should not load deleted container', function (done) {
+      this.session.load('container1', function (err, container) {
+        assert.equal(err, 'No new records');
+        done();
+      });
+    });
+
+    it('should check cache was updated correctly', function (done) {
+      for (var i in this.session.containers) {
+        assert.notEqual(this.session.containers[i].name, 'container1');
+      }
+      done();
+    });
+  });
 });

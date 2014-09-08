@@ -267,7 +267,21 @@ Session.prototype.deleteContainer = function (containerName, callback) {
       }
 
       tx.commit(function (err) {
-        callback(err);
+        if (err) {
+          //then call our callback
+          return callback(err);
+        }
+
+        //delete it from the list of containers
+        var i;
+        for (i = 0; i < that.containers.length; i++) {
+          if (crypton.constEqual(that.containers[i].name, containerName)) {
+            that.containers.splice(i, 1);
+            break;
+          }
+        }
+
+        callback(null);
       });
     });
   });

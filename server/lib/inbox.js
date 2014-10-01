@@ -60,9 +60,9 @@ Inbox.prototype.getAllMessages = function (callback) {
  *
  * @param {Function} callback
  */
-Inbox.prototype.getAllMessageIds = function (callback) {
-  db.getAllMessageIds(this.accountId, function (err, messageIds) {
-    callback(err, messageIds);
+Inbox.prototype.getAllMetadata = function (callback) {
+  db.getAllMetadata(this.accountId, function (err, metadata) {
+    callback(err, metadata);
   });
 };
 

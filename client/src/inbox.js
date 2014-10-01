@@ -113,9 +113,9 @@ Inbox.prototype.delete = function (id, callback) {
   });
 };
 
-Inbox.prototype.getAllMessageIds = function (callback) {
+Inbox.prototype.getAllMetadata = function (callback) {
   var that = this;
-  var url = crypton.url() + '/inbox-messageids';
+  var url = crypton.url() + '/inbox-metadata';
   callback = callback || function () {};
 
   superagent.get(url)
@@ -125,7 +125,7 @@ Inbox.prototype.getAllMessageIds = function (callback) {
       callback(res.body.error);
       return;
     }
-    callback(res.body.messageIds);
+    callback(null, res.body.metadata);
     return;
   });
 },

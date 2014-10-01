@@ -80,13 +80,13 @@ app.get('/inbox/:messageId', verifySession, function (req, res) {
  * ### GET /inbox/messageids
  * Get all message Ids for the current session's `accountId`
 */
-app.get('/inbox-messageids', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /inbox-messageids');
+app.get('/inbox-metadata', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /inbox-metadata');
 
   var accountId = req.session.accountId;
   var inbox = new Inbox(accountId);
 
-  inbox.getAllMessageIds(function (err, messageIds) {
+  inbox.getAllMetadata(function (err, metadata) {
     if (err) {
       res.send({
         success: false,
@@ -97,7 +97,7 @@ app.get('/inbox-messageids', verifySession, function (req, res) {
 
     res.send({
       success: true,
-      messageIds: messageIds
+      metadata: metadata
     });
   });
 });

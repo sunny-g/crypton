@@ -73,7 +73,7 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
           var headers = { test: "message" };
           var payload = { secret: "The toast has landed butter-side up" };
           alicePeer.sendMessage(headers, payload, function (err) {
-            console.log("Bob sending message to Alice");
+            console.log("Bob sent a message to Alice");
             if (err) {
               throw err;
             }
@@ -112,11 +112,10 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
     });
 
     it('test inbox message from Bob', function (done) {
-      aliceSession.inbox.getAllMessageIds(function (err, messageIds) {
-        console.log(messageIds);
-        assert(messageIds);
+      aliceSession.inbox.getAllMetadata(function (err, metadata) {
+        assert(metadata);
         assert.equal(err, null);
-        assert.equal(messageIds.length, 1);
+        assert.equal(metadata.length, 1);
         done();
       });
     });

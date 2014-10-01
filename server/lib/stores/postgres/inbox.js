@@ -80,16 +80,21 @@ datastore.getAllMessages = function (accountId, callback) {
  * @param {accountId} accountId
  * @param {Function} callback
  */
-datastore.getAllMessageIds = function (accountId, callback) {
+datastore.getAllMetadata = function (accountId, callback) {
   connect(function (client, done) {
+//        from message m, account a where \
     var query = {
       /*jslint multistr: true*/
-      text: 'select m.message_id, m.from_account_id, \
-        a.username,  \
-        from message m, account a where \
-        m.to_account_id = $1 and \
-        m.deletion_time is null \
-        order by m.creation_time',
+      text: 'select message.message_id, message.from_account_id, \
+        message.to_account_id, \
+        a.username as to_username, b.username as from_username  \
+        from message \
+        left join account a on message.to_account_id = a.account_id \
+        left join account b on message.from_account_id = b.account_id \
+        where \
+        message.to_account_id = $1 and \
+        message.deletion_time is null \
+        order by message.creation_time asc',
        /*jslint multistr: false*/
       values: [
         accountId

@@ -51,6 +51,23 @@ Inbox.prototype.getAllMessages = function (callback) {
 };
 
 /**!
+ * ### getAllMessageIds(callback)
+ * Retrieve all message Ids from the database for the specified `accountId`
+ *
+ * Calls back without error and with array of ids if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Inbox.prototype.getAllMessageIds = function (callback) {
+  db.getAllMessageIds(this.accountId, function (err, messages) {
+    callback(err, messages);
+  });
+};
+
+
+/**!
  * ### getMessageById(messageId, callback)
  * Retrieve message from the database for the specified `accountId` and `messageId`
  *

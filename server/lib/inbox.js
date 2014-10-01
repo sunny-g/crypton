@@ -61,8 +61,8 @@ Inbox.prototype.getAllMessages = function (callback) {
  * @param {Function} callback
  */
 Inbox.prototype.getAllMessageIds = function (callback) {
-  db.getAllMessageIds(this.accountId, function (err, messages) {
-    callback(err, messages);
+  db.getAllMessageIds(this.accountId, function (err, messageIds) {
+    callback(err, messageIds);
   });
 };
 

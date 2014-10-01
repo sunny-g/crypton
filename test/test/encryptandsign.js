@@ -68,7 +68,18 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
         peer.trust(function (err) {
           if (err) throw err;
           alicePeer = peer;
-          done();
+          // Send an inbox message to Alice in order for Alice to test
+          // the inbox apis
+          var headers = { test: "message" };
+          var payload = { secret: "The toast has landed butter-side up" };
+          alicePeer.sendMessage(headers, payload, function (err) {
+            console.log("Bob sending message to Alice");
+            if (err) {
+              throw err;
+            }
+            assert.equal(err, null);
+            done();
+          });
         });
       });
     });
@@ -97,6 +108,16 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
           bobPeer = peer;
           done();
         });
+      });
+    });
+
+    it('test inbox message from Bob', function (done) {
+      aliceSession.inbox.getAllMessageIds(function (err, messageIds) {
+        console.log(messageIds);
+        assert(messageIds);
+        assert.equal(err, null);
+        assert.equal(messageIds.length, 1);
+        done();
       });
     });
 

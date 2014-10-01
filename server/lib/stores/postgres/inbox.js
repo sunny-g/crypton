@@ -85,9 +85,8 @@ datastore.getAllMessageIds = function (accountId, callback) {
     var query = {
       /*jslint multistr: true*/
       text: 'select m.message_id, m.from_account_id, \
-        a.username \
+        a.username,  \
         from message m, account a where \
-        m.from_account_id = a.account_id \
         m.to_account_id = $1 and \
         m.deletion_time is null \
         order by m.creation_time',

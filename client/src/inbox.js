@@ -113,6 +113,23 @@ Inbox.prototype.delete = function (id, callback) {
   });
 };
 
+Inbox.prototype.getAllMessageIds = function (callback) {
+  var that = this;
+  var url = crypton.url() + '/inbox-messageids';
+  callback = callback || function () {};
+
+  superagent.get(url)
+    .withCredentials()
+    .end(function (res) {
+    if (!res.body || res.body.success !== true) {
+      callback(res.body.error);
+      return;
+    }
+    callback(res.body.messageIds);
+    return;
+  });
+},
+
 Inbox.prototype.clear = function (callback) {
   // start + commit tx
   var chunk = {

@@ -82,7 +82,6 @@ datastore.getAllMessages = function (accountId, callback) {
  */
 datastore.getAllMetadata = function (accountId, callback) {
   connect(function (client, done) {
-//        from message m, account a where \
     var query = {
       /*jslint multistr: true*/
       text: 'select message.message_id, message.from_account_id, \

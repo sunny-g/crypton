@@ -111,11 +111,16 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
       });
     });
 
-    it('test inbox message from Bob', function (done) {
+    it('test inbox metadata', function (done) {
       aliceSession.inbox.getAllMetadata(function (err, metadata) {
         assert(metadata);
         assert.equal(err, null);
         assert.equal(metadata.length, 1);
+        assert.equal(metadata[0].toUsername, 'alice');
+        assert.equal(metadata[0].fromUsername, 'bob');
+        assert(metadata[0].toAccountId);
+        assert(metadata[0].fromAccountId);
+        assert(metadata[0].messageId);
         done();
       });
     });

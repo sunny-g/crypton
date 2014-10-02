@@ -36,11 +36,18 @@ datastore.getAllMessages = function (accountId, callback) {
   connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
-      text: 'select * from message where \
-        to_account_id = $1 and \
-        deletion_time is null \
-        order by creation_time',
-       /*jslint multistr: false*/
+      text: 'select m.message_id, m.from_account_id, \
+        m.to_account_id, m.creation_time, m.ttl, \
+        m.headers_ciphertext, m.payload_ciphertext, \
+        a.username as to_username, b.username as from_username  \
+        from message m \
+        left join account a on m.to_account_id = a.account_id \
+        left join account b on m.from_account_id = b.account_id \
+        where \
+        m.to_account_id = $1 and \
+        m.deletion_time is null \
+        order by m.creation_time asc',
+      /*jslint multistr: true*/
       values: [
         accountId
       ]
@@ -86,6 +93,8 @@ datastore.getAllMetadata = function (accountId, callback) {
       /*jslint multistr: true*/
       text: 'select message.message_id, message.from_account_id, \
         message.to_account_id, \
+        length(message.payload_ciphertext) as payload_length, \
+        length(message.headers_ciphertext) as headers_length, \
         a.username as to_username, b.username as from_username  \
         from message \
         left join account a on message.to_account_id = a.account_id \
@@ -94,7 +103,7 @@ datastore.getAllMetadata = function (accountId, callback) {
         message.to_account_id = $1 and \
         message.deletion_time is null \
         order by message.creation_time asc',
-       /*jslint multistr: false*/
+      /*jslint multistr: false*/
       values: [
         accountId
       ]

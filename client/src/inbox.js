@@ -24,8 +24,8 @@ var Inbox = crypton.Inbox = function Inbox (session) {
   this.session = session;
   this.rawMessages = [];
   this.messages = {};
-
-  this.poll();
+  // XXXddahl: let's turn poll() off for now
+  // this.poll();
 };
 
 Inbox.prototype.poll = function (callback) {
@@ -44,8 +44,9 @@ Inbox.prototype.poll = function (callback) {
     // should we merge or overwrite here?
     that.rawMessages = res.body.messages;
     that.parseRawMessages();
-
-    callback(null, res.body.messages);
+    if (callback) {
+      callback(null, res.body.messages);
+    }
   });
 };
 
@@ -158,6 +159,7 @@ Inbox.prototype.parseRawMessages = function () {
 
     var message = new crypton.Message(this.session, rawMessage);
     message.decrypt(function (err) {
+      // XXXddahl: fix this, check for error
       that.messages[message.messageId] = message;
     });
   }

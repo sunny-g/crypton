@@ -87,11 +87,13 @@ Inbox.prototype.getMessageById = function (messageId, callback) {
       callback('Message does not exist');
       return;
     }
+
     db.getAccountById(message.fromAccountId, function (err, account) {
       if (err) {
         callback('Database Error');
         return;
       }
+
       message.fromUsername = account.username;
       callback(err, message);
     });

@@ -77,8 +77,8 @@ app.get('/inbox/:messageId', verifySession, function (req, res) {
 });
 
 /**!
- * ### GET /inbox/messageids
- * Get all message Ids for the current session's `accountId`
+ * ### GET /inbox-metadata
+ * Get all message Ids & to/from usernames for the current session's `accountId`
 */
 app.get('/inbox-metadata', verifySession, function (req, res) {
   app.log('debug', 'handling GET /inbox-metadata');

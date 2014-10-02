@@ -70,8 +70,8 @@ datastore.getAllMessages = function (accountId, callback) {
 }
 
 /**!
- * ### getAllMessageIds(accountId, callback)
- * Retrieve all message Ids for given `accountId`
+ * ### getAllMetadata(accountId, callback)
+ * Retrieve all message Ids & to/from usernames for given `accountId`
  *
  * Calls back with array of message Ids and without error if successful
  *

@@ -51,10 +51,10 @@ Inbox.prototype.getAllMessages = function (callback) {
 };
 
 /**!
- * ### getAllMessageIds(callback)
- * Retrieve all message Ids from the database for the specified `accountId`
+ * ### getAllMetadata(callback)
+ * Retrieve all message Ids & to/from usernames for the specified `accountId`
  *
- * Calls back without error and with array of ids if successful
+ * Calls back without error and with array of ids/names if successful
  *
  * Calls back with error if unsuccessful
  *

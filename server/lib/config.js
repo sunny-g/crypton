@@ -20,7 +20,6 @@
 
 var fs = require('fs');
 var path = require('path');
-var app = require('../app');
 
 /**!
  * Attempt to load a provided `config.json` file, falling back to the example file
@@ -39,6 +38,7 @@ try {
   var file = fs.readFileSync(configFile).toString();
   data = JSON.parse(file);
 } catch (e) {
+  var app = require('../app');
   app.log('fatal', 'could not parse config file');
   throw e;
 }

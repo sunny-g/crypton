@@ -51,6 +51,23 @@ Inbox.prototype.getAllMessages = function (callback) {
 };
 
 /**!
+ * ### getAllMetadata(callback)
+ * Retrieve all message Ids & to/from usernames for the specified `accountId`
+ *
+ * Calls back without error and with array of ids/names if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Inbox.prototype.getAllMetadata = function (callback) {
+  db.getAllMetadata(this.accountId, function (err, metadata) {
+    callback(err, metadata);
+  });
+};
+
+
+/**!
  * ### getMessageById(messageId, callback)
  * Retrieve message from the database for the specified `accountId` and `messageId`
  *
@@ -70,11 +87,13 @@ Inbox.prototype.getMessageById = function (messageId, callback) {
       callback('Message does not exist');
       return;
     }
+
     db.getAccountById(message.fromAccountId, function (err, account) {
       if (err) {
         callback('Database Error');
         return;
       }
+
       message.fromUsername = account.username;
       callback(err, message);
     });

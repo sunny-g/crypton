@@ -75,3 +75,29 @@ app.get('/inbox/:messageId', verifySession, function (req, res) {
     });
   });
 });
+
+/**!
+ * ### GET /inbox-metadata
+ * Get all message Ids & to/from usernames for the current session's `accountId`
+*/
+app.get('/inbox-metadata', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /inbox-metadata');
+
+  var accountId = req.session.accountId;
+  var inbox = new Inbox(accountId);
+
+  inbox.getAllMetadata(function (err, metadata) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      metadata: metadata
+    });
+  });
+});

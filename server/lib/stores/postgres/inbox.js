@@ -36,11 +36,18 @@ datastore.getAllMessages = function (accountId, callback) {
   connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
-      text: 'select * from message where \
-        to_account_id = $1 and \
-        deletion_time is null \
-        order by creation_time',
-       /*jslint multistr: false*/
+      text: 'select m.message_id, m.from_account_id, \
+        m.to_account_id, m.creation_time, m.ttl, \
+        m.headers_ciphertext, m.payload_ciphertext, \
+        a.username as to_username, b.username as from_username  \
+        from message m \
+        left join account a on m.to_account_id = a.account_id \
+        left join account b on m.from_account_id = b.account_id \
+        where \
+        m.to_account_id = $1 and \
+        m.deletion_time is null \
+        order by m.creation_time asc',
+      /*jslint multistr: true*/
       values: [
         accountId
       ]
@@ -61,6 +68,59 @@ datastore.getAllMessages = function (accountId, callback) {
         row.headersCiphertext = row.headersCiphertext.toString();
         row.payloadCiphertext = row.payloadCiphertext.toString();
 
+        records.push(row);
+      });
+
+      callback(null, records);
+    });
+  });
+}
+
+/**!
+ * ### getAllMetadata(accountId, callback)
+ * Retrieve all message Ids & to/from usernames for given `accountId`
+ *
+ * Calls back with array of message Ids and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {accountId} accountId
+ * @param {Function} callback
+ */
+datastore.getAllMetadata = function (accountId, callback) {
+  connect(function (client, done) {
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select message.message_id, message.from_account_id, \
+        message.to_account_id, \
+        length(message.payload_ciphertext) as payload_length, \
+        length(message.headers_ciphertext) as headers_length, \
+        a.username as to_username, b.username as from_username  \
+        from message \
+        left join account a on message.to_account_id = a.account_id \
+        left join account b on message.from_account_id = b.account_id \
+        where \
+        message.to_account_id = $1 and \
+        message.deletion_time is null \
+        order by message.creation_time asc',
+      /*jslint multistr: false*/
+      values: [
+        accountId
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      done();
+
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      // massage
+      var records = [];
+      result.rows.forEach(function (row) {
+        row = datastore.util.camelizeObject(row);
         records.push(row);
       });
 

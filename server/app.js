@@ -15,6 +15,7 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
+//require('long-stack-traces');
 
 'use strict';
 

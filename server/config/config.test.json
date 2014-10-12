@@ -40,5 +40,6 @@
       "maxAge": 31536000
     }
   },
-  "port": 1025
+  "port": 1025,
+  "logLevel": "trace"
 }

@@ -84,7 +84,7 @@ var Session = crypton.Session = function (id) {
  */
 Session.prototype.load = function (containerName, callback) {
   // check for a locally stored container
-  for (var i in this.containers) {
+  for (var i = 0; i < this.containers.length; i++) {
     if (crypton.constEqual(this.containers[i].name, containerName)) {
       callback(null, this.containers[i]);
       return;
@@ -118,7 +118,7 @@ Session.prototype.load = function (containerName, callback) {
  */
 Session.prototype.loadWithHmac = function (containerNameHmac, peer, callback) {
   // check for a locally stored container
-  for (var i in this.containers) {
+  for (var i = 0; i < this.containers.length; i++) {
     if (crypton.constEqual(this.containers[i].nameHmac, containerNameHmac)) {
       callback(null, this.containers[i]);
       return;
@@ -268,13 +268,11 @@ Session.prototype.deleteContainer = function (containerName, callback) {
 
       tx.commit(function (err) {
         if (err) {
-          //then call our callback
           return callback(err);
         }
 
-        //delete it from the list of containers
-        var i;
-        for (i = 0; i < that.containers.length; i++) {
+        // remove from cache
+        for (var i = 0; i < that.containers.length; i++) {
           if (crypton.constEqual(that.containers[i].name, containerName)) {
             that.containers.splice(i, 1);
             break;

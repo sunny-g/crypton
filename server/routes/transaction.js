@@ -181,7 +181,7 @@ app.del('/transaction/:id', verifySession, function (req, res) {
   var tx = new Transaction();
 
   tx.update('interactingAccount', accountId);
-  
+
   tx.get(transactionId, function (err) {
     tx.abort(function (err) {
       if (err) {

@@ -221,7 +221,7 @@ crypton.hmac = function(key, data) {
 crypton.hmacAndCompare = function(key, data, otherMac) {
   var ourMac = crypton.hmac(key, data);
   return crypton.constEqual(ourMac, otherMac);
-}
+};
 
 /**!
  * ### fingerprint(pubKey, signKeyPub)
@@ -238,8 +238,7 @@ crypton.fingerprint = function (pubKey, signKeyPub) {
     signKeyPub._point.toBits()
   );
 
-  var pubKeyHash = sjcl.hash.sha256.hash(pubKeys);
-  return sjcl.codec.hex.fromBits(pubKeyHash);
+  return crypton.hmac('', pubKeys);
 };
 
 /**!

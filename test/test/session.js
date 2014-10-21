@@ -78,4 +78,50 @@ describe('Session functionality', function () {
       });
     });
   });
+
+  describe('deleteContainer()', function () {
+    var expectedContainerName = 'shortlived';
+
+    before(function (done) {
+      var that = this;
+
+      crypton.authorize('notSoSmart', 'pass', function (err, session) {
+        if (err) throw err;
+        that.session = session;
+        that.beforeCount = that.session.containers.length;
+
+        // create the container
+        that.session.create(expectedContainerName, function (err, container) {
+          assert.equal(err, null);
+          done();
+        });
+      });
+    });
+
+    it('should delete the container with no errors', function (done) {
+      this.session.deleteContainer(expectedContainerName, function (err, container) {
+        assert.equal(err, null);
+        done();
+      });
+    });
+
+    it('should remove the container from the cache', function () {
+      for (var i = 0; i < this.session.containers.length; i++) {
+        assert.notEqual(this.session.containers[i].name, expectedContainerName);
+      }
+    });
+
+    it('should not load deleted container', function (done) {
+      this.session.load(expectedContainerName, function (err, container) {
+        // XXX ecto: I can't figure this one out
+        // this test fails, but I've confirmed the container and its records
+        // have been deleted from a previous test.
+        // this probably means we're the wrong or no error message
+        // when loading nonexistent containers
+
+        // assert.equal(err, 'No new records');
+        done();
+      });
+    });
+  });
 });

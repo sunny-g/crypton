@@ -63,6 +63,22 @@ program.command('run')
     app.start();
   });
 
+program.command('db:init')
+  .description('Initialize the Crypton database')
+  .action(function () {
+    process.configFile = program.config;
+    process.docker = program.docker;
+    require('./init')();
+  });
+
+program.command('db:drop')
+  .description('Drop the Crypton sdatabase')
+  .action(function () {
+    process.configFile = program.config;
+    process.docker = program.docker;
+    require('./drop')();
+  });
+
 program.command('status')
   .description('Print the status of the daemonized the Crypton server')
   .action(function () {

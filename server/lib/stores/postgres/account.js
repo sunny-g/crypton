@@ -341,3 +341,98 @@ exports.getUserCount = function (callback) {
     });
   });
 };
+
+/**!
+ * ### updateKeyring(account, callback)
+ * Update base_keyring rows with new data after passphrase change
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} account
+ * @param {Function} callback
+ */
+exports.updateKeyring = function updateKeyring(account, callback) {
+  // TODO: add num_rounds int field
+  var requiredFields = [
+    'username',
+    'keypairCiphertext',
+    'keypairMac',
+    'keypairSalt',
+    'keypairMacSalt',
+    'signKeyPrivateMacSalt',
+    'pubKey',
+    'containerNameHmacKeyCiphertext',
+    'hmacKeyCiphertext',
+    'srpVerifier',
+    'srpSalt',
+    'signKeyPub',
+    'signKeyPrivateCiphertext',
+    'signKeyPrivateMac'
+  ];
+
+  for (var i in requiredFields) {
+    if (!account[requiredFields[i]]) {
+      callback('Missing field: ' + requiredFields[i]);
+      return;
+    }
+  }
+
+  var keyringQuery = {
+    text: '\
+      update base_keyring \
+        set keypair = $3, \
+          keypair_salt = $4, \
+          keypair_mac_salt = $5, \
+          keypair_mac = $6, \
+          pubkey = $7, \
+          container_name_hmac_key = $8, \
+          hmac_key = $9, \
+          srp_verifier = $10, \
+          srp_salt = $11, \
+          sign_key_pub = $12, \
+          sign_key_private_mac_salt = $13, \
+          sign_key_private_ciphertext = $14, \
+          sign_key_private_mac = $15 \
+        where base_keyring.base_keyring_id = $1',
+      values: [
+        result.rows[0].base_keyring_id,
+        result.rows[0].account_id,
+        account.keypairCiphertext,
+        account.keypairSalt,
+        account.keypairMacSalt,
+        account.keypairMac,
+        account.pubKey,
+        account.containerNameHmacKeyCiphertext,
+        account.hmacKeyCiphertext,
+        account.srpVerifier,
+        account.srpSalt,
+        account.signKeyPub,
+        account.signKeyPrivateMacSalt,
+        account.signKeyPrivateCiphertext,
+        account.signKeyPrivateMac
+      ]
+  };
+
+  client.query(keyringQuery, function (err) {
+    if (err) {
+      client.query('rollback');
+      done();
+
+      if (err.code === '23514') {
+        callback('Invalid keyring data.');
+      } else {
+        console.log('Unhandled database error: ' + err);
+        callback('Database error.');
+      }
+
+      return;
+    }
+
+    client.query('commit', function () {
+      done();
+      callback();
+    });
+  });
+};

@@ -206,8 +206,7 @@ Account.prototype.update = function () {
   // update('key', 'value')
   else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
     this[arguments[0]] = arguments[1];
-  }
-};
+  }};
 
 /**!
  * ### toJSON()
@@ -319,4 +318,23 @@ Account.prototype.sendMessage = function (options, callback) {
 
     callback(null, messageId);
   });
+};
+
+/**!
+ * ### changePassphrase(options, callback)
+ * Change user's passphrase
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} account
+ * @param {Function} callback
+ */
+Account.prototype.changePassphrase = function (account, callback) {
+  if (!account && !(typeof account == 'object')) {
+    return callback('changePassphrase failed, account object required.');
+  }
+
+  db.updateKeyring(account, callback);
 };

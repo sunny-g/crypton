@@ -16,10 +16,10 @@
  * along with Crypton.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-describe('Change Password', function () {
+describe('Change Passphrase', function () {
   this.timeout(100000);
   describe('Account generation', function () {
-    it('generate account, change password without error', function (done) {
+    it('generate account, change passphrase without error', function (done) {
       crypton.generateAccount('drevil', 'password', function (err, account) {
         console.log(err);
         assert.equal(err, null);
@@ -46,7 +46,6 @@ describe('Change Password', function () {
             }
             console.log('auth callback');
             console.log(session.account);
-            assert.equal(session.account.pbkdf2NumRounds, 2000);
             assert.equal(_testUICallback, true);
             assert.equal(session.account.username, 'drevil'); // we have been handed the account
             done();
@@ -57,7 +56,7 @@ describe('Change Password', function () {
           }
 
           try {
-          session.account.changePassword('password', 'foobarstrongerpass', cb, uiProgressCallback, null, false);
+          session.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, null, false);
           } catch (ex) {
             console.log(ex);
             console.log(ex.stack);
@@ -68,7 +67,8 @@ describe('Change Password', function () {
       });
     });
 
-    it('test changed password', function (done) {
+    it('test changed passphrase', function (done) {
+      // XXXddahl: test re-auth!
       done();
     });
   });

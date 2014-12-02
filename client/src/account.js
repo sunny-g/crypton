@@ -202,38 +202,26 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
 };
 
 /**!
- * ### changePassword()
- * Convienence function to change the user's password
+ * ### changePassphrase()
+ * Convienence function to change the user's passphrase
  *
- * @param {String} oldPassword
- * @param {String} newPassword
+ * @param {String} oldPassphrase
+ * @param {String} newPassphrase
  * @param {Function} callback
  * @param {Function} keygenProgressCallback [optional]
- * @param {Number} numRounds [optional] (Integer > 4999)
  * @param {Boolean} skipCheck [optional]
  * @return void
  */
-Account.prototype.changePassword =
-  function (oldPassword, newPassword,
-            callback, keygenProgressCallback, numRounds, skipCheck) {
-  console.log('Change Password...');
+Account.prototype.changePassphrase =
+  function (oldPassphrase, newPassphrase,
+            callback, keygenProgressCallback, skipCheck) {
+  console.log('Change Passphrase...');
   if (skipCheck) {
-    if (oldPassword == newPassword) {
-      var err = 'New password cannot be the same as current password';
+    if (oldPassphrase == newPassphrase) {
+      var err = 'New passphrase cannot be the same as current password';
       return callback(err);
     }
   }
-
-  if (!numRounds) {
-    numRounds = MIN_PBKDF2_ROUNDS;
-  }
-  if (typeof numRounds != 'number') {
-    numRounds = MIN_PBKDF2_ROUNDS;
-  } else if (numRounds < MIN_PBKDF2_ROUNDS) {
-    numRounds = MIN_PBKDF2_ROUNDS;
-  }
-  // You can play with numRounds from 2000+,
-  // but cannot set numRounds below 2000
 
   if (keygenProgressCallback) {
     if (typeof keygenProgressCallback == 'function') {
@@ -254,13 +242,13 @@ Account.prototype.changePassword =
     var signKeyPrivateMacSalt = crypton.randomBytes(32);
 
     var keypairKey =
-      sjcl.misc.pbkdf2(newPassword, keypairSalt, numRounds);
+      sjcl.misc.pbkdf2(newPassword, keypairSalt, MIN_PBKDF2_ROUNDS);
 
     var keypairMacKey =
-      sjcl.misc.pbkdf2(newPassword, keypairMacSalt, numRounds);
+      sjcl.misc.pbkdf2(newPassword, keypairMacSalt, MIN_PBKDF2_ROUNDS);
 
     var signKeyPrivateMacKey =
-      sjcl.misc.pbkdf2(newPassword, signKeyPrivateMacSalt, numRounds);
+      sjcl.misc.pbkdf2(newPassword, signKeyPrivateMacSalt, MIN_PBKDF2_ROUNDS);
 
     // Re-encrypt the stored keyring
 
@@ -293,15 +281,6 @@ Account.prototype.changePassword =
       sjcl.encrypt(keypairKey,
                    JSON.stringify(that.keypair.sec.serialize()),
                    crypton.cipherOptions);
-    tmpAcct.keypairCiphertext['pbkdf2NumRounds'] = numRounds;
-    // XXXddahl
-    // NOTE:
-    // The original numRounds chosen by the developer is tacked onto this
-    // object for the time being. A bit of a hack, but makes
-    // the implementation simpler until we refactor key structures
-    // while adding the Web Crypto API crypto module, see issue #251
-    // https://github.com/SpiderOak/crypton/issues/251
-
     tmpAcct.keypairMac =
       crypton.hmac(keypairMacKey, tmpAcct.keypairCiphertext);
 
@@ -310,20 +289,18 @@ Account.prototype.changePassword =
     }
 
     console.log('SAVING..............');
-
-    that.save(function (err) {
-      if (err) {
-        console.log(err);
-        // The acount save failed, but we still have the original data yet
-        // Revert back to what we had before the process started...
-        var origAcctObj = JSON.parse(originalAcct);
-        for (var prop in tmpAcct) {
-          that[prop] = origAcctObj[prop];
-        }
-        callback(err, that);
+    // POST to /account/:username/keyring
+    superagent.post(crypton.url() + '/account/' + that.username + '/keyring')
+    .withCredentials()
+    .send(tmpAcct)
+    .end(function (res) {
+      if (res.body.success !== true) {
+        callback(res.body.error);
+      } else {
+        callback(null, that);
       }
-      callback(null, that);
     });
   });
 };
+
 })();

@@ -350,21 +350,18 @@ exports.getUserCount = function (callback) {
  *
  * Calls back with error if unsuccessful
  *
- * @param {Object} account
+ * @param {Object} keyring
  * @param {Function} callback
  */
-exports.updateKeyring = function updateKeyring(account, callback) {
-  // TODO: add num_rounds int field
+exports.updateKeyring = function updateKeyring(keyring, callback) {
+  // XXXdddahl: get base_keyring_id from account
   var requiredFields = [
-    'username',
+    'accountId',
     'keypairCiphertext',
     'keypairMac',
     'keypairSalt',
     'keypairMacSalt',
     'signKeyPrivateMacSalt',
-    'pubKey',
-    'containerNameHmacKeyCiphertext',
-    'hmacKeyCiphertext',
     'srpVerifier',
     'srpSalt',
     'signKeyPub',
@@ -373,7 +370,7 @@ exports.updateKeyring = function updateKeyring(account, callback) {
   ];
 
   for (var i in requiredFields) {
-    if (!account[requiredFields[i]]) {
+    if (!keyring[requiredFields[i]]) {
       callback('Missing field: ' + requiredFields[i]);
       return;
     }
@@ -395,23 +392,22 @@ exports.updateKeyring = function updateKeyring(account, callback) {
           sign_key_private_mac_salt = $13, \
           sign_key_private_ciphertext = $14, \
           sign_key_private_mac = $15 \
-        where base_keyring.base_keyring_id = $1',
+        where base_keyring.account_id = $1',
       values: [
-        result.rows[0].base_keyring_id,
-        result.rows[0].account_id,
-        account.keypairCiphertext,
-        account.keypairSalt,
-        account.keypairMacSalt,
-        account.keypairMac,
-        account.pubKey,
-        account.containerNameHmacKeyCiphertext,
-        account.hmacKeyCiphertext,
-        account.srpVerifier,
-        account.srpSalt,
-        account.signKeyPub,
-        account.signKeyPrivateMacSalt,
-        account.signKeyPrivateCiphertext,
-        account.signKeyPrivateMac
+        keyring.accountId,
+        keyring.keypairCiphertext,
+        keyring.keypairSalt,
+        keyring.keypairMacSalt,
+        keyring.keypairMac,
+        keyring.pubKey,
+        keyring.containerNameHmacKeyCiphertext,
+        keyring.hmacKeyCiphertext,
+        keyring.srpVerifier,
+        keyring.srpSalt,
+        keyring.signKeyPub,
+        keyring.signKeyPrivateMacSalt,
+        keyring.signKeyPrivateCiphertext,
+        keyring.signKeyPrivateMac
       ]
   };
 

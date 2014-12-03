@@ -20,8 +20,6 @@
 
 'use strict';
 
-var MIN_PBKDF2_ROUNDS = 2000;
-
 /**!
  * # Account()
  *
@@ -67,9 +65,11 @@ Account.prototype.save = function (callback) {
  */
 Account.prototype.unravel = function (callback) {
   var that = this;
-
+  console.log('\n\nAccount.unravel\n\n');
+  // console.log(this.serialize());
   crypton.work.unravelAccount(this, function (err, data) {
     if (err) {
+      console.log(err);
       return callback(err);
     }
 
@@ -205,7 +205,7 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
  * ### changePassphrase()
  * Convienence function to change the user's passphrase
  *
- * @param {String} oldPassphrase
+ * @param {String} currentPassphrase
  * @param {String} newPassphrase
  * @param {Function} callback
  * @param {Function} keygenProgressCallback [optional]
@@ -213,11 +213,16 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
  * @return void
  */
 Account.prototype.changePassphrase =
-  function (oldPassphrase, newPassphrase,
+  function (currentPassphrase, newPassphrase,
             callback, keygenProgressCallback, skipCheck) {
   console.log('Change Passphrase...');
+  console.log('old pass: ', currentPassphrase);
+  console.log('new pass: ', newPassphrase);
+  console.log('cb: ', callback);
+  console.log('cb2: ', keygenProgressCallback);
+  console.log('skipCheck: ', skipCheck);
   if (skipCheck) {
-    if (oldPassphrase == newPassphrase) {
+    if (currentPassphrase == newPassphrase) {
       var err = 'New passphrase cannot be the same as current password';
       return callback(err);
     }
@@ -229,78 +234,85 @@ Account.prototype.changePassphrase =
     }
   }
 
+  var MIN_PBKDF2_ROUNDS = crypton.MIN_PBKDF2_ROUNDS;
   var that = this;
+  // save existing account data into new JSON string
+  var originalAcct = that.serialize();
 
-  this.unravel(function (err) {
+  // XXX: Do I need to unravel at all? Just Authorize?
+  // XXX: in which case we should make sure we save any unsaved containers?
+  // XXX: add passphrase to the raw account blob from the server...
+  var username = this.username;
+  // authorize to make sure the user knows the correct passphrase
+  crypton.authorize(username, currentPassphrase, function (err, newSession) {
     if (err) {
-      callback(err);
+      console.error(err);
+      return callback(err);
     }
+    // We have authorized, time to create the new keyring parts we
+    // need to update the database
 
     // Replace all salts with new ones
     var keypairSalt = crypton.randomBytes(32);
     var keypairMacSalt = crypton.randomBytes(32);
     var signKeyPrivateMacSalt = crypton.randomBytes(32);
 
+    var srp = new SRPClient(username, newPassphrase, 2048, 'sha-256');
+    var srpSalt = srp.randomHexSalt();
+    var srpVerifier = srp.calculateV(srpSalt).toString(16);
+
     var keypairKey =
-      sjcl.misc.pbkdf2(newPassword, keypairSalt, MIN_PBKDF2_ROUNDS);
+      sjcl.misc.pbkdf2(newPassphrase, keypairSalt, MIN_PBKDF2_ROUNDS);
 
     var keypairMacKey =
-      sjcl.misc.pbkdf2(newPassword, keypairMacSalt, MIN_PBKDF2_ROUNDS);
+      sjcl.misc.pbkdf2(newPassphrase, keypairMacSalt, MIN_PBKDF2_ROUNDS);
 
     var signKeyPrivateMacKey =
-      sjcl.misc.pbkdf2(newPassword, signKeyPrivateMacSalt, MIN_PBKDF2_ROUNDS);
+      sjcl.misc.pbkdf2(newPassphrase, signKeyPrivateMacSalt, MIN_PBKDF2_ROUNDS);
 
+    var newKeyring = {};
     // Re-encrypt the stored keyring
-
-    var tmpAcct = {};
-    console.log('\n\nthis.signingKeys\n\n');
-    console.log(that.signingKeys);
-
-    console.log(Object.keys(that));
-
-    tmpAcct.signKeyPrivateCiphertext =
+    newKeyring.signKeyPrivateCiphertext =
       sjcl.encrypt(keypairKey,
-                   JSON.stringify(that.signingKeys.sec.serialize()),
+                   JSON.stringify(originalAcct.signingKeys.sec.serialize()), // XXX: do this serialization before we authorize?
                    crypton.cipherOptions);
 
-    tmpAcct.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey,
-                                             that.signKeyPrivateCiphertext);
-
-    // save existing account data into new JSON string
-    var originalAcct = that.serialize();
-
-    // Set the new properties of the account before we save
-    tmpAcct.keypairKey = keypairKey;
-    tmpAcct.keypairSalt = keypairSalt;
-    tmpAcct.keypairMacKey = keypairMacKey;
-    tmpAcct.keypairMacSalt = keypairMacSalt;
-    tmpAcct.signKeyPrivateMacKey = signKeyPrivateMacKey;
-    tmpAcct.signKeyPrivateMacSalt = signKeyPrivateMacSalt;
-
-    tmpAcct.keypairCiphertext =
+    newKeyring.keypairCiphertext =
       sjcl.encrypt(keypairKey,
-                   JSON.stringify(that.keypair.sec.serialize()),
+                   JSON.stringify(originalAcct.keypair.sec.serialize()),
                    crypton.cipherOptions);
-    tmpAcct.keypairMac =
-      crypton.hmac(keypairMacKey, tmpAcct.keypairCiphertext);
 
-    for (var prop in tmpAcct) {
-      that[prop] = tmpAcct[prop];
-    }
+    newKeyring.keypairMac =
+      crypton.hmac(keypairMacKey, newKeyring.keypairCiphertext);
+
+    newKeyring.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey,
+                                             originalAcct.signKeyPrivateCiphertext);
+
+    // Set the new properties before we save
+    newKeyring.keypairKey = keypairKey;
+    newKeyring.keypairSalt = keypairSalt;
+    newKeyring.keypairMacKey = keypairMacKey;
+    newKeyring.keypairMacSalt = keypairMacSalt;
+    newKeyring.signKeyPrivateMacKey = signKeyPrivateMacKey;
+    newKeyring.signKeyPrivateMacSalt = signKeyPrivateMacSalt;
+    newKeyring.srpVerifier = srpVerifier;
+    newKeyring.srpSalt = srpSalt;
 
     console.log('SAVING..............');
     // POST to /account/:username/keyring
     superagent.post(crypton.url() + '/account/' + that.username + '/keyring')
     .withCredentials()
-    .send(tmpAcct)
+    .send(newKeyring)
     .end(function (res) {
       if (res.body.success !== true) {
         callback(res.body.error);
       } else {
-        callback(null, that);
+        callback(null, newSession);
+        // XXXddahl: force new login
       }
     });
-  });
+
+  }, null);
 };
 
 })();

@@ -172,6 +172,9 @@ app.post('/account/:username/keyring',
       for (var key in req.body[0]) {
         newAccountData[key] = req.body[0][key];
       }
+      // Need the account ID
+      newAccountData.accountId = account.accountId
+
       // Write new keyring into the database
       account.changePassphrase(newAccountData, function (err) {
         if (err) {

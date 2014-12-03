@@ -31,6 +31,12 @@ var MISMATCH_ERR = 'Server and client version mismatch';
 crypton.version = '0.0.2';
 
 /**!
+ * ### MIN_PBKDF2_ROUNDS
+ * Minimum number of PBKDF2 rounds
+ */
+crypton.MIN_PBKDF2_ROUNDS = 2000;
+
+/**!
  * ### clientVersionMismatch
  * Holds cleint <-> server version mismatch status
  */
@@ -266,18 +272,6 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
   options = options || {};
   var save = typeof options.save !== 'undefined' ? options.save : true;
 
-  var MIN_PBKDF2_ROUNDS = 2000;
-  var numRounds = MIN_PBKDF2_ROUNDS;
-  if (options.numRounds) {
-    if (typeof options.numRounds != 'number') {
-      numRounds = MIN_PBKDF2_ROUNDS;
-    } else if (options.numRounds < MIN_PBKDF2_ROUNDS) {
-      numRounds = options.numRounds;
-    }
-  } else {
-    numRounds = MIN_PBKDF2_ROUNDS;
-  }
-
   crypton.versionCheck(!save, function (err) {
     if (err) {
       return callback(MISMATCH_ERR);
@@ -293,6 +287,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       var SIGN_KEY_BIT_LENGTH = 384;
       var keypairCurve = options.keypairCurve || 384;
+      var numRounds = crypton.MIN_PBKDF2_ROUNDS;
 
       var account = new crypton.Account();
       var hmacKey = randomBytes(32);

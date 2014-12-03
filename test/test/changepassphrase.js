@@ -56,7 +56,7 @@ describe('Change Passphrase', function () {
           }
 
           try {
-          session.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, null, false);
+          session.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, false);
           } catch (ex) {
             console.log(ex);
             console.log(ex.stack);

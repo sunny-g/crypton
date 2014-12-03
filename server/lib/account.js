@@ -328,13 +328,13 @@ Account.prototype.sendMessage = function (options, callback) {
  *
  * Calls back with error if unsuccessful
  *
- * @param {Object} account
+ * @param {Object} keyring
  * @param {Function} callback
  */
-Account.prototype.changePassphrase = function (account, callback) {
-  if (!account && !(typeof account == 'object')) {
-    return callback('changePassphrase failed, account object required.');
+Account.prototype.changePassphrase = function (keyring, callback) {
+  if (!keyring && !(typeof keyring == 'object')) {
+    return callback('changePassphrase failed, keyring object required.');
   }
 
-  db.updateKeyring(account, callback);
+  db.updateKeyring(keyring, callback);
 };

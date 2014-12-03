@@ -236,12 +236,6 @@ Account.prototype.changePassphrase =
 
   var MIN_PBKDF2_ROUNDS = crypton.MIN_PBKDF2_ROUNDS;
   var that = this;
-  // save existing account data into new JSON string
-  var originalAcct = that.serialize();
-
-  // XXX: Do I need to unravel at all? Just Authorize?
-  // XXX: in which case we should make sure we save any unsaved containers?
-  // XXX: add passphrase to the raw account blob from the server...
   var username = this.username;
   // authorize to make sure the user knows the correct passphrase
   crypton.authorize(username, currentPassphrase, function (err, newSession) {
@@ -251,6 +245,8 @@ Account.prototype.changePassphrase =
     }
     // We have authorized, time to create the new keyring parts we
     // need to update the database
+
+    var currentAccount = newSession.account;
 
     // Replace all salts with new ones
     var keypairSalt = crypton.randomBytes(32);
@@ -272,29 +268,44 @@ Account.prototype.changePassphrase =
 
     var newKeyring = {};
     // Re-encrypt the stored keyring
+    // XXXddahl:
+    //         Change all of these sjcl.encrypt() to selfPeer.encryptAndSign()
+    var selfPeer = new crypton.Peer({
+      session: newSession,
+      pubKey: JSON.stringify(newSession.account.pubKey.serialize()),
+      trusted: true
+    });
+    // ...
+    newKeyring.containerNameHmacKeyCiphertext =
+      sjcl.encrypt(keypairKey,
+                   JSON.stringify(currentAccount.containerNameHmacKey),
+                   crypton.cipherOptions);
+
+    newKeyring.hmacKeyCiphertext =
+      sjcl.encrypt(keypairKey,
+                   JSON.stringify(currentAccount.hmacKey),
+                   crypton.cipherOptions);
+
     newKeyring.signKeyPrivateCiphertext =
       sjcl.encrypt(keypairKey,
-                   JSON.stringify(originalAcct.signingKeys.sec.serialize()), // XXX: do this serialization before we authorize?
+                   JSON.stringify(currentAccount.signKeyPrivate.serialize()),
                    crypton.cipherOptions);
 
     newKeyring.keypairCiphertext =
       sjcl.encrypt(keypairKey,
-                   JSON.stringify(originalAcct.keypair.sec.serialize()),
+                   JSON.stringify(currentAccount.secretKey.serialize()),
                    crypton.cipherOptions);
 
     newKeyring.keypairMac =
       crypton.hmac(keypairMacKey, newKeyring.keypairCiphertext);
 
     newKeyring.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey,
-                                             originalAcct.signKeyPrivateCiphertext);
+                                                newKeyring.signKeyPrivateCiphertext);
 
     // Set the new properties before we save
-    newKeyring.keypairKey = keypairKey;
-    newKeyring.keypairSalt = keypairSalt;
-    newKeyring.keypairMacKey = keypairMacKey;
-    newKeyring.keypairMacSalt = keypairMacSalt;
-    newKeyring.signKeyPrivateMacKey = signKeyPrivateMacKey;
-    newKeyring.signKeyPrivateMacSalt = signKeyPrivateMacSalt;
+    newKeyring.keypairSalt = JSON.stringify(keypairSalt);
+    newKeyring.keypairMacSalt = JSON.stringify(keypairMacSalt);
+    newKeyring.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
     newKeyring.srpVerifier = srpVerifier;
     newKeyring.srpSalt = srpSalt;
 
@@ -305,10 +316,12 @@ Account.prototype.changePassphrase =
     .send(newKeyring)
     .end(function (res) {
       if (res.body.success !== true) {
+        console.error('error: ', res.body.error);
         callback(res.body.error);
       } else {
+        console.log('NO ERROR, password changed and shit');
         callback(null, newSession);
-        // XXXddahl: force new login
+        // XXXddahl: force new login here
       }
     });
 

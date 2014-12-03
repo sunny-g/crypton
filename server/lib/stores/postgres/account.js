@@ -355,6 +355,7 @@ exports.getUserCount = function (callback) {
  */
 exports.updateKeyring = function updateKeyring(keyring, callback) {
   // XXXdddahl: get base_keyring_id from account
+  console.warn('debug', keyring);
   var requiredFields = [
     'accountId',
     'keypairCiphertext',
@@ -364,9 +365,10 @@ exports.updateKeyring = function updateKeyring(keyring, callback) {
     'signKeyPrivateMacSalt',
     'srpVerifier',
     'srpSalt',
-    'signKeyPub',
     'signKeyPrivateCiphertext',
-    'signKeyPrivateMac'
+    'signKeyPrivateMac',
+    'containerNameHmacKeyCiphertext',
+    'hmacKeyCiphertext'
   ];
 
   for (var i in requiredFields) {
@@ -375,60 +377,56 @@ exports.updateKeyring = function updateKeyring(keyring, callback) {
       return;
     }
   }
-
-  var keyringQuery = {
-    text: '\
+  connect(function (client, done) {
+    var keyringQuery = {
+      text: '\
       update base_keyring \
-        set keypair = $3, \
-          keypair_salt = $4, \
-          keypair_mac_salt = $5, \
-          keypair_mac = $6, \
-          pubkey = $7, \
-          container_name_hmac_key = $8, \
-          hmac_key = $9, \
-          srp_verifier = $10, \
-          srp_salt = $11, \
-          sign_key_pub = $12, \
-          sign_key_private_mac_salt = $13, \
-          sign_key_private_ciphertext = $14, \
-          sign_key_private_mac = $15 \
-        where base_keyring.account_id = $1',
+      set keypair = $2, \
+      keypair_salt = $3, \
+      keypair_mac_salt = $4, \
+      keypair_mac = $5, \
+      container_name_hmac_key = $6, \
+      hmac_key = $7, \
+      srp_verifier = $8, \
+      srp_salt = $9, \
+      sign_key_private_mac_salt = $10, \
+      sign_key_private_ciphertext = $11, \
+      sign_key_private_mac = $12 \
+      where base_keyring.account_id = $1',
       values: [
         keyring.accountId,
         keyring.keypairCiphertext,
         keyring.keypairSalt,
         keyring.keypairMacSalt,
         keyring.keypairMac,
-        keyring.pubKey,
         keyring.containerNameHmacKeyCiphertext,
         keyring.hmacKeyCiphertext,
         keyring.srpVerifier,
         keyring.srpSalt,
-        keyring.signKeyPub,
         keyring.signKeyPrivateMacSalt,
         keyring.signKeyPrivateCiphertext,
         keyring.signKeyPrivateMac
       ]
-  };
+    };
 
-  client.query(keyringQuery, function (err) {
-    if (err) {
-      client.query('rollback');
-      done();
+    client.query(keyringQuery, function (err) {
+      if (err) {
+        client.query('rollback');
+        done();
 
-      if (err.code === '23514') {
-        callback('Invalid keyring data.');
-      } else {
-        console.log('Unhandled database error: ' + err);
-        callback('Database error.');
+        if (err.code === '23514') {
+          callback('Invalid keyring data.');
+        } else {
+          console.log('Unhandled database error: ' + err);
+          callback('Database error.');
+        }
+        return;
       }
 
-      return;
-    }
-
-    client.query('commit', function () {
-      done();
-      callback();
+      client.query('commit', function () {
+        done();
+        callback();
+      });
     });
   });
 };

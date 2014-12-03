@@ -157,7 +157,7 @@ app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {
     app.log('debug', 'handling POST /account/:username/keyring');
-
+    console.log(req.body);
     var account = new Account();
     account.get(req.params.username, function (err) {
       if (err) {
@@ -169,8 +169,8 @@ app.post('/account/:username/keyring',
       }
       // Let's update the account
       var newAccountData = {};
-      for (var key in req.body[0]) {
-        newAccountData[key] = req.body[0][key];
+      for (var key in req.body) {
+        newAccountData[key] = req.body[key];
       }
       // Need the account ID
       newAccountData.accountId = account.accountId

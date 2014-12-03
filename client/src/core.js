@@ -350,22 +350,8 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
       // private keys
       // TODO: Check data auth with hmac
       var keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
-      // Add numRounds to temp ciphertext object
-      var _keyPairCt = JSON.parse(keypairCiphertext);
-      _keyPairCt['pbkdf2NumRounds'] = numRounds;
-      keypairCiphertext = JSON.stringify(_keyPairCt);
-      // XXXddahl
-      // NOTE:
-      // The original numRounds chosen by the developer is
-      // tacked onto this object for the time being.
-      // A bit of a hack, but makes
-      // the implementation simpler until we refactor key structures
-      // while adding the Web Crypto API crypto module, see issue #251
-      // https://github.com/SpiderOak/crypton/issues/251
 
       account.keypairCiphertext = keypairCiphertext;
-      console.log("\n\n...... keypairCiphertext ......\n\n");
-      console.log(keypairCiphertext);
       account.keypairMac = crypton.hmac(keypairMacKey, account.keypairCiphertext);
       account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
       account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, account.signKeyPrivateCiphertext);

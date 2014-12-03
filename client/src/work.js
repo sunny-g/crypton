@@ -133,22 +133,7 @@ work.calculateSrpM1 = function (options, callback) {
 work.unravelAccount = function (account, callback) {
   var ret = {};
 
-  console.log('\n\nUNRAVEL()\n\n');
-  console.log('\n\naccount keys: ', Object.keys(account));
-  console.log('\n\pub key: ', Object.keys(account.pubKey));
-  console.log('\n\naccount: ', Object.keys(account));
-  for (var prop in account) {
-    try {
-      console.warn(prop, '\n\n');
-      // console.log(prop, account[prop]);
-    } catch (ex) {
-      console.error(ex);
-      // console.error(ex.stack);
-    }
-  }
-
   var numRounds =  crypton.MIN_PBKDF2_ROUNDS;
-  console.log('numRounds ', numRounds);
   // regenerate keypair key from password
   var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt, numRounds);
   var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt, numRounds);

@@ -17,7 +17,7 @@
 */
 
 describe('Change Passphrase', function () {
-  this.timeout(100000);
+  this.timeout(200000);
   describe('Account generation', function () {
     it('generate account, change passphrase without error', function (done) {
       crypton.generateAccount('drevil', 'password', function (err, account) {
@@ -31,32 +31,35 @@ describe('Change Passphrase', function () {
         // Authorize
         var options = { check: true };
         crypton.authorize('drevil', 'password', function (err, session) {
-          console.log('\n\nauthorize()\n\n');
-          console.log(err);
           if (err) {
+            console.error(err);
             done();
           }
-          assert(session);
+          // assert(session != null);
           assert.equal(err, null);
 
           function cb (err, account) {
+            console.log('TEST CALLBACK().............................');
             assert.equal(err, null);
             if (err) {
+              console.error('cb error!');
+              console.error(err);
               done();
             }
             console.log('auth callback');
-            console.log(session.account);
+            // console.log(session.account);
             assert.equal(_testUICallback, true);
             assert.equal(session.account.username, 'drevil'); // we have been handed the account
             done();
           }
 
           function uiProgressCallback () {
+            console.log('uiProgressCallback ()');
             _testUICallback = true;
           }
 
           try {
-          session.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, false);
+            session.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, false);
           } catch (ex) {
             console.log(ex);
             console.log(ex.stack);
@@ -68,8 +71,18 @@ describe('Change Passphrase', function () {
     });
 
     it('test changed passphrase', function (done) {
-      // XXXddahl: test re-auth!
-      done();
-    });
+      crypton.authorize('drevil', 'foobarstrongerpass', function (err, newSession) {
+        if (err) {
+          console.error(err);
+          done();
+        }
+
+        console.log('new session: ', newSession);
+        // assert.isDefined(newSession.id);
+        // assert.equal(newSession.account.username, 'drevil');
+        done();
+      }); // end 2nd auth
+    }); // end it()
+
   });
 });

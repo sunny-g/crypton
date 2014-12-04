@@ -266,43 +266,27 @@ Account.prototype.changePassphrase =
     var signKeyPrivateMacKey =
       sjcl.misc.pbkdf2(newPassphrase, signKeyPrivateMacSalt, MIN_PBKDF2_ROUNDS);
 
-    var newKeyring = {};
-    // Re-encrypt the stored keyring
-    // XXXddahl:
-    //         Change all of these sjcl.encrypt() to selfPeer.encryptAndSign()
-    var selfPeer = new crypton.Peer({
-      session: newSession,
-      pubKey: JSON.stringify(newSession.account.pubKey.serialize()),
-      trusted: true
-    });
-    // ...
-    newKeyring.containerNameHmacKeyCiphertext =
-      sjcl.encrypt(keypairKey,
-                   JSON.stringify(currentAccount.containerNameHmacKey),
-                   crypton.cipherOptions);
+    var privateKeys = {
+     // 'privateKey/HMAC result name': serializedKey or string HMAC input data
+     containerNameHmacKeyCiphertext: currentAccount.containerNameHmacKey,
+     hmacKeyCiphertext: currentAccount.hmacKey,
+     signKeyPrivateCiphertext: currentAccount.signKeyPrivate.serialize(),
+     keypairCiphertext: currentAccount.secretKey.serialize(),
+     keypairMacKey: keypairMacKey,
+     signKeyPrivateMacKey: signKeyPrivateMacKey
+    };
 
-    newKeyring.hmacKeyCiphertext =
-      sjcl.encrypt(keypairKey,
-                   JSON.stringify(currentAccount.hmacKey),
-                   crypton.cipherOptions);
+    var newKeyring;
 
-    newKeyring.signKeyPrivateCiphertext =
-      sjcl.encrypt(keypairKey,
-                   JSON.stringify(currentAccount.signKeyPrivate.serialize()),
-                   crypton.cipherOptions);
+    try {
+      newKeyring = that.wrapAllKeys(keypairKey, privateKeys, newSession);
+    } catch (ex) {
+      console.error(ex);
+      console.error(ex.stack);
+      return callback('Fatal: cannot wrap keys, see error console for more information');
+    }
 
-    newKeyring.keypairCiphertext =
-      sjcl.encrypt(keypairKey,
-                   JSON.stringify(currentAccount.secretKey.serialize()),
-                   crypton.cipherOptions);
-
-    newKeyring.keypairMac =
-      crypton.hmac(keypairMacKey, newKeyring.keypairCiphertext);
-
-    newKeyring.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey,
-                                                newKeyring.signKeyPrivateCiphertext);
-
-    // Set the new properties before we save
+    // Set other new properties before we save
     newKeyring.keypairSalt = JSON.stringify(keypairSalt);
     newKeyring.keypairMacSalt = JSON.stringify(keypairMacSalt);
     newKeyring.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
@@ -319,13 +303,118 @@ Account.prototype.changePassphrase =
         console.error('error: ', res.body.error);
         callback(res.body.error);
       } else {
-        console.log('NO ERROR, password changed and shit');
+        console.log('NO ERROR, password changed!');
         callback(null, newSession);
         // XXXddahl: force new login here
       }
     });
 
   }, null);
+};
+
+/**!
+ * ### wrapKey()
+ * Helper function to wrap keys
+ *
+ * @param {String} selfPeer
+ * @param {String} serializedPrivateKey
+ * @return {Object} wrappedKey
+ */
+Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
+  if (!selfPeer || !serializedPrivateKey) {
+    throw new Error('wrappingKey and serializedPrivateKey are required');
+  }
+  var wrappedKey = selfPeer.encryptAndSign(JSON.stringify(serializedPrivateKey));
+  if (wrappedKey.error) {
+    console.error('Fatal: ' + wrappedKey.error);
+    return null;
+  }
+  return JSON.stringify(wrappedKey);
+};
+
+/**!
+ * ### wrapAllKeys()
+ * Helper function to wrap all keys when changing passphrase, etc
+ *
+ * @param {String} wrappingKey
+ * @param {Object} privateKeys
+ * @param {Object} Session
+ * @return {Object} wrappedKey
+ */
+Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
+  var requiredKeys = [
+    'containerNameHmacKeyCiphertext',
+    'hmacKeyCiphertext',
+    'signKeyPrivateCiphertext',
+    'keypairCiphertext', // main encryption private key
+    'keypairMacKey',
+    'signKeyPrivateMacKey'
+  ];
+
+  for (var keyName in privateKeys) {
+    console.log(keyName);
+    if (requiredKeys.indexOf(keyName) == -1) {
+      throw new Error('Missing private key: ' + keyName);
+    }
+  }
+  // Check that the length of privateKeys is correct
+  if (Object.keys(privateKeys).length != requiredKeys.length) {
+    throw new Error('privateKeys length does not match requiredKeys length');
+  }
+
+  var selfPeer = new crypton.Peer({
+    session: session,
+    pubKey: JSON.stringify(session.account.pubKey.serialize())
+  });
+  selfPeer.trusted = true;
+
+  var result = {};
+
+  var hmacKeyCiphertext = this.wrapKey(selfPeer,
+                                       privateKeys.hmacKeyCiphertext);
+  if (hmacKeyCiphertext.error) {
+    console.error(hmacKeyCiphertext.error);
+    result.hmacKeyCiphertext = null;
+  } else {
+    result.hmacKeyCiphertext = JSON.stringify(hmacKeyCiphertext);
+  }
+  var containerNameHmacKeyCiphertext =
+    this.wrapKey(selfPeer,
+                 privateKeys.containerNameHmacKeyCiphertext);
+  if (containerNameHmacKeyCiphertext.error) {
+    console.error(containerNameHmacKeyCiphertext.error);
+    result.containerNameHmacKeyCiphertext = null;
+  } else {
+    result.containerNameHmacKeyCiphertext = JSON.stringify(containerNameHmacKeyCiphertext);
+  }
+
+  // Private Keys
+  // XXXddahl: check for errors on each encrypted key
+  var keypairCiphertext =
+    sjcl.encrypt(wrappingKey,
+                 JSON.stringify(privateKeys.keypairCiphertext),
+                 crypton.cipherOptions);
+
+  result.keypairCiphertext = JSON.stringify(keypairCiphertext);
+
+  var signKeyPrivateCiphertext =
+    sjcl.encrypt(wrappingKey, JSON.stringify(privateKeys.signKeyPrivateCiphertext),
+                 crypton.cipherOptions);
+
+  result.signKeyPrivateCiphertext = JSON.stringify(signKeyPrivateCiphertext);
+
+  // HMACs
+  result.keypairMac =
+    crypton.hmac(privateKeys.keypairMacKey, result.keypairCiphertext);
+
+  result.signKeyPrivateMac = crypton.hmac(privateKeys.signKeyPrivateMacKey,
+                                          result.signKeyPrivateCiphertext);
+  for (keyName in result) {
+    if (!result[keyName]) {
+      throw new Error('Fatal: ' + keyName + ' is null');
+    }
+  }
+  return result;
 };
 
 })();

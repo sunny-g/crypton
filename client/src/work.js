@@ -194,6 +194,8 @@ work.unravelAccount = function (account, callback) {
     ret.containerNameHmacKey = JSON.parse(containerNameHmacKey.plaintext);
   } catch (e) {}
 
+  console.log('\n\n   containerNameHmacKey object: ', containerNameHmacKey);
+
   if (!containerNameHmacKey.verified) {
     // TODO could be decryption or parse error - should we specify?
     return callback('Could not parse containerNameHmacKey');

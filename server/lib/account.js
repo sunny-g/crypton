@@ -270,7 +270,8 @@ Account.prototype.save = function (callback) {
     if (!validator.isAlphanumeric(that.username)) {
       return callback('Username is not valid: it is not alphanumeric!');
     }
-
+    console.warn('beforeToJSON: ');
+    console.warn(that);
     db.saveAccount(that.toJSON(), callback);
   }
 };

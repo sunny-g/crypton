@@ -300,7 +300,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
       var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt, numRounds);
       var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
       var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
-
+      console.log('signingKeys: ', Object.keys(signingKeys));
       var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
       var srpSalt = srp.randomHexSalt();
       var srpVerifier = srp.calculateV(srpSalt).toString(16);
@@ -326,7 +326,8 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       var selfPeer = new crypton.Peer({
         session: session,
-        pubKey: keypair.pub
+        pubKey: JSON.stringify(keypair.pub.serialize()),
+        signKeyPub: JSON.stringify(signingKeys.pub.serialize())
       });
       selfPeer.trusted = true;
 

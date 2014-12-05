@@ -78,8 +78,8 @@ describe('Change Passphrase', function () {
         }
 
         console.log('new session: ', newSession);
-        // assert.isDefined(newSession.id);
-        // assert.equal(newSession.account.username, 'drevil');
+        assert.isDefined(newSession);
+        assert.equal(newSession.account.username, 'drevil');
         done();
       }); // end 2nd auth
     }); // end it()

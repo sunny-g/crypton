@@ -179,6 +179,8 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
       error: 'Peer is untrusted'
     }
   }
+  console.log('typeof ciphertext: ', typeof signedCiphertext);
+  console.log('signed ciphertext: ', signedCiphertext);
 
   // hash the ciphertext
   var ciphertextString = JSON.stringify(signedCiphertext.ciphertext);
@@ -187,7 +189,10 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   var verified = false;
   try {
     verified = peer.signKeyPub.verify(hash, signedCiphertext.signature);
-  } catch (ex) { }
+  } catch (ex) {
+    console.log(ex);
+    console.log(ex.stack);
+  }
   // try to decrypt regardless of verification failure
   try {
     var message = sjcl.decrypt(this.secretKey, ciphertextString, crypton.cipherOptions);
@@ -257,6 +262,10 @@ Account.prototype.changePassphrase =
     var srpSalt = srp.randomHexSalt();
     var srpVerifier = srp.calculateV(srpSalt).toString(16);
 
+    // Pad verifier to 512 bytes
+    // TODO: This length will change when a different SRP group is used
+    srpVerifier = srp.nZeros(512 - srpVerifier.length) + srpVerifier;
+
     var keypairKey =
       sjcl.misc.pbkdf2(newPassphrase, keypairSalt, MIN_PBKDF2_ROUNDS);
 
@@ -292,7 +301,10 @@ Account.prototype.changePassphrase =
     newKeyring.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
     newKeyring.srpVerifier = srpVerifier;
     newKeyring.srpSalt = srpSalt;
-
+    // newKeyring.containerNameHmacKeyCiphertext =
+    //   JSON.stringify(newKeyring.containerNameHmacKeyCiphertext);
+    // newKeyring.hmacKeyCiphertext =
+    //   JSON.stringify(newKeyring.hmacKeyCiphertext);
     console.log('SAVING..............');
     // POST to /account/:username/keyring
     superagent.post(crypton.url() + '/account/' + that.username + '/keyring')
@@ -324,12 +336,15 @@ Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
   if (!selfPeer || !serializedPrivateKey) {
     throw new Error('wrappingKey and serializedPrivateKey are required');
   }
+  console.log('serializedPrivateKey: ', serializedPrivateKey);
+  console.log('typeof serializedPrivateKey: ', typeof serializedPrivateKey);
   var wrappedKey = selfPeer.encryptAndSign(JSON.stringify(serializedPrivateKey));
   if (wrappedKey.error) {
     console.error('Fatal: ' + wrappedKey.error);
     return null;
   }
-  return JSON.stringify(wrappedKey);
+  console.log('wrappedKey: ', wrappedKey);
+  return wrappedKey;
 };
 
 /**!
@@ -364,7 +379,8 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
 
   var selfPeer = new crypton.Peer({
     session: session,
-    pubKey: JSON.stringify(session.account.pubKey.serialize())
+    pubKey: session.account.pubKey,
+    signKeyPub: session.account.signKeyPub
   });
   selfPeer.trusted = true;
 
@@ -377,6 +393,7 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
     result.hmacKeyCiphertext = null;
   } else {
     result.hmacKeyCiphertext = JSON.stringify(hmacKeyCiphertext);
+    // result.hmacKeyCiphertext = hmacKeyCiphertext;
   }
   var containerNameHmacKeyCiphertext =
     this.wrapKey(selfPeer,
@@ -386,6 +403,7 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
     result.containerNameHmacKeyCiphertext = null;
   } else {
     result.containerNameHmacKeyCiphertext = JSON.stringify(containerNameHmacKeyCiphertext);
+    // result.containerNameHmacKeyCiphertext = containerNameHmacKeyCiphertext;
   }
 
   // Private Keys
@@ -395,13 +413,15 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
                  JSON.stringify(privateKeys.keypairCiphertext),
                  crypton.cipherOptions);
 
-  result.keypairCiphertext = JSON.stringify(keypairCiphertext);
+  // result.keypairCiphertext = JSON.stringify(keypairCiphertext);
+  result.keypairCiphertext = keypairCiphertext;
 
   var signKeyPrivateCiphertext =
     sjcl.encrypt(wrappingKey, JSON.stringify(privateKeys.signKeyPrivateCiphertext),
                  crypton.cipherOptions);
 
-  result.signKeyPrivateCiphertext = JSON.stringify(signKeyPrivateCiphertext);
+  // result.signKeyPrivateCiphertext = JSON.stringify(signKeyPrivateCiphertext);
+  result.signKeyPrivateCiphertext = signKeyPrivateCiphertext;
 
   // HMACs
   result.keypairMac =

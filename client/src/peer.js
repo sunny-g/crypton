@@ -49,7 +49,7 @@ var Peer = crypton.Peer = function (options) {
  *
  * Calls back with peer data and without error if successful
  *
- * Calls back with error if unsuccessful
+ * Calls back with error if unsuccessfulg
  *
  * @param {Function} callback
  */

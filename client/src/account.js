@@ -65,7 +65,7 @@ Account.prototype.save = function (callback) {
  */
 Account.prototype.unravel = function (callback) {
   var that = this;
-  console.log('\n\nAccount.unravel\n\n');
+  // console.log('\n\nAccount.unravel\n\n');
   // console.log(this.serialize());
   crypton.work.unravelAccount(this, function (err, data) {
     if (err) {
@@ -180,7 +180,7 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
     }
   }
   console.log('typeof ciphertext: ', typeof signedCiphertext);
-  console.log('signed ciphertext: ', signedCiphertext);
+  // console.log('signed ciphertext: ', signedCiphertext);
 
   // hash the ciphertext
   var ciphertextString = JSON.stringify(signedCiphertext.ciphertext);
@@ -202,6 +202,8 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
       return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
     }
   } catch (ex) {
+    console.log(ex);
+    console.log(ex.stack);
     return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
   }
 };
@@ -336,14 +338,14 @@ Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
   if (!selfPeer || !serializedPrivateKey) {
     throw new Error('wrappingKey and serializedPrivateKey are required');
   }
-  console.log('serializedPrivateKey: ', serializedPrivateKey);
-  console.log('typeof serializedPrivateKey: ', typeof serializedPrivateKey);
+  // console.log('serializedPrivateKey: ', serializedPrivateKey);
+  // console.log('typeof serializedPrivateKey: ', typeof serializedPrivateKey);
   var wrappedKey = selfPeer.encryptAndSign(JSON.stringify(serializedPrivateKey));
   if (wrappedKey.error) {
     console.error('Fatal: ' + wrappedKey.error);
     return null;
   }
-  console.log('wrappedKey: ', wrappedKey);
+  // console.log('wrappedKey: ', wrappedKey);
   return wrappedKey;
 };
 
@@ -367,7 +369,7 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
   ];
 
   for (var keyName in privateKeys) {
-    console.log(keyName);
+    // console.log(keyName);
     if (requiredKeys.indexOf(keyName) == -1) {
       throw new Error('Missing private key: ' + keyName);
     }

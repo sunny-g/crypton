@@ -326,8 +326,8 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       var selfPeer = new crypton.Peer({
         session: session,
-        pubKey: JSON.stringify(keypair.pub.serialize()),
-        signKeyPub: JSON.stringify(signingKeys.pub.serialize())
+        pubKey: keypair.pub,
+        signKeyPub: signingKeys.pub
       });
       selfPeer.trusted = true;
 

@@ -76,8 +76,8 @@ describe('Change Passphrase', function () {
           console.error(err);
           done();
         }
-
-        console.log('new session: ', newSession);
+        console.log('PASSWORD CHANGED.....................');
+        // console.log('new session: ', newSession);
         assert.isDefined(newSession);
         assert.equal(newSession.account.username, 'drevil');
         done();

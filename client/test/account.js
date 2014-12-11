@@ -34,14 +34,13 @@ function setupAccount () {
   account.signKeyPrivateMacSalt = [-1601113307,-147606214,-62907260,1664396850,1038241656,596952288,-1676728508,-743835030];
 
   var keypairCurve = 384;
-  var MIN_PBKDF2_ROUNDS = 5000;
 
   var hmacKey = crypton.randomBytes(32);
   var containerNameHmacKey = crypton.randomBytes(32);
 
-  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt, MIN_PBKDF2_ROUNDS);
-  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt, MIN_PBKDF2_ROUNDS);
-  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt, MIN_PBKDF2_ROUNDS);
+  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt, crypton.MIN_PBKDF2_ROUNDS);
+  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt, crypton.MIN_PBKDF2_ROUNDS);
+  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt, crypton.MIN_PBKDF2_ROUNDS);
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var signingKeys = sjcl.ecc.ecdsa.generateKeys(384, crypton.paranoia);
 
@@ -67,19 +66,6 @@ function setupAccount () {
   account.containerNameHmacKeyCiphertext = encryptedContainerNameHmacKey;
 
   account.keypairCiphertext = JSON.parse(sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions));
-
-  // Add numRounds to temp ciphertext object
-  account.keypairCiphertext['pbkdf2NumRounds'] = MIN_PBKDF2_ROUNDS;
-
-  // XXXddahl
-  // NOTE:
-  // The original numRounds chosen by the developer is
-  // tacked onto this object for the time being.
-  // A bit of a hack, but makes
-  // the implementation simpler until we refactor key structures
-  // while adding the Web Crypto API crypto module, see issue #251
-  // https://github.com/SpiderOak/crypton/issues/251
-
   account.keypairMac = crypton.hmac(keypairMacKey, JSON.stringify(account.keypairCiphertext));
   account.signKeyPrivateCiphertext = JSON.parse(sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions));
   account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, JSON.stringify(account.signKeyPrivateCiphertext));

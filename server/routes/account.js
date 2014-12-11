@@ -157,7 +157,6 @@ app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {
     app.log('debug', 'handling POST /account/:username/keyring');
-    console.log(req.body);
     var account = new Account();
     account.get(req.params.username, function (err) {
       if (err) {
@@ -189,10 +188,8 @@ app.post('/account/:username/keyring',
         res.send({
           success: true
         });
-        // XXXddahl: does the client need to do anything now?
-
-        // XXXddahl: invalidate the user's session, any connected clients
-        //           other than this one will be force logged out
+        // XXXddahl: TODO: invalidate the user's session,
+        // any connected clients other than this one will be force logged out
       });
     });
   }

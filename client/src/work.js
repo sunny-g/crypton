@@ -77,7 +77,7 @@ work.calculateSrpA = function (options, callback) {
       srpAstr: srpAstr
     });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     callback(e);
   }
 };
@@ -113,7 +113,7 @@ work.calculateSrpM1 = function (options, callback) {
 
     callback(null, srpM1, srpM2);
   } catch (e) {
-    console.log(e);
+    console.error(e);
     callback(e);
   }
 };
@@ -194,8 +194,6 @@ work.unravelAccount = function (account, callback) {
     ret.containerNameHmacKey = JSON.parse(containerNameHmacKey.plaintext);
   } catch (e) {}
 
-  console.log('\n\n   containerNameHmacKey object: ', containerNameHmacKey);
-
   if (!containerNameHmacKey.verified) {
     // TODO could be decryption or parse error - should we specify?
     return callback('Could not parse containerNameHmacKey');
@@ -211,8 +209,6 @@ work.unravelAccount = function (account, callback) {
     // TODO could be decryption or parse error - should we specify?
     return callback('Could not parse hmacKey');
   }
-
-  console.log('END OF unravelAccount()... calling callback with', ret);
 
   callback(null, ret);
 };
@@ -265,7 +261,7 @@ work.decryptRecord = function (options, callback) {
   try {
     verified = peerSignKeyPub.verify(payloadCiphertextHash, record.signature);
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 
   if (!verified) {

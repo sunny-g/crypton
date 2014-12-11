@@ -354,9 +354,6 @@ exports.getUserCount = function (callback) {
  * @param {Function} callback
  */
 exports.updateKeyring = function updateKeyring(keyring, callback) {
-
-  console.warn('KEY RING DATA: ', keyring);
-
   var requiredFields = [
     'accountId',
     'keypairCiphertext',

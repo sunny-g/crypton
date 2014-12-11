@@ -65,11 +65,8 @@ Account.prototype.save = function (callback) {
  */
 Account.prototype.unravel = function (callback) {
   var that = this;
-  // console.log('\n\nAccount.unravel\n\n');
-  // console.log(this.serialize());
   crypton.work.unravelAccount(this, function (err, data) {
     if (err) {
-      console.log(err);
       return callback(err);
     }
 
@@ -179,8 +176,6 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
       error: 'Peer is untrusted'
     }
   }
-  console.log('typeof ciphertext: ', typeof signedCiphertext);
-  // console.log('signed ciphertext: ', signedCiphertext);
 
   // hash the ciphertext
   var ciphertextString = JSON.stringify(signedCiphertext.ciphertext);
@@ -190,8 +185,8 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   try {
     verified = peer.signKeyPub.verify(hash, signedCiphertext.signature);
   } catch (ex) {
-    console.log(ex);
-    console.log(ex.stack);
+    console.error(ex);
+    console.error(ex.stack);
   }
   // try to decrypt regardless of verification failure
   try {
@@ -202,8 +197,8 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
       return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
     }
   } catch (ex) {
-    console.log(ex);
-    console.log(ex.stack);
+    console.error(ex);
+    console.error(ex.stack);
     return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
   }
 };
@@ -222,12 +217,6 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
 Account.prototype.changePassphrase =
   function (currentPassphrase, newPassphrase,
             callback, keygenProgressCallback, skipCheck) {
-  console.log('Change Passphrase...');
-  console.log('old pass: ', currentPassphrase);
-  console.log('new pass: ', newPassphrase);
-  console.log('cb: ', callback);
-  console.log('cb2: ', keygenProgressCallback);
-  console.log('skipCheck: ', skipCheck);
   if (skipCheck) {
     if (currentPassphrase == newPassphrase) {
       var err = 'New passphrase cannot be the same as current password';
@@ -303,12 +292,7 @@ Account.prototype.changePassphrase =
     newKeyring.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
     newKeyring.srpVerifier = srpVerifier;
     newKeyring.srpSalt = srpSalt;
-    // newKeyring.containerNameHmacKeyCiphertext =
-    //   JSON.stringify(newKeyring.containerNameHmacKeyCiphertext);
-    // newKeyring.hmacKeyCiphertext =
-    //   JSON.stringify(newKeyring.hmacKeyCiphertext);
-    console.log('SAVING..............');
-    // POST to /account/:username/keyring
+
     superagent.post(crypton.url() + '/account/' + that.username + '/keyring')
     .withCredentials()
     .send(newKeyring)
@@ -317,9 +301,8 @@ Account.prototype.changePassphrase =
         console.error('error: ', res.body.error);
         callback(res.body.error);
       } else {
-        console.log('NO ERROR, password changed!');
         callback(null, newSession);
-        // XXXddahl: force new login here
+        // XXX TODO: Invalidate all other client sessions
       }
     });
 
@@ -336,16 +319,12 @@ Account.prototype.changePassphrase =
  */
 Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
   if (!selfPeer || !serializedPrivateKey) {
-    throw new Error('wrappingKey and serializedPrivateKey are required');
+    throw new Error('selfPeer and serializedPrivateKey are required');
   }
-  // console.log('serializedPrivateKey: ', serializedPrivateKey);
-  // console.log('typeof serializedPrivateKey: ', typeof serializedPrivateKey);
   var wrappedKey = selfPeer.encryptAndSign(JSON.stringify(serializedPrivateKey));
   if (wrappedKey.error) {
-    console.error('Fatal: ' + wrappedKey.error);
     return null;
   }
-  // console.log('wrappedKey: ', wrappedKey);
   return wrappedKey;
 };
 
@@ -359,6 +338,7 @@ Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
  * @return {Object} wrappedKey
  */
 Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
+  // Using the *labels* of the future wrapped objects here
   var requiredKeys = [
     'containerNameHmacKeyCiphertext',
     'hmacKeyCiphertext',
@@ -369,7 +349,6 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
   ];
 
   for (var keyName in privateKeys) {
-    // console.log(keyName);
     if (requiredKeys.indexOf(keyName) == -1) {
       throw new Error('Missing private key: ' + keyName);
     }
@@ -391,38 +370,41 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
   var hmacKeyCiphertext = this.wrapKey(selfPeer,
                                        privateKeys.hmacKeyCiphertext);
   if (hmacKeyCiphertext.error) {
-    console.error(hmacKeyCiphertext.error);
     result.hmacKeyCiphertext = null;
   } else {
     result.hmacKeyCiphertext = JSON.stringify(hmacKeyCiphertext);
-    // result.hmacKeyCiphertext = hmacKeyCiphertext;
   }
+
   var containerNameHmacKeyCiphertext =
     this.wrapKey(selfPeer,
                  privateKeys.containerNameHmacKeyCiphertext);
+
   if (containerNameHmacKeyCiphertext.error) {
-    console.error(containerNameHmacKeyCiphertext.error);
     result.containerNameHmacKeyCiphertext = null;
   } else {
     result.containerNameHmacKeyCiphertext = JSON.stringify(containerNameHmacKeyCiphertext);
-    // result.containerNameHmacKeyCiphertext = containerNameHmacKeyCiphertext;
   }
 
   // Private Keys
-  // XXXddahl: check for errors on each encrypted key
   var keypairCiphertext =
     sjcl.encrypt(wrappingKey,
                  JSON.stringify(privateKeys.keypairCiphertext),
                  crypton.cipherOptions);
 
-  // result.keypairCiphertext = JSON.stringify(keypairCiphertext);
+  if (keypairCiphertext.error) {
+    console.error(keypairCiphertext.error);
+    keypairCiphertext = null;
+  }
   result.keypairCiphertext = keypairCiphertext;
 
   var signKeyPrivateCiphertext =
     sjcl.encrypt(wrappingKey, JSON.stringify(privateKeys.signKeyPrivateCiphertext),
                  crypton.cipherOptions);
 
-  // result.signKeyPrivateCiphertext = JSON.stringify(signKeyPrivateCiphertext);
+  if (signKeyPrivateCiphertext.error) {
+    console.error(signKeyPrivateCiphertext.error);
+    signKeyPrivateCiphertext = null;
+  }
   result.signKeyPrivateCiphertext = signKeyPrivateCiphertext;
 
   // HMACs

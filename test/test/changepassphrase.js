@@ -21,7 +21,6 @@ describe('Change Passphrase', function () {
   describe('Account generation', function () {
     it('generate account, change passphrase without error', function (done) {
       crypton.generateAccount('drevil', 'password', function (err, account) {
-        console.log(err);
         assert.equal(err, null);
         if (err) {
           done();
@@ -32,24 +31,18 @@ describe('Change Passphrase', function () {
         var options = { check: true };
         crypton.authorize('drevil', 'password', function (err, session) {
           if (err) {
-            console.error(err);
             done();
           }
-          // assert(session != null);
           assert.equal(err, null);
 
           function cb (err, account) {
-            console.log('TEST CALLBACK().............................');
             assert.equal(err, null);
             if (err) {
-              console.error('cb error!');
               console.error(err);
               done();
             }
-            console.log('auth callback');
-            // console.log(session.account);
             assert.equal(_testUICallback, true);
-            assert.equal(session.account.username, 'drevil'); // we have been handed the account
+            assert.equal(session.account.username, 'drevil');
             done();
           }
 
@@ -62,7 +55,6 @@ describe('Change Passphrase', function () {
             session.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, false);
           } catch (ex) {
             console.log(ex);
-            console.log(ex.stack);
             done();
           }
         }, options);
@@ -76,13 +68,11 @@ describe('Change Passphrase', function () {
           console.error(err);
           done();
         }
-        console.log('PASSWORD CHANGED.....................');
-        // console.log('new session: ', newSession);
+        console.log(arguments);
         assert.isDefined(newSession);
         assert.equal(newSession.account.username, 'drevil');
         done();
       }); // end 2nd auth
     }); // end it()
-
   });
 });

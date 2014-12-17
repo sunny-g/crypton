@@ -210,6 +210,10 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
  * @param {String} currentPassphrase
  * @param {String} newPassphrase
  * @param {Function} callback
+ * callback will be handed arguments err, isComplete
+ * Upon completion of a passphrase change, the client will be logged out
+ * This callback should handle getting the user logged back in
+ * programmatically or via the UI
  * @param {Function} keygenProgressCallback [optional]
  * @param {Boolean} skipCheck [optional]
  * @return void
@@ -301,8 +305,9 @@ Account.prototype.changePassphrase =
         console.error('error: ', res.body.error);
         callback(res.body.error);
       } else {
-        callback(null, newSession);
-        // XXX TODO: Invalidate all other client sessions
+        // XXX TODO: Invalidate all other client sessions before doing:
+        newSession = null; // Force new login after passphrase change
+        callback(null, true); // Do not hand the new session to the callback
       }
     });
 
@@ -348,13 +353,17 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
     'signKeyPrivateMacKey'
   ];
 
-  for (var keyName in privateKeys) {
+  var privateKeysLength = Object.keys(privateKeys).length;
+  var privateKeyNames = Object.keys(privateKeys);
+
+  for (var i = 0; i < privateKeysLength; i++) {
+    var keyName = privateKeyNames[i];
     if (requiredKeys.indexOf(keyName) == -1) {
       throw new Error('Missing private key: ' + keyName);
     }
   }
   // Check that the length of privateKeys is correct
-  if (Object.keys(privateKeys).length != requiredKeys.length) {
+  if (privateKeysLength != requiredKeys.length) {
     throw new Error('privateKeys length does not match requiredKeys length');
   }
 
@@ -413,7 +422,7 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
 
   result.signKeyPrivateMac = crypton.hmac(privateKeys.signKeyPrivateMacKey,
                                           result.signKeyPrivateCiphertext);
-  for (keyName in result) {
+  for (var keyName in result) {
     if (!result[keyName]) {
       throw new Error('Fatal: ' + keyName + ' is null');
     }

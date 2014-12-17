@@ -35,14 +35,15 @@ describe('Change Passphrase', function () {
           }
           assert.equal(err, null);
 
-          function cb (err, account) {
+          function cb (err, isComplete) {
             assert.equal(err, null);
             if (err) {
               console.error(err);
               done();
             }
             assert.equal(_testUICallback, true);
-            assert.equal(session.account.username, 'drevil');
+            assert.equal(isComplete, true);
+            // assert.equal(session.account.username, 'drevil');
             done();
           }
 
@@ -68,8 +69,6 @@ describe('Change Passphrase', function () {
           console.error(err);
           done();
         }
-        console.log(arguments);
-        assert.isDefined(newSession);
         assert.equal(newSession.account.username, 'drevil');
         done();
       }); // end 2nd auth

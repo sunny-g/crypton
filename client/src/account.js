@@ -326,7 +326,13 @@ Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
   if (!selfPeer || !serializedPrivateKey) {
     throw new Error('selfPeer and serializedPrivateKey are required');
   }
-  var wrappedKey = selfPeer.encryptAndSign(JSON.stringify(serializedPrivateKey));
+  var serializedKey;
+  if (typeof serializedPrivateKey != 'string') {
+    serializedKey = JSON.stringify(serializedPrivateKey);
+  } else {
+    serializedKey = serializedPrivateKey;
+  }
+  var wrappedKey = selfPeer.encryptAndSign(serializedKey);
   if (wrappedKey.error) {
     return null;
   }

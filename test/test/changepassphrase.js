@@ -19,58 +19,106 @@
 describe('Change Passphrase', function () {
   this.timeout(200000);
   describe('Account generation', function () {
-    it('generate account, change passphrase without error', function (done) {
+
+    var _testUICallback = false;
+    var initialSession;
+    var options = { check: true };
+    var CONTAINER_NAME = 'my-fuzzy-container';
+
+    it('generate account, save container', function (done) {
       crypton.generateAccount('drevil', 'password', function (err, account) {
         assert.equal(err, null);
         if (err) {
           done();
         }
-        var _testUICallback = false;
 
         // Authorize
-        var options = { check: true };
         crypton.authorize('drevil', 'password', function (err, session) {
+          assert.equal(err, null);
           if (err) {
+            console.error('Auth: ', err);
             done();
           }
-          assert.equal(err, null);
-
-          function cb (err, isComplete) {
+          initialSession = session;
+          // Let's crete a container
+          session.create(CONTAINER_NAME, function (err, container) {
             assert.equal(err, null);
             if (err) {
-              console.error(err);
+              console.error('Create: ', err);
               done();
             }
-            assert.equal(_testUICallback, true);
-            assert.equal(isComplete, true);
-            // assert.equal(session.account.username, 'drevil');
-            done();
-          }
+            // add data to the container
+            container.add('Orb', function (err) {
+              assert.equal(err, null);
+              if (err) {
+                console.error('Add: ', err);
+                done();
+              }
+              container.keys['Orb'].sound = 'HUGE';
+              container.save(function () {
+                console.log('Container save callback, no error handong here, just console.error statements if transactions fail');
+                // XXXddahl: There is no error handling here yet, see client/src/container.js [line 137]
+                done();
+              });
+            });
 
-          function uiProgressCallback () {
-            console.log('uiProgressCallback ()');
-            _testUICallback = true;
-          }
+          });
+        }); // end auth
+      }); // end generateAccount
+    }); // end it()
 
-          try {
-            session.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, false);
-          } catch (ex) {
-            console.log(ex);
-            done();
-          }
-        }, options);
+    it('Change passphrase without error', function (done) {
+      function cb (err, isComplete) {
+        assert.equal(err, null);
+        if (err) {
+          console.error('change pass callback: ', err);
+          done();
+        }
+        assert.equal(_testUICallback, true);
+        assert.equal(isComplete, true);
+        done();
+      }
 
-      });
+      function uiProgressCallback () {
+        _testUICallback = true;
+      }
+
+      try {
+        initialSession.account.changePassphrase('password', 'foobarstrongerpass', cb, uiProgressCallback, false);
+      } catch (ex) {
+        console.error(ex);
+        initialSession = null;
+        done();
+      }
     });
 
-    it('test changed passphrase', function (done) {
+    it('test changed passphrase, check container', function (done) {
       crypton.authorize('drevil', 'foobarstrongerpass', function (err, newSession) {
         if (err) {
           console.error(err);
           done();
         }
         assert.equal(newSession.account.username, 'drevil');
-        done();
+        // Lets check the content of our container
+        // newSession.
+        newSession.load(CONTAINER_NAME, function (err, container) {
+          console.log('ERROR: ', err);
+          console.log(container.keys['Orb']);
+          // assert.equal(err, null);
+          // if (err) {
+          //   done();
+          // }
+          // XXXddahl: Need to test containerSessionKeyShare in a test like encryptAndSign, but doing container sharing
+
+          // <ddahl> so maybe a more comprehensive test is sharing a container, changing password, re-reading container, adding to it and tehn have the sharee re-read it with the new data
+          // <ddahl> and have both sides changePassword
+          // <ecto> that sounds like a great test
+
+          assert(container);
+          assert.equal(container.keys['Orb'].sound, 'HUGE');
+          done();
+        });
+
       }); // end 2nd auth
     }); // end it()
   });

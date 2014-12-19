@@ -47,7 +47,7 @@ var Container = crypton.Container = function (session) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} key
  * @param {Function} callback
  */
@@ -68,7 +68,7 @@ Container.prototype.add = function (key, callback) {
  * Calls back with `value` and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} key
  * @param {Function} callback
  */
@@ -89,7 +89,7 @@ Container.prototype.get = function (key, callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  * @param {Object} options (optional)
  */
@@ -136,9 +136,22 @@ Container.prototype.save = function (callback, options) {
 
     // TODO handle errs
     var tx = new crypton.Transaction(that.session, function (err) {
+      if (err) {
+        console.log('Container.save -> new Transaction()');
+        console.error(err);
+      }
       tx.save(chunk, function (err) {
+        if (err) {
+          console.log('Container.save -> Transaction.save()');
+          console.error(err);
+        }
         tx.commit(function (err) {
-          callback();
+          if (err) {
+            console.log('Container.save -> Transaction.commit()');
+            console.error(err);
+          }
+          console.log('Error?: ', err);
+          callback(err);
         });
       });
     });
@@ -152,7 +165,7 @@ Container.prototype.save = function (callback, options) {
  * Calls back with diff object and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Container.prototype.getDiff = function (callback) {
@@ -209,9 +222,12 @@ Container.prototype.getPublicName = function () {
     return this.nameHmac;
   }
 
+  console.log('hmacKey: ', this.session.account.containerNameHmacKey);
+  console.log('Name: ', this.name);
   var hmac = new sjcl.misc.hmac(this.session.account.containerNameHmacKey);
   var containerNameHmac = hmac.encrypt(this.name);
   this.nameHmac = sjcl.codec.hex.fromBits(containerNameHmac);
+  console.log('Hmac: ', this.nameHmac);
   return this.nameHmac;
 };
 
@@ -222,7 +238,7 @@ Container.prototype.getPublicName = function () {
  * Calls back with diff object and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Container.prototype.getHistory = function (callback) {
@@ -234,6 +250,7 @@ Container.prototype.getHistory = function (callback) {
     .withCredentials()
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
+        console.error('_error: ', res.body);
         callback(res.body.error);
         return;
       }
@@ -252,7 +269,7 @@ Container.prototype.getHistory = function (callback) {
  * and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Array} records
  * @param {Function} callback
  */
@@ -365,7 +382,7 @@ Container.prototype.decryptKey = function (record) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Container.prototype.sync = function (callback) {
@@ -481,4 +498,3 @@ Container.prototype.unwatch = function () {
 };
 
 })();
-

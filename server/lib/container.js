@@ -37,7 +37,7 @@ var Container = module.exports = function Container () {};
  * Adds records to container object and calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} containerNameHmac
  * @param {Function} callback
  */
@@ -71,7 +71,7 @@ Container.prototype.get = function (containerNameHmac, callback) {
  * Adds records to container object and calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {String} containerNameHmac
  * @param {Number} timestamp
  * @param {Function} callback
@@ -82,6 +82,7 @@ Container.prototype.getAfter = function (containerNameHmac, timestamp, callback)
   var that = this;
 
   db.getContainerRecordsAfter(containerNameHmac, that.accountId, timestamp, function (err, records) {
+    app.log('getting after', err);
     if (err) {
       callback(err);
       return;
@@ -101,7 +102,7 @@ Container.prototype.getAfter = function (containerNameHmac, timestamp, callback)
 /**!
  * ### update()
  * Update one or a set of keys in the parent container object
- * 
+ *
  * @param {String} key
  * @param {Object} value
  *
@@ -123,4 +124,3 @@ Container.prototype.update = function () {
     this[arguments[0]] = arguments[1];
   }
 };
-

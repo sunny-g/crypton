@@ -100,20 +100,7 @@ describe('Change Passphrase', function () {
         }
         assert.equal(newSession.account.username, 'drevil');
         // Lets check the content of our container
-        // newSession.
         newSession.load(CONTAINER_NAME, function (err, container) {
-          console.log('ERROR: ', err);
-          console.log(container.keys['Orb']);
-          // assert.equal(err, null);
-          // if (err) {
-          //   done();
-          // }
-          // XXXddahl: Need to test containerSessionKeyShare in a test like encryptAndSign, but doing container sharing
-
-          // <ddahl> so maybe a more comprehensive test is sharing a container, changing password, re-reading container, adding to it and tehn have the sharee re-read it with the new data
-          // <ddahl> and have both sides changePassword
-          // <ecto> that sounds like a great test
-
           assert(container);
           assert.equal(container.keys['Orb'].sound, 'HUGE');
           done();

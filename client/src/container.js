@@ -137,20 +137,16 @@ Container.prototype.save = function (callback, options) {
     // TODO handle errs
     var tx = new crypton.Transaction(that.session, function (err) {
       if (err) {
-        console.log('Container.save -> new Transaction()');
         console.error(err);
       }
       tx.save(chunk, function (err) {
         if (err) {
-          console.log('Container.save -> Transaction.save()');
           console.error(err);
         }
         tx.commit(function (err) {
           if (err) {
-            console.log('Container.save -> Transaction.commit()');
             console.error(err);
           }
-          console.log('Error?: ', err);
           callback(err);
         });
       });
@@ -222,12 +218,9 @@ Container.prototype.getPublicName = function () {
     return this.nameHmac;
   }
 
-  console.log('hmacKey: ', this.session.account.containerNameHmacKey);
-  console.log('Name: ', this.name);
   var hmac = new sjcl.misc.hmac(this.session.account.containerNameHmacKey);
   var containerNameHmac = hmac.encrypt(this.name);
   this.nameHmac = sjcl.codec.hex.fromBits(containerNameHmac);
-  console.log('Hmac: ', this.nameHmac);
   return this.nameHmac;
 };
 
@@ -250,7 +243,6 @@ Container.prototype.getHistory = function (callback) {
     .withCredentials()
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
-        console.error('_error: ', res.body);
         callback(res.body.error);
         return;
       }

@@ -82,7 +82,6 @@ Container.prototype.getAfter = function (containerNameHmac, timestamp, callback)
   var that = this;
 
   db.getContainerRecordsAfter(containerNameHmac, that.accountId, timestamp, function (err, records) {
-    app.log('getting after', err);
     if (err) {
       callback(err);
       return;

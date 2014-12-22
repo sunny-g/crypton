@@ -79,15 +79,13 @@ describe('Change passphrase after sharing containers', function () {
       bobSession.create('bob-to-alice-container', function (err, container) {
         assert.equal(err, null);
         if (err) {
-          console.error('Create: ', err);
-          done();
+          throw(err);
         }
         // add data to the container
         container.add('toast', function (err) {
           assert.equal(err, null);
           if (err) {
-            console.error('Add: ', err);
-            done();
+            throw(err);
           }
           container.keys['toast'].landed = 'Butterside Up!';
           container.save(function (err) {
@@ -112,7 +110,6 @@ describe('Change passphrase after sharing containers', function () {
         assert(sess);
         if (err) throw err;
         aliceSession = sess;
-        console.log('aliceSession: ', Object.keys(aliceSession));
         done();
       });
     });
@@ -136,14 +133,12 @@ describe('Change passphrase after sharing containers', function () {
       aliceSession.create('alice-to-bob-container', function (err, container) {
         assert.equal(err, null);
         if (err) {
-          console.error('Create: ', err);
           throw(err);
         }
         // add data to the container
         container.add('frenchtoast', function (err) {
           assert.equal(err, null);
           if (err) {
-            console.error('Add: ', err);
             throw(err);
           }
           container.keys['frenchtoast'].smothered = 'With Maple Syrup!';
@@ -169,15 +164,12 @@ describe('Change passphrase after sharing containers', function () {
     // Alice should change her password
     it('Change Alice\'s passphrase', function (done) {
       assert.equal(typeof aliceSession, 'object');
-      console.log('\n\naliceSession: ', typeof aliceSession);
       function cb (err, isComplete) {
-        console.log('err, isComplete: ', err, isComplete);
         assert.equal(err, null);
         assert.equal(isComplete, true);
         if (err) {
-          console.error('change pass callback: ', err);
+          throw(err);
         }
-        console.log('\n\nisComplete: ',  isComplete);
         assert.equal(isComplete, true);
         done();
       }
@@ -191,7 +183,6 @@ describe('Change passphrase after sharing containers', function () {
       } catch (ex) {
         console.error(ex);
         console.error(ex.stack);
-        // aliceSession = null;
         done();
       }
     });
@@ -201,7 +192,7 @@ describe('Change passphrase after sharing containers', function () {
       crypton.authorize('alice2', 'foobarstrongerpass', function (err, newSession) {
         assert.equal(err, null);
         if (err) {
-          console.error(err);
+          throw(err);
         }
         assert.equal(newSession.account.username, 'alice2');
         // Get bobPeer again
@@ -235,7 +226,7 @@ describe('Change passphrase after sharing containers', function () {
         assert.equal(err, null);
         assert.equal(isComplete, true);
         if (err) {
-          console.error('change pass callback: ', err);
+          throw(err);
         }
         assert.equal(isComplete, true);
         done();
@@ -259,7 +250,7 @@ describe('Change passphrase after sharing containers', function () {
       crypton.authorize('bob2', 'foobarstrongerpass', function (err, newSession) {
         assert.equal(err, null);
         if (err) {
-          console.error(err);
+          throw(err);
         }
         assert.equal(newSession.account.username, 'bob2');
         // Get bobPeer again

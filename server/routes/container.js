@@ -40,7 +40,6 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
 
   container.getAfter(containerNameHmac, after, function (err) {
     if (err) {
-      app.log('in getAfter', err);
       res.send({
         success: false,
         error: err

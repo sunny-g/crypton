@@ -206,7 +206,8 @@ Account.prototype.update = function () {
   // update('key', 'value')
   else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
     this[arguments[0]] = arguments[1];
-  }};
+  }
+};
 
 /**!
  * ### toJSON()

@@ -84,11 +84,12 @@ describe('encryptAndSign+verifyAndDecrypt()', function () {
       });
     });
 
-    it('encryptAndSign a message for Alice', function () {
+    it('encryptAndSign a message for Alice', function (done) {
       messageResult = alicePeer.encryptAndSign(plaintext, aliceSession);
       assert.equal(messageResult.error, null);
       assert(messageResult.ciphertext && messageResult.signature);
       messageResult = JSON.stringify(messageResult);
+      done();
     });
 
     it('Alice needs to login again so Alice\'s session is valid', function (done) {

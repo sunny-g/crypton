@@ -38,7 +38,7 @@ app.id_translator = require('id_translator')
 
 app.log('info', 'configuring server');
 
-app.SERVER_VERSION = '0.0.2';
+app.SERVER_VERSION = '0.0.3';
 
 app.secret = util.readFileSync(
   // TODO: 'binary' encoding is deprecated

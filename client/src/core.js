@@ -28,7 +28,7 @@ var MISMATCH_ERR = 'Server and client version mismatch';
  * ### version
  * Holds framework version for potential future backward compatibility
  */
-crypton.version = '0.0.2';
+crypton.version = '0.0.3';
 
 /**!
  * ### MIN_PBKDF2_ROUNDS

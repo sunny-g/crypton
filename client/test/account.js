@@ -38,9 +38,9 @@ function setupAccount () {
   var hmacKey = crypton.randomBytes(32);
   var containerNameHmacKey = crypton.randomBytes(32);
 
-  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
-  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt);
-  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt);
+  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt, crypton.MIN_PBKDF2_ROUNDS);
+  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt, crypton.MIN_PBKDF2_ROUNDS);
+  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt, crypton.MIN_PBKDF2_ROUNDS);
   var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
   var signingKeys = sjcl.ecc.ecdsa.generateKeys(384, crypton.paranoia);
 

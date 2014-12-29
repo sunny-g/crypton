@@ -28,7 +28,13 @@ var MISMATCH_ERR = 'Server and client version mismatch';
  * ### version
  * Holds framework version for potential future backward compatibility
  */
-crypton.version = '0.0.2';
+crypton.version = '0.0.3';
+
+/**!
+ * ### MIN_PBKDF2_ROUNDS
+ * Minimum number of PBKDF2 rounds
+ */
+crypton.MIN_PBKDF2_ROUNDS = 1000;
 
 /**!
  * ### clientVersionMismatch
@@ -281,6 +287,7 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       var SIGN_KEY_BIT_LENGTH = 384;
       var keypairCurve = options.keypairCurve || 384;
+      var numRounds = crypton.MIN_PBKDF2_ROUNDS;
 
       var account = new crypton.Account();
       var hmacKey = randomBytes(32);
@@ -288,12 +295,11 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
       var keypairMacSalt = randomBytes(32);
       var signKeyPrivateMacSalt = randomBytes(32);
       var containerNameHmacKey = randomBytes(32);
-      var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt);
-      var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt);
-      var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt);
+      var keypairKey = sjcl.misc.pbkdf2(passphrase, keypairSalt, numRounds);
+      var keypairMacKey = sjcl.misc.pbkdf2(passphrase, keypairMacSalt, numRounds);
+      var signKeyPrivateMacKey = sjcl.misc.pbkdf2(passphrase, signKeyPrivateMacSalt, numRounds);
       var keypair = sjcl.ecc.elGamal.generateKeys(keypairCurve, crypton.paranoia);
       var signingKeys = sjcl.ecc.ecdsa.generateKeys(SIGN_KEY_BIT_LENGTH, crypton.paranoia);
-
       var srp = new SRPClient(username, passphrase, 2048, 'sha-256');
       var srpSalt = srp.randomHexSalt();
       var srpVerifier = srp.calculateV(srpSalt).toString(16);
@@ -319,7 +325,8 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       var selfPeer = new crypton.Peer({
         session: session,
-        pubKey: keypair.pub
+        pubKey: keypair.pub,
+        signKeyPub: signingKeys.pub
       });
       selfPeer.trusted = true;
 
@@ -342,7 +349,9 @@ crypton.generateAccount = function (username, passphrase, callback, options) {
 
       // private keys
       // TODO: Check data auth with hmac
-      account.keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
+      var keypairCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(keypair.sec.serialize()), crypton.cipherOptions);
+
+      account.keypairCiphertext = keypairCiphertext;
       account.keypairMac = crypton.hmac(keypairMacKey, account.keypairCiphertext);
       account.signKeyPrivateCiphertext = sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions);
       account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, account.signKeyPrivateCiphertext);

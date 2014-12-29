@@ -65,7 +65,6 @@ Account.prototype.save = function (callback) {
  */
 Account.prototype.unravel = function (callback) {
   var that = this;
-
   crypton.work.unravelAccount(this, function (err, data) {
     if (err) {
       return callback(err);
@@ -185,7 +184,10 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   var verified = false;
   try {
     verified = peer.signKeyPub.verify(hash, signedCiphertext.signature);
-  } catch (ex) { }
+  } catch (ex) {
+    console.error(ex);
+    console.error(ex.stack);
+  }
   // try to decrypt regardless of verification failure
   try {
     var message = sjcl.decrypt(this.secretKey, ciphertextString, crypton.cipherOptions);
@@ -195,7 +197,243 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
       return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
     }
   } catch (ex) {
+    console.error(ex);
+    console.error(ex.stack);
     return { plaintext: null, verified: false, error: 'Cannot verify ciphertext' };
   }
 };
+
+/**!
+ * ### changePassphrase()
+ * Convienence function to change the user's passphrase
+ *
+ * @param {String} currentPassphrase
+ * @param {String} newPassphrase
+ * @param {Function} callback
+ * callback will be handed arguments err, isComplete
+ * Upon completion of a passphrase change, the client will be logged out
+ * This callback should handle getting the user logged back in
+ * programmatically or via the UI
+ * @param {Function} keygenProgressCallback [optional]
+ * @param {Boolean} skipCheck [optional]
+ * @return void
+ */
+Account.prototype.changePassphrase =
+  function (currentPassphrase, newPassphrase,
+            callback, keygenProgressCallback, skipCheck) {
+  if (skipCheck) {
+    if (currentPassphrase == newPassphrase) {
+      var err = 'New passphrase cannot be the same as current password';
+      return callback(err);
+    }
+  }
+
+  if (keygenProgressCallback) {
+    if (typeof keygenProgressCallback == 'function') {
+      keygenProgressCallback();
+    }
+  }
+
+  var MIN_PBKDF2_ROUNDS = crypton.MIN_PBKDF2_ROUNDS;
+  var that = this;
+  var username = this.username;
+  // authorize to make sure the user knows the correct passphrase
+  crypton.authorize(username, currentPassphrase, function (err, newSession) {
+    if (err) {
+      console.error(err);
+      return callback(err);
+    }
+    // We have authorized, time to create the new keyring parts we
+    // need to update the database
+
+    var currentAccount = newSession.account;
+
+    // Replace all salts with new ones
+    var keypairSalt = crypton.randomBytes(32);
+    var keypairMacSalt = crypton.randomBytes(32);
+    var signKeyPrivateMacSalt = crypton.randomBytes(32);
+
+    var srp = new SRPClient(username, newPassphrase, 2048, 'sha-256');
+    var srpSalt = srp.randomHexSalt();
+    var srpVerifier = srp.calculateV(srpSalt).toString(16);
+
+    // Pad verifier to 512 bytes
+    // TODO: This length will change when a different SRP group is used
+    srpVerifier = srp.nZeros(512 - srpVerifier.length) + srpVerifier;
+
+    var keypairKey =
+      sjcl.misc.pbkdf2(newPassphrase, keypairSalt, MIN_PBKDF2_ROUNDS);
+
+    var keypairMacKey =
+      sjcl.misc.pbkdf2(newPassphrase, keypairMacSalt, MIN_PBKDF2_ROUNDS);
+
+    var signKeyPrivateMacKey =
+      sjcl.misc.pbkdf2(newPassphrase, signKeyPrivateMacSalt, MIN_PBKDF2_ROUNDS);
+
+    var privateKeys = {
+     // 'privateKey/HMAC result name': serializedKey or string HMAC input data
+     containerNameHmacKeyCiphertext: currentAccount.containerNameHmacKey,
+     hmacKeyCiphertext: currentAccount.hmacKey,
+     signKeyPrivateCiphertext: currentAccount.signKeyPrivate.serialize(),
+     keypairCiphertext: currentAccount.secretKey.serialize(),
+     keypairMacKey: keypairMacKey,
+     signKeyPrivateMacKey: signKeyPrivateMacKey
+    };
+
+    var newKeyring;
+
+    try {
+      newKeyring = that.wrapAllKeys(keypairKey, privateKeys, newSession);
+    } catch (ex) {
+      console.error(ex);
+      console.error(ex.stack);
+      return callback('Fatal: cannot wrap keys, see error console for more information');
+    }
+
+    // Set other new properties before we save
+    newKeyring.keypairSalt = JSON.stringify(keypairSalt);
+    newKeyring.keypairMacSalt = JSON.stringify(keypairMacSalt);
+    newKeyring.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
+    newKeyring.srpVerifier = srpVerifier;
+    newKeyring.srpSalt = srpSalt;
+
+    superagent.post(crypton.url() + '/account/' + that.username + '/keyring')
+    .withCredentials()
+    .send(newKeyring)
+    .end(function (res) {
+      if (res.body.success !== true) {
+        console.error('error: ', res.body.error);
+        callback(res.body.error);
+      } else {
+        // XXX TODO: Invalidate all other client sessions before doing:
+        newSession = null; // Force new login after passphrase change
+        callback(null, true); // Do not hand the new session to the callback
+      }
+    });
+
+  }, null);
+};
+
+/**!
+ * ### wrapKey()
+ * Helper function to wrap keys
+ *
+ * @param {String} selfPeer
+ * @param {String} serializedPrivateKey
+ * @return {Object} wrappedKey
+ */
+Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
+  if (!selfPeer || !serializedPrivateKey) {
+    throw new Error('selfPeer and serializedPrivateKey are required');
+  }
+  var serializedKey;
+  if (typeof serializedPrivateKey != 'string') {
+    serializedKey = JSON.stringify(serializedPrivateKey);
+  } else {
+    serializedKey = serializedPrivateKey;
+  }
+  var wrappedKey = selfPeer.encryptAndSign(serializedKey);
+  if (wrappedKey.error) {
+    return null;
+  }
+  return wrappedKey;
+};
+
+/**!
+ * ### wrapAllKeys()
+ * Helper function to wrap all keys when changing passphrase, etc
+ *
+ * @param {String} wrappingKey
+ * @param {Object} privateKeys
+ * @param {Object} Session
+ * @return {Object} wrappedKey
+ */
+Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
+  // Using the *labels* of the future wrapped objects here
+  var requiredKeys = [
+    'containerNameHmacKeyCiphertext',
+    'hmacKeyCiphertext',
+    'signKeyPrivateCiphertext',
+    'keypairCiphertext', // main encryption private key
+    'keypairMacKey',
+    'signKeyPrivateMacKey'
+  ];
+
+  var privateKeysLength = Object.keys(privateKeys).length;
+  var privateKeyNames = Object.keys(privateKeys);
+
+  for (var i = 0; i < privateKeysLength; i++) {
+    var keyName = privateKeyNames[i];
+    if (requiredKeys.indexOf(keyName) == -1) {
+      throw new Error('Missing private key: ' + keyName);
+    }
+  }
+  // Check that the length of privateKeys is correct
+  if (privateKeysLength != requiredKeys.length) {
+    throw new Error('privateKeys length does not match requiredKeys length');
+  }
+
+  var selfPeer = new crypton.Peer({
+    session: session,
+    pubKey: session.account.pubKey,
+    signKeyPub: session.account.signKeyPub
+  });
+  selfPeer.trusted = true;
+
+  var result = {};
+
+  var hmacKeyCiphertext = this.wrapKey(selfPeer,
+                                       privateKeys.hmacKeyCiphertext);
+  if (hmacKeyCiphertext.error) {
+    result.hmacKeyCiphertext = null;
+  } else {
+    result.hmacKeyCiphertext = JSON.stringify(hmacKeyCiphertext);
+  }
+
+  var containerNameHmacKeyCiphertext =
+    this.wrapKey(selfPeer,
+                 privateKeys.containerNameHmacKeyCiphertext);
+
+  if (containerNameHmacKeyCiphertext.error) {
+    result.containerNameHmacKeyCiphertext = null;
+  } else {
+    result.containerNameHmacKeyCiphertext = JSON.stringify(containerNameHmacKeyCiphertext);
+  }
+
+  // Private Keys
+  var keypairCiphertext =
+    sjcl.encrypt(wrappingKey,
+                 JSON.stringify(privateKeys.keypairCiphertext),
+                 crypton.cipherOptions);
+
+  if (keypairCiphertext.error) {
+    console.error(keypairCiphertext.error);
+    keypairCiphertext = null;
+  }
+  result.keypairCiphertext = keypairCiphertext;
+
+  var signKeyPrivateCiphertext =
+    sjcl.encrypt(wrappingKey, JSON.stringify(privateKeys.signKeyPrivateCiphertext),
+                 crypton.cipherOptions);
+
+  if (signKeyPrivateCiphertext.error) {
+    console.error(signKeyPrivateCiphertext.error);
+    signKeyPrivateCiphertext = null;
+  }
+  result.signKeyPrivateCiphertext = signKeyPrivateCiphertext;
+
+  // HMACs
+  result.keypairMac =
+    crypton.hmac(privateKeys.keypairMacKey, result.keypairCiphertext);
+
+  result.signKeyPrivateMac = crypton.hmac(privateKeys.signKeyPrivateMacKey,
+                                          result.signKeyPrivateCiphertext);
+  for (var keyName in result) {
+    if (!result[keyName]) {
+      throw new Error('Fatal: ' + keyName + ' is null');
+    }
+  }
+  return result;
+};
+
 })();

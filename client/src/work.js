@@ -32,7 +32,7 @@
   var path;
 
   for (var i in scriptEls) {
-    if (scriptEls[i].src && ~scriptEls[i].src.indexOf('crypton')) {
+    if (scriptEls[i].src && ~scriptEls[i].src.indexOf('crypton.js')) {
       path = scriptEls[i].src;
     }
   }

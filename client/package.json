@@ -2,7 +2,7 @@
   "author": "SpiderOak (https://spideroak.com/)",
   "name": "crypton",
   "description": "A zero-knowledge application framework",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "homepage": "http://crypton.io",
   "repository": {
     "type": "git",

@@ -45,7 +45,7 @@ app.get('/', function (req, res) {
 app.get('/versioncheck', function (req, res) {
   app.log('debug', 'handling GET /versioncheck');
   app.log('debug', 'server version: ' + app.SERVER_VERSION);
-  if (semver.satisfies(app.SERVER_VERSION, '~'+req.query.v)) {
+  if (!semver.satisfies(app.SERVER_VERSION, '~'+req.query.v)) {
     return res.send({
       success: false,
       version: app.SERVER_VERSION,

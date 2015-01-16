@@ -30,6 +30,7 @@ function extend(modName) {
 }
 
 extend('./util');
+extend('./item');
 extend('./inbox');
 extend('./account');
 extend('./container');

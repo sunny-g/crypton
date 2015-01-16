@@ -620,4 +620,19 @@ create unique index transaction_delete_message_msg_id_idx
     on transaction_delete_message
     (transaction_id, message_id);
 
+
+create table item (
+    item_id int8 not null primary key default nextval('version_identifier'),
+    account_id int8 not null references account,
+    name_hmac bytea not null unique,
+    container_session_key_id int8 not null references container_session_key,
+    creation_time timestamp not null default current_timestamp,
+    modified_time timestamp not null default current_timestamp,
+    deletion_time timestamp,
+    value bytea
+);
+
+create unique index item_name_hmac_idx
+    on item (name_hmac);
+
 commit;

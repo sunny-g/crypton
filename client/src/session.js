@@ -34,6 +34,7 @@ var Session = crypton.Session = function (id) {
   this.peers = [];
   this.events = [];
   this.containers = [];
+  this.items = {};
   this.inbox = new crypton.Inbox(this);
 
   var that = this;
@@ -68,6 +69,27 @@ var Session = crypton.Session = function (id) {
       }
     }
   });
+};
+
+Session.prototype.getOrCreateItem =
+function getOrCreateItem (itemName, creator, callback) {
+  if (!creator) {
+    return callback('creator peer object is required');
+  }
+  if (this.items[itemName]) {
+    callback(null, this.items[itemName]);
+    return;
+  }
+  // XXXddahl: creator is the peer who created this Item as they will have signed the contents
+  var item =
+  new crypton.Item(itemName, null, this, creator, function getItemCallback(err, item) {
+    if (err) {
+      console.error(err);
+      return callback(err);
+    }
+    callback(null, item);
+  });
+
 };
 
 /**!
@@ -404,4 +426,3 @@ Session.prototype.emit = function (eventName, data) {
 };
 
 })();
-

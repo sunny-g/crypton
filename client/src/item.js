@@ -20,10 +20,15 @@
 
 'use strict';
 
-var Item = crypton.Item = function Item (name, session, callback) {
+var Item = crypton.Item = function Item (name, value, session, creator, callback) {
+  // XXXddahl: do argument validation
   this.raw = null;
   this.name = name;
   this.session = session;
+  this.creator = creator; // The peer who owns this Item
+  this.value = value || null;
+  this.listeners = [];
+  this.sessionKey = null;
 
   this.sync(callback || function (err) {
     if (err) {
@@ -73,6 +78,8 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
   superagent.get(url)
     .withCredentials()
     .end(function (res) {
+      console.log('syncWithHmac result: ', res);
+
       var doesNotExist = 'Item does not exist';
 
       if ((!res.body || res.body.success !== true) && res.body.error != doesNotExist) {
@@ -80,19 +87,42 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
       }
 
       if (res.body.error == doesNotExist) {
+        console.log('does not exist, creating....');
         return that.create(callback);
       }
 
-      // alert listeners?
+      // XXXddahl: alert listeners?
       that.parseAndOverwrite(res.body.value, callback);
     });
 };
 
 Item.prototype.parseAndOverwrite = function (value, callback) {
   console.log('parseAndOverwrite', value);
+  // We were just handed the latest version stored on the server. overwrite locally
+  var cipherItem = JSON.parse(value);
+
+  var hash = sjcl.hash.sha256.hash(cipherItem.ciphertext);
+  var verified = false;
+  try {
+    verified = this.creator.signKeyPub.verify(hash, cipherItem.signature);
+  } catch (ex) {
+    console.error(ex);
+    console.error(ex.stack);
+    return callback('Cannot verify Item ' + this.getPublicName());
+  }
+
+  var decrypted = sjcl.decrypt(this.secretKey, cipherItem.ciphertext, crypton.cipherOptions);
+
+  if (decrypted.error) {
+    console.error(decrypted.error);
+    return callback('Cannot get and decrypt item ' + this.name);
+  }
+
+  this.value = JSON.parse(decrypted.plaintext);
+  callback(null, this);
 };
 
-Item.prototype.save = function () {
+Item.prototype.save = function (callback) {
   console.log('saving', this.raw);
   var that = this;
   this.raw = JSON.stringify(this.value);
@@ -109,12 +139,16 @@ Item.prototype.save = function () {
     .withCredentials()
     .send(payload)
     .end(function (res) {
-
+      // XXXdddahl: error checking
+      if (!res.success) {
+        return callback('Cannot save item');
+      }
+      return callback(null);
     });
 };
 
 Item.prototype.share = function () {
-
+  throw new Error('Unimplemented');
 };
 
 Item.prototype.unshare = function () {
@@ -122,7 +156,8 @@ Item.prototype.unshare = function () {
 };
 
 Item.prototype.watch = function (listener) {
-  this.listeners.push(listener);
+  throw new Error('Unimplemented');
+  // this.listeners.push(listener);
 };
 
 Item.prototype.unwatch = function () {
@@ -140,14 +175,25 @@ Item.prototype.unwatch = function () {
  * @param {Function} callback
  */
 Item.prototype.create = function (callback) {
+  console.log('create()');
+  if (!callback) {
+    throw new Error('Callback function required');
+  } else {
+    if (typeof callback != 'function') {
+      throw new Error('Callback argument type must be function');
+    }
+  }
+
   var selfPeer = new crypton.Peer({
-    session: this,
-    pubKey: this.account.pubKey,
-    signKeyPub: this.account.signKeyPub
+    session: this.session,
+    pubKey: this.session.account.pubKey,
+    signKeyPub: this.session.account.signKeyPub,
+    signKeyPrivate: this.session.account.signKeyPrivate
   });
   selfPeer.trusted = true;
 
   var sessionKey = crypton.randomBytes(32);
+  this.sessionKey = sessionKey;
   var sessionKeyCiphertext = selfPeer.encryptAndSign(sessionKey);
 
   if (sessionKeyCiphertext.error) {
@@ -158,62 +204,51 @@ Item.prototype.create = function (callback) {
 
   var itemNameHmac = this.getPublicName();
 
-  var rawPayloadCiphertext = sjcl.encrypt(sessionKey, JSON.stringify(null), crypton.cipherOptions);
+  var itemValue;
+  if (this.value) {
+    if (typeof this.value == 'string') {
+      itemValue = this.value;
+    } else {
+      console.log('stringifying value');
+      itemValue = JSON.stringify(this.value);
+    }
+  } else {
+    itemValue = JSON.stringify(null);
+  }
+
+  console.log('account: ', this.session.account);
+
+  var rawPayloadCiphertext = sjcl.encrypt(sessionKey, itemValue, crypton.cipherOptions);
+  console.log('payloadCiphertextHash');
   var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(rawPayloadCiphertext));
-  var payloadSignature = this.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
+  var payloadSignature = this.session.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
+
   var payloadCiphertext = {
     ciphertext: rawPayloadCiphertext,
     signature: payloadSignature
   };
 
+  // TODO is signing the sessionKey even necessary if we're
+  // signing the sessionKeyShare? what could the container
+  // creator attack by wrapping a different sessionKey?
+  var sessionKeyHash = sjcl.hash.sha256.hash(JSON.stringify(sessionKeyCiphertext));
+  var sessionKeySignature =
+    this.session.account.signKeyPrivate.sign(sessionKeyHash, crypton.paranoia);
+
   var that = this;
-  new crypton.Transaction(this, function (err, tx) {
-    var chunks = [
-      {
-        type: 'addContainerSessionKey',
-        containerNameHmac: itemNameHmac,
-        signature: signature
-      }, {
-        type: 'addContainerSessionKeyShare',
-        toAccount: that.account.username,
-        containerNameHmac: itemNameHmac,
-        sessionKeyCiphertext: sessionKeyCiphertext,
-      }, {
-        type: 'addContainerRecord',
-        containerNameHmac: itemNameHmac,
-        payloadCiphertext: payloadCiphertext
-      }
-    ];
-
-    async.eachSeries(chunks, function (chunk, callback2) {
-      tx.save(chunk, callback2);
-    }, function (err) {
-      if (err) {
-        return tx.abort(function () {
-          callback(err);
-        });
-      }
-
-      tx.commit(function (err) {
-        if (err) {
-          return callback(err);
-        }
-
-        // post create item
+  // post create item
   var payload = {
     itemNameHmac: itemNameHmac,
-    
+    payloadCiphertext: payloadCiphertext,
+    wrappedSessionKey: sessionKeyCiphertext
   };
   var url = crypton.url() + '/item/create';
-  superagent.post(url)
-    .withCredentials()
-    .send(payload)
-    .end(function (res) {
-
-    });
-        callback(null);
-      });
-    });
+  superagent.post(url).withCredentials().send(payload).end(function (res) {
+    // XXXddahl: better error checking & reporting needed
+    if (!res.success) {
+      callback('Cannot create item');
+    }
+    callback(null);
   });
 };
 

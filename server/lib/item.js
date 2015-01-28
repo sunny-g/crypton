@@ -46,7 +46,7 @@ Item.prototype.get = function (itemNameHmac, callback) {
 
   var that = this;
 
-  db.getItemValue(itemNameHmac, that.accountId, function (err, value) {
+  db.getItemValue(itemNameHmac, that.accountId, function (err, records) {
     if (err) {
       callback(err);
       return;
@@ -58,7 +58,7 @@ Item.prototype.get = function (itemNameHmac, callback) {
       return;
     }
 
-    that.update('value', value);
+    that.update('value', records[0]);
     callback(null);
   });
 };
@@ -77,6 +77,8 @@ Item.prototype.get = function (itemNameHmac, callback) {
 // TODO add field validation and callback
 Item.prototype.update = function () {
   // update({ key: 'value' });
+
+  // validate object keys/values
   if (typeof arguments[0] == 'object') {
     for (var key in arguments[0]) {
       this[key] = arguments[0][key];
@@ -87,4 +89,36 @@ Item.prototype.update = function () {
   else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
     this[arguments[0]] = arguments[1];
   }
+};
+
+// XXXddahl: Item.save()
+Item.prototype.save = function item_save(callback) {
+  app.log('debug', 'saving item');
+
+  var that = this;
+
+  db.saveItem(that.nameHmac, that.accountId, function (err) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    callback(null);
+  });
+};
+
+// Item.create()
+Item.prototype.create = function item_create(callback) {
+  app.log('debug', 'creating item');
+
+  var that = this;
+
+  db.createItem(that.nameHmac, that.accountId, that.value, function (err) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    callback(null);
+  });
 };

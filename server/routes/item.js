@@ -48,7 +48,7 @@ app.get('/item/:itemNameHmac', verifySession, function (req, res) {
 
     res.send({
       success: true,
-      records: item.value
+      records: item // XXXddahl: Send the whole item?
     });
   });
 });
@@ -58,9 +58,16 @@ app.get('/item/:itemNameHmac', verifySession, function (req, res) {
  * Update item value for the given `itemNameHmac`
 */
 app.post('/item/:itemNameHmac', verifySession, function (req, res) {
-  var value = req.body.value;
   var item = new Item();
-  item.update(req.body);
+
+  var accountId = req.session.accountId;
+  item.update('accountId', accountId);
+
+  var itemNameHmac = req.params.itemNameHmac;
+  item.update('itemNameHmac'. itemNameHmac);
+
+  var value = req.body.value;
+  item.update('value', value);
 
   item.save(function (err) {
     if (err) {
@@ -69,6 +76,49 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
         error: err
       });
 
+      return;
+    }
+
+    res.send({
+      success: true
+    });
+  });
+});
+
+/**!
+ * ### POST /item/create
+ * Create item value for the given `itemNameHmac`
+*/
+app.post('/item/create', verifySession, function (req, res) {
+  var item = new Item();
+
+  var accountId = req.session.accountId;
+  item.update('accountId', accountId);
+
+  var itemNameHmac = req.body.itemNameHmac;
+  item.update('itemNameHmac', itemNameHmac);
+
+  var wrappedSessionKey = req.body.wrappedSessionKey;
+  item.update('wrappedSessionKey', wrappedSessionKey);
+
+  var value = req.body.value;
+  item.update('value', value);
+
+  // Make sure client sends all correct arguments
+  if (!(value && wrappedSessionKey && itemNameHmac && accountId)) {
+    res.send({
+      success: false,
+      error: '/item/create: missing argument error'
+    });
+    return;
+  }
+
+  item.create(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
       return;
     }
 

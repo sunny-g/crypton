@@ -625,7 +625,7 @@ create table item (
     item_id int8 not null primary key default nextval('version_identifier'),
     account_id int8 not null references account,
     name_hmac bytea not null unique,
-    container_session_key_id int8 not null references container_session_key,
+/*    item_session_key_id int8 not null references item_session_key, */
     creation_time timestamp not null default current_timestamp,
     modified_time timestamp not null default current_timestamp,
     deletion_time timestamp,
@@ -634,5 +634,52 @@ create table item (
 
 create unique index item_name_hmac_idx
     on item (name_hmac);
+
+create table item_session_key (
+    item_session_key_id int8 not null primary key
+        default nextval('version_identifier'),
+    item_id int8 not null references item on delete cascade,
+    account_id int8 not null references account,
+    creation_time timestamp not null default current_timestamp,
+    supercede_time timestamp
+);
+CREATE UNIQUE INDEX item_session_key_active_idx
+    ON item_session_key (item_id)
+    WHERE supercede_time IS NULL;
+-- COMMENT ON item_session_key_active_idx IS
+-- 'Enforce that for any given item only one session_key is active.  So to
+-- change the session key, you must first mark previous session keys with a
+-- supercede_time.';
+
+-- COMMENT ON TABLE item_session_key IS
+-- 'Note that the actual session key isn''t stored by records in this table. It''s
+-- stored one or more times, encrypted to the accounts that should be able to read
+-- it, in item_session_key_share.  Naturally the owner''s account should be
+-- one of them, so that the owner may read their own container!'
+
+-- COMMENT ON COLUMN item_session_key.account_id IS
+-- 'This is the account setting the session key';
+
+-- COMMENT ON COLUMN item_session_key.supercede_time IS
+-- 'This is the time when a session_key is replaced by a new session key. This
+-- happens when an item is unshared.';
+
+create table item_session_key_share (
+    item_session_key_share_id int8 not null primary key
+        default nextval('version_identifier'),
+    item_session_key_id int8 not null references item_session_key on delete cascade,
+    account_id int8 not null references account,
+    to_account_id int8 not null references account (account_id),
+    session_key_ciphertext varchar not null,
+    deletion_time timestamp
+);
+
+COMMENT ON TABLE item_session_key_share IS
+'Make one of a item''s session keys readable to an account';
+COMMENT ON COLUMN item_session_key_share.session_key_ciphertext IS
+'This is the output of encrypting the AES256 session key to the public key
+owned by to_account_id.';
+COMMENT ON COLUMN item_session_key_share.deletion_time IS
+'When an item is unshared, deletion_time';
 
 commit;

@@ -72,15 +72,23 @@ var Session = crypton.Session = function (id) {
 };
 
 Session.prototype.getOrCreateItem =
-function getOrCreateItem (itemName, creator, callback) {
-  if (!creator) {
-    return callback('creator peer object is required');
+function getOrCreateItem (itemName,  callback) {
+
+  if (!itemName) {
+    return callback('itemName is required');
   }
+  if (!callback) {
+    throw new Error('Missing required callback argument');
+  }
+  // Get cached item if exists
+  // XXXddahl: check server for more recent item?
   if (this.items[itemName]) {
     callback(null, this.items[itemName]);
     return;
   }
-  // XXXddahl: creator is the peer who created this Item as they will have signed the contents
+
+  var creator = this.createSelfPeer();
+
   var item =
   new crypton.Item(itemName, null, this, creator, function getItemCallback(err, item) {
     if (err) {
@@ -90,6 +98,17 @@ function getOrCreateItem (itemName, creator, callback) {
     callback(null, item);
   });
 
+};
+
+Session.prototype.createSelfPeer = function () {
+  var selfPeer = new crypton.Peer({
+    session: this,
+    pubKey: this.account.pubKey,
+    signKeyPub: this.account.signKeyPub,
+    signKeyPrivate: this.account.signKeyPrivate
+  });
+  selfPeer.trusted = true;
+  return selfPeer;
 };
 
 /**!

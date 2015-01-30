@@ -78,6 +78,25 @@ function createItem (name, value) {
   });
 }
 
+function getOrCreate(name) {
+  app.session.getOrCreateItem(name, function _callback(err, item) {
+    if (err) {
+      console.error(err);
+    }
+    console.log(item);
+  });
+}
+
+function updateItem(name, value) {
+  if (!app.session.items[name]) {
+    console.error('Item not found');
+    return;
+  }
+
+  var item = app.session.items[name];
+  item.value = value;
+}
+
 function setStatus (status) {
   var statusEl = document.getElementById('status');
   statusEl.innerHTML = status;

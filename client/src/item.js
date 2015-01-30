@@ -46,7 +46,13 @@ var Item = crypton.Item = function Item (name, value, session, creator, callback
     },
     set: function (value) {
       that._value = value;
-      // that.save();
+      that.save(function (err, item) {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        // XXXddahl: what to return here?
+      });
     }
   });
 };
@@ -124,27 +130,27 @@ Item.prototype.parseAndOverwrite = function (value, callback) {
 };
 
 Item.prototype.save = function (callback) {
-  console.log('saving', this.raw);
+  console.log('saving', this._value);
+  // XXXddahl: verify args!!
+  var payload;
+  try {
+    payload = this.wrapItem();
+  } catch (ex) {
+    console.error(ex);
+    return callback('Cannot wrap/save item');
+  }
   var that = this;
-  // this.raw = JSON.stringify(this.value);
-  var rawPayloadCiphertext = sjcl.encrypt(that.sessionKey, this.raw, crypton.cipherOptions);
-  var payloadCiphertextHash = sjcl.hash.sha256.hash(JSON.stringify(rawPayloadCiphertext));
-  var payloadSignature = that.session.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
-  var payload = {
-    ciphertext: rawPayloadCiphertext,
-    signature: payloadSignature
-  };
-
   var url = crypton.url() + '/item/' + this.getPublicName();
   superagent.post(url)
     .withCredentials()
     .send(payload)
     .end(function (res) {
       // XXXdddahl: error checking
-      if (!res.success) {
+      if (!res.body.success) {
         return callback('Cannot save item');
       }
-      return callback(null);
+      // set modified_time to latest
+      return callback(that);
     });
 };
 
@@ -185,91 +191,20 @@ Item.prototype.create = function (callback) {
     }
   }
 
-  var selfPeer = new crypton.Peer({
-    session: this.session,
-    pubKey: this.session.account.pubKey,
-    signKeyPub: this.session.account.signKeyPub,
-    signKeyPrivate: this.session.account.signKeyPrivate
-  });
-  selfPeer.trusted = true;
-
   var sessionKey = crypton.randomBytes(32);
   this.sessionKey = sessionKey;
-  var sessionKeyCiphertext;
+
+  var payload;
 
   try {
-    sessionKeyCiphertext = selfPeer.encryptAndSign(sessionKey);
-  } catch (ex) {
-    console.log(ex);
-    console.log(ex.stack);
-  }
-  if (sessionKeyCiphertext.error) {
-    return callback(sessionKeyCiphertext.error);
-  }
-
-  delete sessionKeyCiphertext.error;
-
-  var itemNameHmac = this.getPublicName();
-
-  var itemValue;
-  if (this._value) {
-    if (typeof this._value == 'string') {
-      itemValue = this._value;
-    } else {
-      console.log('stringifying value');
-      itemValue = JSON.stringify(this._value);
-    }
-  } else {
-    console.log('setting value to a blank object');
-    itemValue = '{}';
-    this._value = {};
-  }
-  // debugger;
-  console.log('account: ', this.session.account);
-  var rawPayloadCiphertext;
-  try {
-    rawPayloadCiphertext = sjcl.encrypt(sessionKey, itemValue, crypton.cipherOptions);
-  } catch (ex) {
-    console.log(ex);
-    console.log(ex.stack);
-  }
-  // debugger;
-  console.log('rawPayloadCiphertext: ', rawPayloadCiphertext);
-  var payloadCiphertextHash;
-  try {
-    payloadCiphertextHash = sjcl.hash.sha256.hash(rawPayloadCiphertext);
+    payload = this.wrapItem();
   } catch (ex) {
     console.error(ex);
-    console.error(ex.stack);
+    return callback('Error: Cannot wrapItem');
   }
-  console.log('PayloadCiphertextHash: ', payloadCiphertextHash);
-  var payloadSignature = this.session.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
-
-  var payloadCiphertext = {
-    ciphertext: JSON.parse(rawPayloadCiphertext), // Fucking SJCL. WTF?
-    signature: payloadSignature
-  };
-
-  // TODO is signing the sessionKey even necessary if we're
-  // signing the sessionKeyShare? what could the container
-  // creator attack by wrapping a different sessionKey?
-  var sessionKeyHash;
-  try {
-    sessionKeyHash = sjcl.hash.sha256.hash(sessionKeyCiphertext);
-  } catch (ex) {
-    console.error(ex);
-    console.error(ex.stack);
-  }
-  var sessionKeySignature =
-    this.session.account.signKeyPrivate.sign(sessionKeyHash, crypton.paranoia);
 
   var that = this;
   // post create item
-  var payload = {
-    itemNameHmac: itemNameHmac,
-    payloadCiphertext: JSON.stringify(payloadCiphertext),
-    wrappedSessionKey: JSON.stringify(sessionKeyCiphertext)
-  };
   var url = crypton.url() + '/createitem';
   superagent.post(url).withCredentials().send(payload).end(function (res) {
     // XXXddahl: better error checking & reporting needed
@@ -280,8 +215,57 @@ Item.prototype.create = function (callback) {
     that.modTime = new Date(res.body.itemMetaData.modTime);
     that.session.items[that.name] = that;
 
-    callback(null, res.body.itemMetaData);
+    callback(null, that);
   });
+};
+
+Item.prototype.wrapItem = function item_wrapItem () {
+  var selfPeer = this.session.createSelfPeer();
+  var sessionKeyCiphertext = selfPeer.encryptAndSign(this.sessionKey);
+
+  if (sessionKeyCiphertext.error) {
+    throw new Error(sessionKeyCiphertext.error);
+  }
+  delete sessionKeyCiphertext.error;
+
+  var itemNameHmac = this.getPublicName();
+  var itemValue;
+
+  if (this._value) {
+    if (typeof this._value == 'string') {
+      itemValue = this._value;
+    } else {
+      itemValue = JSON.stringify(this._value);
+    }
+  } else {
+    itemValue = '{}';
+    this._value = {};
+  }
+
+  var rawPayloadCiphertext =
+    sjcl.encrypt(this.sessionKey, itemValue, crypton.cipherOptions);
+  var payloadCiphertextHash = sjcl.hash.sha256.hash(rawPayloadCiphertext);
+  var payloadSignature =
+    this.session.account.signKeyPrivate.sign(payloadCiphertextHash, crypton.paranoia);
+  var payloadCiphertext = {
+    ciphertext: JSON.parse(rawPayloadCiphertext), // Fucking SJCL. WTF?
+    signature: payloadSignature
+  };
+
+  // TODO is signing the sessionKey even necessary if we're
+  // signing the sessionKeyShare? what could the container
+  // creator attack by wrapping a different sessionKey?
+  var sessionKeyHash = sjcl.hash.sha256.hash(sessionKeyCiphertext);
+  var sessionKeySignature =
+    this.session.account.signKeyPrivate.sign(sessionKeyHash, crypton.paranoia);
+
+  var payload = {
+    itemNameHmac: itemNameHmac,
+    payloadCiphertext: JSON.stringify(payloadCiphertext),
+    wrappedSessionKey: JSON.stringify(sessionKeyCiphertext)
+  };
+
+  return payload;
 };
 
 })();

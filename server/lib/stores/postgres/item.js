@@ -99,68 +99,43 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
 
 exports.saveItem = function (itemNameHmac, accountId, value, callback) {
   connect(function (client, done) {
-    // Query for item first, make sure ownership is correct
-    var ownershipQuery = {
-      text: 'select account_id, name_hmac \
-        from item \
-        where account_id = $1 and name_hmac = $2 \
-        limit 1',
-      values: [accountId, itemNameHmac]
+    var updateQuery = {
+      /*jslint multistr: true*/
+      text: '\
+        update \
+        item set value = $1 \
+        where account_id = $2 and name_hmac = $3',
+      // XXXddahl: returning modified_time
+      /*jslint multistr: false*/
+      values: [
+        value,
+        accountId,
+        itemNameHmac
+      ]
     };
-    client.query(ownershipQuery, function (err, result) {
+
+    client.query(updateQuery, function (err, result) {
       if (err) {
         return callback(err);
-        done();
       }
-
-      console.log(result);
-
-      if (result.rows.length == 1) {
-        // item does exist
-        var updateQuery = {
-          /*jslint multistr: true*/
-          text: '\
-            update \
-            item set value = $1 \
-            where account_id = $2 and name_hmac = $3',
-          /*jslint multistr: false*/
-          values: [
-            value,
-            accountId,
-            itemNameHmac
-          ]
-        };
-
-        client.query(updateQuery, function (err, result) {
-          if (err) {
-            return callback(err);
-          }
-          // if (!result.rows.length) {
-          //   return callback('Update failed');
-          // }
-          callback(null);
-          done();
-        });
-      }
+      // XXXddahl: need to return the new modified_time
+      callback(null);
+      done();
     });
   });
 };
 
 exports.createItem =
 function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
-  console.log(arguments);
   connect(function (client, done) {
     // do multiple queries before commiting so we can rollback if needed
     client.query('begin');
-    console.log('createItem() ..........................................');
-
     var query = {
       /*jslint multistr: true*/
       text: '\
         insert into item (account_id, name_hmac, value) \
         values ($1, $2, $3) \
         returning item_id, modified_time',
-
       /*jslint multistr: false*/
       values: [
         accountId,

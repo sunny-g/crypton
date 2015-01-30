@@ -113,52 +113,53 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
         done();
       }
 
-      if (!result.length) {
-        // no results, item ownership is not established!
-        done();
-        return callback('Cannot save item. Item ownership error.');
+      console.log(result);
+
+      if (result.rows.length == 1) {
+        // item does exist
+        var updateQuery = {
+          /*jslint multistr: true*/
+          text: '\
+            update \
+            item set value = $1 \
+            where account_id = $2 and name_hmac = $3',
+          /*jslint multistr: false*/
+          values: [
+            value,
+            accountId,
+            itemNameHmac
+          ]
+        };
+
+        client.query(updateQuery, function (err, result) {
+          if (err) {
+            return callback(err);
+          }
+          // if (!result.rows.length) {
+          //   return callback('Update failed');
+          // }
+          callback(null);
+          done();
+        });
       }
-
-      var query = {
-        /*jslint multistr: true*/
-        text: '\
-          update \
-          item set value = $1 \
-          where account_id = $2 and name_hmac = $3',
-        /*jslint multistr: false*/
-        values: [
-          value,
-          accountId,
-          itemNameHmac
-        ]
-      };
-
-      client.query(query, function (err, result) {
-        if (err) {
-          return callback(err);
-        }
-        // if (!result.rows.length) {
-        //   return callback('Update failed');
-        // }
-        callback(null);
-      });
-      done();
     });
   });
 };
 
 exports.createItem =
-function (itemNameHmac, accountId, value, wrappedSessionKey , callback) {
+function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
+  console.log(arguments);
   connect(function (client, done) {
     // do multiple queries before commiting so we can rollback if needed
     client.query('begin');
-    console.log('createItem()');
+    console.log('createItem() ..........................................');
+
     var query = {
       /*jslint multistr: true*/
       text: '\
         insert into item (account_id, name_hmac, value) \
         values ($1, $2, $3) \
-        returning item_id',
+        returning item_id, modified_time',
 
       /*jslint multistr: false*/
       values: [
@@ -169,31 +170,35 @@ function (itemNameHmac, accountId, value, wrappedSessionKey , callback) {
     };
 
     client.query(query, function (err, result) {
-
+      console.log('ItemQuery');
       if (err) {
+        console.error(err);
         client.query('rollback');
         done();
         return callback(err);
       }
-      console.log(result);
-      var itemId = result.itemId;
+      console.log('result: ', result);
+      var itemId = result.rows[0].item_id;
+      var modTime = result.rows[0].modified_time;
 
       // sessionkey query
       var sessionKeyQuery = {
         text: 'insert into item_session_key \
           ( item_id, account_id ) \
-          values ( $1, $2 )',
+          values ( $1, $2 ) returning item_session_key_id',
         values: [itemId, accountId]
       };
 
-      client.query(sessionKeyQuery, function (err, result){
+      client.query(sessionKeyQuery, function (err, result) {
+        console.log('sessionKeyQuery');
         if (err) {
+          console.error(err);
           client.query('rollback');
           done();
           return callback(err);
         }
         console.log(result);
-        var itemSessionKeyId = result.itemSessionKeyId;
+        var itemSessionKeyId = result.rows[0].item_session_key_id;
 
         // sessionkey share query
         var sessionKeyShareQuery = {
@@ -204,7 +209,9 @@ function (itemNameHmac, accountId, value, wrappedSessionKey , callback) {
         };
 
         client.query(sessionKeyShareQuery, function (err, result) {
+          console.log('sessionKeyShareQuery');
           if (err) {
+            console.error(err);
             client.query('rollback');
             done();
             return callback(err);
@@ -212,8 +219,8 @@ function (itemNameHmac, accountId, value, wrappedSessionKey , callback) {
           // success
           client.query('commit');
           done();
-          // XXXddahl: return anything else here?
-          callback(null);
+          var metadata = { itemNameHmac: itemNameHmac, modTime: modTime };
+          callback(null, metadata);
         });
       });
     });

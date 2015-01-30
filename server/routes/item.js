@@ -89,7 +89,11 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
  * ### POST /item/create
  * Create item value for the given `itemNameHmac`
 */
-app.post('/item/create', verifySession, function (req, res) {
+app.post('/createitem', verifySession, function (req, res) {
+
+  app.log('debug', 'handling "create"');
+  app.log('debug', req);
+
   var item = new Item();
 
   var accountId = req.session.accountId;
@@ -101,7 +105,8 @@ app.post('/item/create', verifySession, function (req, res) {
   var wrappedSessionKey = req.body.wrappedSessionKey;
   item.update('wrappedSessionKey', wrappedSessionKey);
 
-  var value = req.body.value;
+  var value = req.body.payloadCiphertext;
+  console.log('value: ', value);
   item.update('value', value);
 
   // Make sure client sends all correct arguments
@@ -113,7 +118,7 @@ app.post('/item/create', verifySession, function (req, res) {
     return;
   }
 
-  item.create(function (err) {
+  item.create(function (err, metaData) {
     if (err) {
       res.send({
         success: false,
@@ -123,7 +128,8 @@ app.post('/item/create', verifySession, function (req, res) {
     }
 
     res.send({
-      success: true
+      success: true,
+      itemMetaData: metaData
     });
   });
 });

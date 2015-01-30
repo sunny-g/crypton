@@ -93,11 +93,11 @@ Item.prototype.update = function () {
 
 // XXXddahl: Item.save()
 Item.prototype.save = function item_save(callback) {
-  app.log('debug', 'saving item');
+  app.log('debug', 'saving item.....');
 
   var that = this;
 
-  db.saveItem(that.nameHmac, that.accountId, function (err) {
+  db.saveItem(that.nameHmac, that.accountId, that.value, function (err) {
     if (err) {
       callback(err);
       return;
@@ -113,12 +113,14 @@ Item.prototype.create = function item_create(callback) {
 
   var that = this;
 
-  db.createItem(that.nameHmac, that.accountId, that.value, function (err) {
+  db.createItem(that.itemNameHmac, that.accountId,
+                that.value, that.wrappedSessionKey,
+  function (err, itemMetaData) {
     if (err) {
       callback(err);
       return;
     }
-
-    callback(null);
+    console.log(itemMetaData);
+    callback(null, itemMetaData);
   });
 };

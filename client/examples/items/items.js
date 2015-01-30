@@ -26,12 +26,12 @@ actions.authorize = function (username, passphrase, callback) {
       return;
     }
 
-    window.session = session;
+    app.session = session;
     $('#userInput').hide();
     $('#username').val('');
     $('#password').val('');
     setStatus('logged in');
-    loadPhoto();
+    // loadPhoto();
   });
 }
 
@@ -51,20 +51,38 @@ actions.register = function (username, passphrase, callback) {
   });
 }
 
-function loadPhoto () {
-  var photo = window.photo = new crypton.Item('photo', window.session);
-  console.log(photo);
+function createSelfPeer () {
+  var selfPeer = new crypton.Peer({
+    session: app.session,
+    pubKey: app.session.account.pubKey,
+    signKeyPub: app.session.account.signKeyPub,
+    signKeyPrivate: app.session.account.signKeyPrivate
+  });
+  selfPeer.trusted = true;
+  return selfPeer;
 }
 
-function takePhoto () {
-
-}
-
-function setPhoto () {
-
+function createItem (name, value) {
+  if (!name && !value) {
+    throw new Error('Missing Args!');
+  }
+  var _item =
+  new crypton.Item(name, value, app.session, createSelfPeer(),
+  function callback(err, item) {
+    console.log(err, item);
+    if (err) {
+      console.error(err);
+      return;
+    }
+    return item;
+  });
 }
 
 function setStatus (status) {
   var statusEl = document.getElementById('status');
   statusEl.innerHTML = status;
 }
+
+var app = {
+  session: null
+};

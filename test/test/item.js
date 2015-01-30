@@ -46,7 +46,8 @@ describe('Item tests', function () {
       var selfPeer = new crypton.Peer({
         session: aliceSession,
         pubKey: aliceSession.account.pubKey,
-        signKeyPub: aliceSession.account.signKeyPub
+        signKeyPub: aliceSession.account.signKeyPub,
+        signKeyPrivate: aliceSession.account.signKeyPrivate
       });
       selfPeer.trusted = true;
 
@@ -55,9 +56,10 @@ describe('Item tests', function () {
           console.error(err);
           throw (err);
         }
-        assert(item);
+        // assert(item);
         assert(item.sessionKey);
         assert(item.value);
+        done();
       });
     });
 

@@ -1,4 +1,4 @@
-/* Crypton Client, Copyright 2013 SpiderOak, Inc.
+/* Crypton Client, Copyright 2015 SpiderOak, Inc.
  *
  * This file is part of Crypton Client.
  *
@@ -20,9 +20,19 @@
 
 'use strict';
 
+var ERRS = crypton.errors;
+
 var Item = crypton.Item = function Item (name, value, session, creator, callback) {
   // XXXddahl: do argument validation
-  this.raw = null;
+  if (!callback || typeof callback != 'function') {
+    console.error(ERRS.ARG_MISSING_CALLBACK);
+    throw new Error(ERRS.ARG_MISSING_CALLBACK);
+  }
+  if (!name || !session || !creator) {
+    console.error(ERRS.ARG_MISSING);
+    callback(ERRS.ARG_MISSING);
+  }
+
   this.name = name;
   this.session = session;
   this.creator = creator; // The peer who owns this Item
@@ -58,17 +68,17 @@ var Item = crypton.Item = function Item (name, value, session, creator, callback
 };
 
 Item.prototype.getPublicName = function () {
-  if (this.name) {
-    return this.name;
-  } else if (this.nameHmac) {
-    return this.nameHmac;
-  } else {
-    throw new Error('Item must have a name or itemNameHmac');
+  // Must always return nameHmac
+  if (!this.name) {
+    console.log(ERRS.PROPERTY_MISSING);
+    throw new Error(ERRS.PROPERTY_MISSING);
   }
-
+  if (this.nameHmac) {
+    return this.nameHmac;
+  }
   var hmac = new sjcl.misc.hmac(this.session.account.containerNameHmacKey);
-  var containerNameHmac = hmac.encrypt(this.name);
-  this.nameHmac = sjcl.codec.hex.fromBits(containerNameHmac);
+  var itemNameHmac = hmac.encrypt(this.name);
+  this.nameHmac = sjcl.codec.hex.fromBits(itemNameHmac);
   return this.nameHmac;
 };
 
@@ -99,14 +109,17 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
       }
 
       // XXXddahl: alert listeners?
-      that.parseAndOverwrite(res.body.value, callback);
+      debugger;
+      that.parseAndOverwrite(res.body.rawData, callback);
     });
 };
 
-Item.prototype.parseAndOverwrite = function (value, callback) {
-  console.log('parseAndOverwrite', value);
+Item.prototype.parseAndOverwrite = function (rawData, callback) {
+  console.log('parseAndOverwrite', rawData);
   // We were just handed the latest version stored on the server. overwrite locally
-  var cipherItem = JSON.parse(value);
+  var cipherItem = rawData.ciphertext;
+
+  // XXXddahl: create 'unwrapPayload()'
 
   var hash = sjcl.hash.sha256.hash(cipherItem.ciphertext);
   var verified = false;
@@ -137,6 +150,7 @@ Item.prototype.save = function (callback) {
     payload = this.wrapItem();
   } catch (ex) {
     console.error(ex);
+    console.error(ex.stack);
     return callback('Cannot wrap/save item');
   }
   var that = this;
@@ -146,11 +160,12 @@ Item.prototype.save = function (callback) {
     .send(payload)
     .end(function (res) {
       // XXXdddahl: error checking
+      console.log('success: ', res.body.success);
       if (!res.body.success) {
         return callback('Cannot save item');
       }
       // set modified_time to latest
-      return callback(that);
+      return callback(null, that);
     });
 };
 
@@ -210,7 +225,7 @@ Item.prototype.create = function (callback) {
     // XXXddahl: better error checking & reporting needed
     console.log(res);
     if (!res.body.success) {
-      callback('Cannot create item');
+      return callback('Cannot create item');
     }
     that.modTime = new Date(res.body.itemMetaData.modTime);
     that.session.items[that.name] = that;

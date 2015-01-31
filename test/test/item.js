@@ -22,6 +22,7 @@ describe('Item tests', function () {
   var alice;
   var aliceSession;
   var itemHmacName;
+  var item1;
 
   describe('Create Account', function () {
     it('Create Alice', function (done) {
@@ -45,15 +46,37 @@ describe('Item tests', function () {
     it('Create an Item', function (done) {
       aliceSession.getOrCreateItem('my-first-item', function (err, item) {
         if (err) {
-          // console.error(err);
+          console.error(err);
           throw (err);
         }
-        // assert(item);
-        // assert(item.sessionKey);
-        // assert(item.value);
+        item1 = item;
+        assert(item);
+        assert(item.sessionKey);
+        assert(item.value);
         done();
       });
     });
+
+
+    it('Update Item', function (done) {
+      try {
+        item1.value = { foo: 1, bar: 2, baz: 3 };
+      } catch (ex) {
+        console.error(ex);
+        throw new Error(ex);
+      }
+      done();
+    });
+
+    it('Verify Updated Item', function (done) {
+      assert.equal(item1.value.foo, 1);
+      assert.equal(item1.value.bar, 2);
+      assert.equal(item1.value.baz, 3);
+      done();
+    });
+
+    // Clear out cached item, reload from server
+    
 
   });
 });

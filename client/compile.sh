@@ -65,6 +65,7 @@ compile () {
     src/work.js \
     src/card.js \
     src/item.js \
+    src/errors.js \
     src/vendor/*.js \
     > dist/crypton.js
   $UGLIFY_PATH dist/crypton.js > dist/crypton.min.js

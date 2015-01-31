@@ -78,21 +78,25 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
     };
 
     client.query(query, function (err, result) {
-      done();
-
       if (err) {
+        done();
         return callback(err);
       }
+      console.log('\n\n  WTF \n\n');
+      console.log('result: ', result);
+      console.log('\n\n  WTF \n\n');
 
-      if (!result.rows.length) {
+      if (result.rowCount != 1) {
         return callback('Item does not exist');
       }
 
-      // massage
-      // XXXddahl: do this in the caller:
-      //           var value = result.rows[0].toString();
-      console.log(result.rows[0]);
-      callback(null, result.rows[0]);
+      done();
+      var rawData = {
+        ciphertext: JSON.parse(result.rows[0].value.toString()),
+        modified_time: result.rows[0].modified_time
+        // XXXddahl: need the wrapped session key here too
+      };
+      callback(null, rawData);
     });
   });
 };

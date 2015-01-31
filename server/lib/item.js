@@ -46,19 +46,13 @@ Item.prototype.get = function (itemNameHmac, callback) {
 
   var that = this;
 
-  db.getItemValue(itemNameHmac, that.accountId, function (err, records) {
+  db.getItemValue(itemNameHmac, that.accountId, function (err, record) {
     if (err) {
       callback(err);
       return;
     }
 
-    if (!records.length) {
-      app.log('debug', 'item does not exist');
-      callback('Item does not exist');
-      return;
-    }
-
-    that.update('value', records[0]);
+    that.update('rawData', record);
     callback(null);
   });
 };

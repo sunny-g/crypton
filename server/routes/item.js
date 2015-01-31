@@ -48,7 +48,7 @@ app.get('/item/:itemNameHmac', verifySession, function (req, res) {
 
     res.send({
       success: true,
-      records: item // XXXddahl: Send the whole item?
+      rawData: item.rawData // XXXddahl: Send the whole item?
     });
   });
 });

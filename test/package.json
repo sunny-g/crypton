@@ -3,6 +3,6 @@
     "mocha": "1.9.0",
     "chai": "1.9.0",
     "phantomjs": "1.9.*",
-    "mocha-phantomjs": "3.3.2"
+    "mocha-phantomjs": "3.5.*"
   }
 }

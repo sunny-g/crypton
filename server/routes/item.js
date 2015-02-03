@@ -61,12 +61,15 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
   var item = new Item();
 
   var accountId = req.session.accountId;
+  console.log('accountId', accountId);
   item.update('accountId', accountId);
 
-  var itemNameHmac = req.params.itemNameHmac;
-  item.update('itemNameHmac'. itemNameHmac);
+  var itemNameHmac = req.body.itemNameHmac;
+  console.log('itemNameHmac', itemNameHmac);
+  item.update('itemNameHmac', itemNameHmac);
 
-  var value = req.body.value;
+  var value = req.body.payloadCiphertext;
+  console.log('value', value);
   item.update('value', value);
 
   item.save(function (err) {

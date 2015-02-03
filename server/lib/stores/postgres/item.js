@@ -93,22 +93,24 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
       done();
       var rawData = {
         ciphertext: JSON.parse(result.rows[0].value.toString()),
-        modified_time: result.rows[0].modified_time
-        // XXXddahl: need the wrapped session key here too
+        modified_time: result.rows[0].modified_time,
+        wrappedSessionKey: result.rows[0].session_key_ciphertext
       };
+      console.log(rawData);
       callback(null, rawData);
     });
   });
 };
 
 exports.saveItem = function (itemNameHmac, accountId, value, callback) {
+  console.log(arguments);
   connect(function (client, done) {
     var updateQuery = {
       /*jslint multistr: true*/
       text: '\
         update \
         item set value = $1 \
-        where account_id = $2 and name_hmac = $3',
+        where account_id = $2 and name_hmac = $3 returning modified_time',
       // XXXddahl: returning modified_time
       /*jslint multistr: false*/
       values: [
@@ -119,10 +121,12 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
     };
 
     client.query(updateQuery, function (err, result) {
+      console.log('updateQuery', updateQuery);
       if (err) {
         return callback(err);
       }
       // XXXddahl: need to return the new modified_time
+      console.log(err, result);
       callback(null);
       done();
     });

@@ -80,10 +80,11 @@ Item.prototype.update = function () {
   }
 
   // update('key', 'value')
-  else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
+  else if (typeof arguments[0] == 'string' && arguments[1]) {
     this[arguments[0]] = arguments[1];
   }
 };
+
 
 // XXXddahl: Item.save()
 Item.prototype.save = function item_save(callback) {
@@ -91,13 +92,15 @@ Item.prototype.save = function item_save(callback) {
 
   var that = this;
 
-  db.saveItem(that.nameHmac, that.accountId, that.value, function (err) {
+  console.log('that: ', that);
+
+  db.saveItem(that.itemNameHmac, that.accountId, that.value, function (err, result) {
     if (err) {
       callback(err);
       return;
     }
 
-    callback(null);
+    callback(null, result);
   });
 };
 

@@ -20,13 +20,20 @@
 
 'use strict';
 
-var errors = crypton.errors = function Item () {
+function Errors () {};
+
+Errors.prototype = {
   // Crypton system error strings
-  this.ARG_MISSING_CALLBACK = 'Callback argument is required';
-  this.ARG_MISSING_STRING = 'String argument is required';
-  this.ARG_MISSING_OBJECT = 'Object argument is required';
-  this.ARG_MISSING = 'Missing required argument';
-  this.PROPERTY_MISSING = 'Missing object property';
+  ARG_MISSING_CALLBACK:  'Callback argument is required',
+  ARG_MISSING_STRING: 'String argument is required',
+  ARG_MISSING_OBJECT: 'Object argument is required',
+  ARG_MISSING: 'Missing required argument',
+  PROPERTY_MISSING: 'Missing object property',
+  UNWRAP_KEY_ERROR: 'Cannot unwrap session key',
+  DECRYPT_CIPHERTEXT_ERROR: 'Cannot decrypt ciphertext',
+  UPDATE_PERMISSION_ERROR: 'Update permission denied'
 };
+
+crypton.errors = new Errors();
 
 })();

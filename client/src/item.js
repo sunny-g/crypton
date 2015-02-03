@@ -109,7 +109,6 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
       }
 
       // XXXddahl: alert listeners?
-      debugger;
       that.parseAndOverwrite(res.body.rawData, callback);
     });
 };
@@ -118,10 +117,11 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
   console.log('parseAndOverwrite', rawData);
   // We were just handed the latest version stored on the server. overwrite locally
   var cipherItem = rawData.ciphertext;
+  var wrappedSessionKey = JSON.parse(rawData.wrappedSessionKey);
 
   // XXXddahl: create 'unwrapPayload()'
-
-  var hash = sjcl.hash.sha256.hash(cipherItem.ciphertext);
+  var ct = JSON.stringify(cipherItem.ciphertext);
+  var hash = sjcl.hash.sha256.hash(ct);
   var verified = false;
   try {
     verified = this.creator.signKeyPub.verify(hash, cipherItem.signature);
@@ -131,22 +131,69 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
     return callback('Cannot verify Item ' + this.getPublicName());
   }
 
-  var decrypted = sjcl.decrypt(this.secretKey, cipherItem.ciphertext, crypton.cipherOptions);
-
-  if (decrypted.error) {
-    console.error(decrypted.error);
-    return callback('Cannot get and decrypt item ' + this.name);
+  // Check for this.sessionKey, or unwrap it
+  var sessionKeyResult;
+  if (!this.sessionKey) {
+    sessionKeyResult =
+      this.session.account.verifyAndDecrypt(wrappedSessionKey,
+                                            this.session.createSelfPeer());
+    if (sessionKeyResult.error) {
+      console.log('Unwrapping Session Key Error: ', sessionKeyResult.error);
+      return callback(ERRS.UNWRAP_KEY_ERROR);
+    }
+    this.sessionKey = JSON.parse(sessionKeyResult.plaintext);
   }
 
-  this.value = JSON.parse(decrypted.plaintext);
-  callback(null, this);
+  var decrypted;
+  try {
+    decrypted = sjcl.decrypt(this.sessionKey, ct, crypton.cipherOptions);
+  } catch (ex) {
+    console.error(ex);
+    console.error(ex.stack);
+    return callback(ERRS.DECRYPT_CIPHERTEXT_ERROR);
+  }
+  var value;
+  if (decrypted) {
+    try {
+      this._value = JSON.parse(decrypted);
+    } catch (ex) {
+      console.error(ex);
+      console.error(ex.stack);
+      // XXXddahl: check to see if this is an actual JSON error (malformed string, etc)
+      this._value = decrypted; // Just a string, not an object
+    }
+
+    // XXXddahl: check to see if the modified_time is newer than our own
+
+    var name;
+    if (this.name) {
+      name = this.name;
+    } else {
+      name = this.getPublicName();
+    }
+    this.session.items[name] = this;
+    callback(null, this);
+  }
 };
 
 Item.prototype.save = function (callback) {
   console.log('saving', this._value);
+
+  if (!callback || typeof callback != 'function') {
+    console.error(ERRS.ARG_MISSING_CALLBACK);
+    return callback(ERRS.ARG_MISSING_CALLBACK);
+  }
+
+  if (this.creator.username != this.session.account.username) {
+    // Only creator of this Item can update it
+    console.error(crypton.errors.UPDATE_PERMISSION_ERROR);
+    return callback(crypton.errors.UPDATE_PERMISSION_ERROR);
+  }
+
   // XXXddahl: verify args!!
   var payload;
   try {
+    debugger;
     payload = this.wrapItem();
   } catch (ex) {
     console.error(ex);
@@ -155,6 +202,7 @@ Item.prototype.save = function (callback) {
   }
   var that = this;
   var url = crypton.url() + '/item/' + this.getPublicName();
+  debugger;
   superagent.post(url)
     .withCredentials()
     .send(payload)

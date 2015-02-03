@@ -105,7 +105,8 @@ Session.prototype.createSelfPeer = function () {
     session: this,
     pubKey: this.account.pubKey,
     signKeyPub: this.account.signKeyPub,
-    signKeyPrivate: this.account.signKeyPrivate
+    signKeyPrivate: this.account.signKeyPrivate,
+    username: this.account.username
   });
   selfPeer.trusted = true;
   return selfPeer;

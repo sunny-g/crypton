@@ -193,16 +193,16 @@ Item.prototype.save = function (callback) {
   // XXXddahl: verify args!!
   var payload;
   try {
-    debugger;
     payload = this.wrapItem();
   } catch (ex) {
     console.error(ex);
     console.error(ex.stack);
     return callback('Cannot wrap/save item');
   }
+
   var that = this;
   var url = crypton.url() + '/item/' + this.getPublicName();
-  debugger;
+
   superagent.post(url)
     .withCredentials()
     .send(payload)
@@ -212,9 +212,21 @@ Item.prototype.save = function (callback) {
       if (!res.body.success) {
         return callback('Cannot save item');
       }
-      // set modified_time to latest
+      // XXXddahl: set modified_time to latest
       return callback(null, that);
     });
+};
+
+Item.prototype.update = function item_update (newValue, callback) {
+  if (!callback || typeof callback != 'function') {
+    console.error(ERRS.ARG_MISSING_CALLBACK);
+    throw new Error(ERRS.ARG_MISSING_CALLBACK);
+  }
+  if (!newValue) {
+    return callback(ERRS.ARG_MISSING);
+  }
+  this._value = newValue;
+  this.save(callback);
 };
 
 Item.prototype.share = function () {

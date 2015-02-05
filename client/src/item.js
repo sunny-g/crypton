@@ -172,6 +172,7 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
       name = this.getPublicName();
     }
     this.session.items[name] = this;
+    this.modTime = new Date(rawData.modTime);
     callback(null, this);
   }
 };
@@ -190,7 +191,6 @@ Item.prototype.save = function (callback) {
     return callback(crypton.errors.UPDATE_PERMISSION_ERROR);
   }
 
-  // XXXddahl: verify args!!
   var payload;
   try {
     payload = this.wrapItem();
@@ -212,11 +212,12 @@ Item.prototype.save = function (callback) {
       if (!res.body.success) {
         return callback('Cannot save item');
       }
-      // XXXddahl: set modified_time to latest
-      return callback(null, that);
+      that.modTime = new Date(res.body.result.modTime);
+      return callback(null, res.body.result);
     });
 };
 
+// Wrap save to allow manually updating the item, using a custom callback
 Item.prototype.update = function item_update (newValue, callback) {
   if (!callback || typeof callback != 'function') {
     console.error(ERRS.ARG_MISSING_CALLBACK);
@@ -227,23 +228,6 @@ Item.prototype.update = function item_update (newValue, callback) {
   }
   this._value = newValue;
   this.save(callback);
-};
-
-Item.prototype.share = function () {
-  throw new Error('Unimplemented');
-};
-
-Item.prototype.unshare = function () {
-  throw new Error('Unimplemented');
-};
-
-Item.prototype.watch = function (listener) {
-  throw new Error('Unimplemented');
-  // this.listeners.push(listener);
-};
-
-Item.prototype.unwatch = function () {
-  throw new Error('Unimplemented');
 };
 
 /**!
@@ -341,6 +325,66 @@ Item.prototype.wrapItem = function item_wrapItem () {
   };
 
   return payload;
+};
+
+Item.prototype.remove = function (callback) {
+  if (!callback) {
+    throw new Error('Callback function required');
+  } else {
+    if (typeof callback != 'function') {
+      throw new Error('Callback argument type must be function');
+    }
+  }
+  // Verify client side ownership (DB check on server will also happen)
+  if (this.creator.username != this.session.account.username) {
+    // Only creator of this Item can update it
+    console.error(crypton.errors.UPDATE_PERMISSION_ERROR);
+    return callback(crypton.errors.UPDATE_PERMISSION_ERROR);
+  }
+
+  var that = this;
+  // post remove item
+  var url = crypton.url() + '/removeitem';
+
+  var payload = {
+    itemNameHmac: this.getPublicName()
+  };
+
+  superagent.post(url)
+    .withCredentials()
+    .send(payload)
+    .end(function (res) {
+    console.log(res);
+    if (!res.body.success) {
+      return callback('Cannot remove item');
+    }
+    that.deleted = new Date();
+    callback(null);
+    // Sneakily call a session method to remove this cached item
+    that.session.removeLocalItem(that.nameHmac, function (err, success) {
+      if (err) {
+        console.error(err);
+      }
+      console.log(null, success);
+    });
+  });
+};
+
+Item.prototype.share = function () {
+  throw new Error('Unimplemented');
+};
+
+Item.prototype.unshare = function () {
+  throw new Error('Unimplemented');
+};
+
+Item.prototype.watch = function (listener) {
+  throw new Error('Unimplemented');
+  // this.listeners.push(listener);
+};
+
+Item.prototype.unwatch = function () {
+  throw new Error('Unimplemented');
 };
 
 })();

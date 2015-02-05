@@ -42,18 +42,6 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
     var query = {
       // TODO limit to to_account_id
       /*jslint multistr: true*/
-      // text: '\
-      //   select \
-      //     item.*, \
-      //     item_session_key_share.session_key_ciphertext \
-      //   from item \
-      //     join item_session_key using (item_session_key_id) \
-      //     join item_session_key_share using (item_session_key_id) \
-      //   where item_session_key.supercede_time is null \
-      //     and item_session_key_share.deletion_time is null \
-      //     and item.name_hmac = $1 \
-      //     and item_session_key_share.to_account_id = $2 \
-      //   order by item.creation_time, item_id asc',
       text: 'select i.item_id, i.value, i.name_hmac, i.account_id, \
              i.modified_time, sk.item_id, \
              s.session_key_ciphertext \
@@ -82,9 +70,6 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
         done();
         return callback(err);
       }
-      console.log('\n\n  WTF \n\n');
-      console.log('result: ', result);
-      console.log('\n\n  WTF \n\n');
 
       if (result.rowCount != 1) {
         return callback('Item does not exist');
@@ -93,7 +78,7 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
       done();
       var rawData = {
         ciphertext: JSON.parse(result.rows[0].value.toString()),
-        modified_time: result.rows[0].modified_time,
+        modTime: Date.parse(result.rows[0].modified_time),
         wrappedSessionKey: result.rows[0].session_key_ciphertext
       };
       console.log(rawData);
@@ -111,7 +96,6 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
         update \
         item set value = $1 \
         where account_id = $2 and name_hmac = $3 returning modified_time',
-      // XXXddahl: returning modified_time
       /*jslint multistr: false*/
       values: [
         value,
@@ -125,9 +109,10 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
       if (err) {
         return callback(err);
       }
-      // XXXddahl: need to return the new modified_time
       console.log(err, result);
-      callback(null);
+      callback(null, { modTime: Date.parse(result.rows[0].modified_time),
+                       itemNameHmac: itemNameHmac
+                     });
       done();
     });
   });
@@ -202,7 +187,7 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
           // success
           client.query('commit');
           done();
-          var metadata = { itemNameHmac: itemNameHmac, modTime: modTime };
+          var metadata = { itemNameHmac: itemNameHmac, modTime: Date.parse(modTime) };
           callback(null, metadata);
         });
       });
@@ -210,8 +195,38 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
   });
 };
 
+// removeItem
+exports.removeItem =
+function (itemNameHmac, accountId, callback) {
+  connect(function (client, done) {
+    client.query('begin');
+    var query = {
+      /*jslint multistr: true*/
+      text: '\
+        delete from item where name_hmac = $1 and account_id = $2',
+        // All child rows in item_session_key & item_session_key_share will cascade delete
+      /*jslint multistr: false*/
+      values: [
+        itemNameHmac,
+        accountId
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      console.log('ItemDelete');
+      if (err) {
+        console.error(err);
+        done();
+        return callback(err);
+      }
+      client.query('commit');
+      done();
+      console.log(result);
+      return callback(null, result.rows[0]);
+    });
+  });
+}
+
 // XXX shareItem
 
 // XXX unShareItem
-
-// XXX removeItem

@@ -31,7 +31,8 @@ Errors.prototype = {
   PROPERTY_MISSING: 'Missing object property',
   UNWRAP_KEY_ERROR: 'Cannot unwrap session key',
   DECRYPT_CIPHERTEXT_ERROR: 'Cannot decrypt ciphertext',
-  UPDATE_PERMISSION_ERROR: 'Update permission denied'
+  UPDATE_PERMISSION_ERROR: 'Update permission denied',
+  LOCAL_ITEM_MISSING: 'Cannot delete local Item, not currently cached'
 };
 
 crypton.errors = new Errors();

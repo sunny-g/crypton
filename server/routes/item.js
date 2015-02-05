@@ -72,7 +72,7 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
   console.log('value', value);
   item.update('value', value);
 
-  item.save(function (err) {
+  item.save(function (err, result) {
     if (err) {
       res.send({
         success: false,
@@ -83,7 +83,8 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
     }
 
     res.send({
-      success: true
+      success: true,
+      result: result
     });
   });
 });
@@ -133,6 +134,50 @@ app.post('/createitem', verifySession, function (req, res) {
     res.send({
       success: true,
       itemMetaData: metaData
+    });
+  });
+});
+
+/**!
+ * ### POST /item/remove
+ * Create item value for the given `itemNameHmac`
+*/
+app.post('/removeitem', verifySession, function (req, res) {
+  app.log('debug', 'handling "remove"');
+  app.log('debug', req);
+
+  var item = new Item();
+
+  var accountId = req.session.accountId;
+  if (!accountId) {
+    res.send({
+      success: false,
+      error: 'Missing accountId in POST'
+    });
+  }
+  item.update('accountId', accountId);
+
+  var itemNameHmac = req.body.itemNameHmac;
+  if (!itemNameHmac) {
+    res.send({
+      success: false,
+      error: 'Missing itemNameHmac in POST'
+    });
+  }
+  item.update('itemNameHmac', itemNameHmac);
+
+  item.remove(function (err, result) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      itemMetaData: result
     });
   });
 });

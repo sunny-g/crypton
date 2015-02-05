@@ -121,3 +121,20 @@ Item.prototype.create = function item_create(callback) {
     callback(null, itemMetaData);
   });
 };
+
+// Item.remove()
+Item.prototype.remove = function item_remove(callback) {
+  app.log('debug', 'remove item');
+
+  var that = this;
+
+  db.removeItem(that.itemNameHmac, that.accountId,
+  function (err, result) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    console.log(result);
+    callback(null, result);
+  });
+};

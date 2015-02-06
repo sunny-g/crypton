@@ -21,7 +21,7 @@ describe('Item tests', function () {
 
   var alice;
   var aliceSession;
-  var itemHmacName;
+  var itemNameHmac;
   var item1;
 
   describe('Create Account', function () {
@@ -53,6 +53,7 @@ describe('Item tests', function () {
         assert(item);
         assert(item.sessionKey);
         assert(item.value);
+        itemNameHmac = item.nameHmac;
         done();
       });
     });
@@ -75,8 +76,17 @@ describe('Item tests', function () {
       done();
     });
 
-    // Clear out cached item, reload from server
-    
+    // remove item
+    it('removes item', function (done) {
+      var nameHmac = aliceSession.items['my-first-item'].nameHmac
+      aliceSession.removeItem(nameHmac, function (err) {
+        if (err) {
+          throw new Error(err);
+        }
+        assert.equal(Object.keys(aliceSession.items).length, 0);
+        done();
+      });
+    });
 
   });
 });

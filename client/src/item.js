@@ -360,13 +360,6 @@ Item.prototype.remove = function (callback) {
     }
     that.deleted = new Date();
     callback(null);
-    // Sneakily call a session method to remove this cached item
-    that.session.removeLocalItem(that.nameHmac, function (err, success) {
-      if (err) {
-        console.error(err);
-      }
-      console.log(null, success);
-    });
   });
 };
 

@@ -71,26 +71,21 @@ var Session = crypton.Session = function (id) {
   });
 };
 
-Session.prototype.removeLocalItem =
-function removeLocalItem (itemNameHmac, callback) {
-  // callback is optional here
-  var callbackNull = false;
-  if (!callback) {
-    callbackNull = true;
-  }
-  if (!itemNameHmac) {
-    if (!callbackNull) {
-      console.error(crypton.errors.ARG_MISSING);
-      return callback(crypton.errors.ARG_MISSING);
-    }
-  }
-
+Session.prototype.removeItem = function removeItem (itemNameHmac, callback) {
+  var that = this;
   for (var name in this.items) {
     if (this.items[name].nameHmac == itemNameHmac) {
-      delete this.items[name];
-      return callback(null, true);
-    } else {
-      return callback(crypton.errors.LOCAL_ITEM_MISSING);
+      this.items[name].remove(function (err) {
+        if (err) {
+          console.error(err);
+          callback(err);
+          return;
+        }
+        if (that.items[name].deleted) {
+          delete that.items[name];
+          callback(null);
+        }
+      });
     }
   }
 };

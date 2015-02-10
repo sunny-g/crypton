@@ -5,6 +5,7 @@ pushd `dirname $0` > /dev/null
 SCRIPT_PATH=`pwd -P`
 popd > /dev/null
 UGLIFY_PATH="$SCRIPT_PATH/node_modules/uglify-js/bin/uglifyjs"
+JSON_PATH="$SCRIPT_PATH/node_modules/.bin/json"
 
 has_md5 () {
   for PROG in md5 md5sum; do
@@ -34,6 +35,20 @@ has_uglify () {
   fi
 }
 
+has_json() {
+  if [ ! -f $UGLIFY_PATH ]; then
+    if [ $1 ]; then
+      echo "Json installation failed. Please install it manually."
+      exit 1
+    fi
+
+    echo "Json not found. Attempting to install it..."
+    cd $SCRIPT_PATH
+    npm install &> /dev/null
+    has_json 1
+  fi
+}
+
 daemon () {
   chsum1=""
 
@@ -51,6 +66,7 @@ daemon () {
 
 compile () {
   echo "Compiling client code to crypton.js..."
+  VERSION=`cat ./package.json | $JSON_PATH version`
   mkdir -p dist
   cat \
     src/core.js \
@@ -67,6 +83,7 @@ compile () {
     src/item.js \
     src/errors.js \
     src/vendor/*.js \
+    | sed 's/PACKAGE_VERSION/'$VERSION'/' \
     > dist/crypton.js
   $UGLIFY_PATH dist/crypton.js > dist/crypton.min.js
 }

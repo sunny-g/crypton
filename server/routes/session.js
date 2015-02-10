@@ -18,6 +18,8 @@
 
 'use strict';
 
+var semver = require('semver');
+
 var app = process.app;
 
 app.get('/session', function (req, res) {
@@ -43,9 +45,10 @@ app.get('/', function (req, res) {
 app.get('/versioncheck', function (req, res) {
   app.log('debug', 'handling GET /versioncheck');
   app.log('debug', 'server version: ' + app.SERVER_VERSION);
-  if (req.query.v != app.SERVER_VERSION) {
+  if (!semver.satisfies(app.SERVER_VERSION, '~'+req.query.v)) {
     return res.send({
       success: false,
+      version: app.SERVER_VERSION,
       error: 'version mismatch detected',
       data: { server: 'crypton'}
     });
@@ -53,6 +56,7 @@ app.get('/versioncheck', function (req, res) {
 
   return res.send({
     success: true,
+    version: app.SERVER_VERSION,
     data: { server: 'crypton'}
   });
 });

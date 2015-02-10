@@ -51,23 +51,12 @@ actions.register = function (username, passphrase, callback) {
   });
 }
 
-function createSelfPeer () {
-  var selfPeer = new crypton.Peer({
-    session: app.session,
-    pubKey: app.session.account.pubKey,
-    signKeyPub: app.session.account.signKeyPub,
-    signKeyPrivate: app.session.account.signKeyPrivate
-  });
-  selfPeer.trusted = true;
-  return selfPeer;
-}
-
 function createItem (name, value) {
   if (!name && !value) {
     throw new Error('Missing Args!');
   }
   var _item =
-  new crypton.Item(name, value, app.session, createSelfPeer(),
+  new crypton.Item(name, value, app.session, app.session.createSelfPeer(),
   function callback(err, item) {
     console.log(err, item);
     if (err) {

@@ -120,7 +120,14 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
       if (err) {
         return callback(err);
       }
-      callback(null, { modTime: Date.parse(result.rows[0].modified_time),
+      var modTime;
+      try {
+        modTime = result.rows[0].modified_time;
+      } catch (ex) {
+        console.error(ex);
+        console.error(ex.stack);
+      }
+      callback(null, { modTime: Date.parse(modTime),
                        itemNameHmac: itemNameHmac
                      });
       done();

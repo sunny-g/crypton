@@ -26,6 +26,7 @@ var connect = require('connect');
 var express = require('express');
 var util = require('./lib/util');
 var appsec = require('lusca');
+var version = require('./package.json').version;
 
 var app = process.app = module.exports = express();
 app.log = require('./lib/log');
@@ -38,7 +39,7 @@ app.id_translator = require('id_translator')
 
 app.log('info', 'configuring server');
 
-app.SERVER_VERSION = '0.0.3';
+app.SERVER_VERSION = version;
 
 app.secret = util.readFileSync(
   // TODO: 'binary' encoding is deprecated

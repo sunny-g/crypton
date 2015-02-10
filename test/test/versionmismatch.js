@@ -23,7 +23,11 @@ describe('Version Mismatch checking', function () {
 
   describe('Account generation', function () {
     it('should refuse registrations when versions mismatch', function (done) {
-      crypton.version = '0.0.1';
+      if (semver.lte(crypton.version, '0.1.0')) {
+        crypton.version = semver.inc(crypton.version, 'minor');
+      } else {
+        crypton.version = semver.inc(crypton.version, 'major');
+      }
       crypton.generateAccount('mismatchname', 'pass', function (err, account) {
         crypton.version = REAL_VERSION;
         assert.equal(err, 'Server and client version mismatch');

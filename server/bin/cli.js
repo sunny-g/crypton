@@ -48,9 +48,10 @@
 var fs = require('fs');
 var program = require('commander');
 var forever = require('forever');
+var version = require('../package.json').version;
 
 program
-  .version('0.0.2')
+  .version(version)
   .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
   .option('-d, --docker', 'Enable docker mode to use environment variables rather than a config file [default false]');
 

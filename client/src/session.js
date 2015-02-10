@@ -34,6 +34,7 @@ var Session = crypton.Session = function (id) {
   this.peers = {};
   this.events = {};
   this.containers = [];
+  this.items = {};
   this.inbox = new crypton.Inbox(this);
 
   var that = this;
@@ -68,6 +69,94 @@ var Session = crypton.Session = function (id) {
       }
     }
   });
+};
+
+/**!
+ * ### removeItem(itemNameHmac, callback)
+ * Remove/delete Item with given 'itemNameHmac',
+ * both from local cache & server
+ *
+ * Calls back with success boolean and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {Function} callback
+ */
+Session.prototype.removeItem = function removeItem (itemNameHmac, callback) {
+  var that = this;
+  for (var name in this.items) {
+    if (this.items[name].nameHmac == itemNameHmac) {
+      this.items[name].remove(function (err) {
+        if (err) {
+          console.error(err);
+          callback(err);
+          return;
+        }
+        if (that.items[name].deleted) {
+          delete that.items[name];
+          callback(null);
+        }
+      });
+    }
+  }
+};
+
+/**!
+ * ### getOrCreateItem(itemName, callback)
+ * Create or Retrieve Item with given platintext `itemName`,
+ * either from local cache or server
+ *
+ * Calls back with Item and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemName
+ * @param {Function} callback
+ */
+Session.prototype.getOrCreateItem =
+function getOrCreateItem (itemName,  callback) {
+
+  if (!itemName) {
+    return callback('itemName is required');
+  }
+  if (!callback) {
+    throw new Error('Missing required callback argument');
+  }
+  // Get cached item if exists
+  // XXXddahl: check server for more recent item?
+  if (this.items[itemName]) {
+    callback(null, this.items[itemName]);
+    return;
+  }
+
+  var creator = this.createSelfPeer();
+  var item =
+  new crypton.Item(itemName, null, this, creator, function getItemCallback(err, item) {
+    if (err) {
+      console.error(err);
+      return callback(err);
+    }
+    callback(null, item);
+  });
+};
+
+/**!
+ * ### createSelfPeer()
+ * returns a 'selfPeer' object which is needed for any kind of
+ * self-signing, encryption or verification
+ *
+ */
+Session.prototype.createSelfPeer = function () {
+  var selfPeer = new crypton.Peer({
+    session: this,
+    pubKey: this.account.pubKey,
+    signKeyPub: this.account.signKeyPub,
+    signKeyPrivate: this.account.signKeyPrivate,
+    username: this.account.username
+  });
+  selfPeer.trusted = true;
+  return selfPeer;
 };
 
 /**!

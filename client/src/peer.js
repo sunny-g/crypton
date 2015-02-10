@@ -133,6 +133,8 @@ Peer.prototype.encryptAndSign = function (payload) {
     var signature = this.session.account.signKeyPrivate.sign(hash, crypton.paranoia);
     return { ciphertext: JSON.parse(ciphertext), signature: signature, error: null };
   } catch (ex) {
+    console.log(ex);
+    console.log(ex.stack);
     var err = "Error: Could not complete encryptAndSign: " + ex;
     return { ciphertext: null, signature: null, error: err };
   }

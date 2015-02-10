@@ -80,6 +80,8 @@ compile () {
     src/diff.js \
     src/work.js \
     src/card.js \
+    src/item.js \
+    src/errors.js \
     src/vendor/*.js \
     | sed 's/PACKAGE_VERSION/'$VERSION'/' \
     > dist/crypton.js

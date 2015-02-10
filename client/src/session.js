@@ -31,8 +31,8 @@
  */
 var Session = crypton.Session = function (id) {
   this.id = id;
-  this.peers = [];
-  this.events = [];
+  this.peers = {};
+  this.events = {};
   this.containers = [];
   this.inbox = new crypton.Inbox(this);
 
@@ -53,7 +53,7 @@ var Session = crypton.Session = function (id) {
     // if any of the cached containers match the HMAC
     // in the notification, sync the container and
     // call the listener if one has been set
-    for (var i in that.containers) {
+    for (var i = 0; i < that.containers.length; i++) {
       var container = that.containers[i];
       var temporaryHmac = container.containerNameHmac || container.getPublicName();
 
@@ -392,4 +392,3 @@ Session.prototype.emit = function (eventName, data) {
 };
 
 })();
-

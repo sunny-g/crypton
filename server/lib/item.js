@@ -59,7 +59,7 @@ Item.prototype.get = function (itemNameHmac, callback) {
 
 /**!
  * ### update()
- * Update one or a set of keys in the parent item object
+ * Update one or a set of keys in the item object
  *
  * @param {String} key
  * @param {Object} value
@@ -68,11 +68,8 @@ Item.prototype.get = function (itemNameHmac, callback) {
  *
  * @param {Object} input
  */
-// TODO add field validation and callback
 Item.prototype.update = function () {
-  // update({ key: 'value' });
-
-  // validate object keys/values
+  // XXXddahl: validate object keys/values against 'valid keys'
   if (typeof arguments[0] == 'object') {
     for (var key in arguments[0]) {
       this[key] = arguments[0][key];
@@ -85,15 +82,17 @@ Item.prototype.update = function () {
   }
 };
 
-
-// XXXddahl: Item.save()
+/**!
+ * ### save()
+ * Save the current state of the Item
+ *
+ * @param {Function} callback
+ *
+ */
 Item.prototype.save = function item_save(callback) {
-  app.log('debug', 'saving item.....');
+  app.log('debug', 'Saving item');
 
   var that = this;
-
-  console.log('that: ', that);
-
   db.saveItem(that.itemNameHmac, that.accountId, that.value, function (err, result) {
     if (err) {
       callback(err);
@@ -104,12 +103,17 @@ Item.prototype.save = function item_save(callback) {
   });
 };
 
-// Item.create()
+/**!
+ * ### create()
+ * Create an Item
+ *
+ * @param {Function} callback
+ *
+ */
 Item.prototype.create = function item_create(callback) {
   app.log('debug', 'creating item');
 
   var that = this;
-
   db.createItem(that.itemNameHmac, that.accountId,
                 that.value, that.wrappedSessionKey,
   function (err, itemMetaData) {
@@ -117,24 +121,27 @@ Item.prototype.create = function item_create(callback) {
       callback(err);
       return;
     }
-    console.log(itemMetaData);
     callback(null, itemMetaData);
   });
 };
 
-// Item.remove()
+/**!
+ * ### remove()
+ * Remove an Item
+ *
+ * @param {Function} callback
+ *
+ */
 Item.prototype.remove = function item_remove(callback) {
   app.log('debug', 'remove item');
 
   var that = this;
-
   db.removeItem(that.itemNameHmac, that.accountId,
   function (err, result) {
     if (err) {
       callback(err);
       return;
     }
-    console.log(result);
     callback(null, result);
   });
 };

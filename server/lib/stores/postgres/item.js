@@ -1,4 +1,4 @@
-/* Crypton Server, Copyright 2013 SpiderOak, Inc.
+/* Crypton Server, Copyright 2015 SpiderOak, Inc.
  *
  * This file is part of Crypton Server.
  *
@@ -87,8 +87,20 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
   });
 };
 
+/**!
+ * ### saveItem(itemNameHmac, accountId, value, callback)
+ * Save Item
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {Number} accountId
+ * @param {String} value
+ * @param {Function} callback
+ */
 exports.saveItem = function (itemNameHmac, accountId, value, callback) {
-  console.log(arguments);
   connect(function (client, done) {
     var updateQuery = {
       /*jslint multistr: true*/
@@ -105,11 +117,9 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
     };
 
     client.query(updateQuery, function (err, result) {
-      console.log('updateQuery', updateQuery);
       if (err) {
         return callback(err);
       }
-      console.log(err, result);
       callback(null, { modTime: Date.parse(result.rows[0].modified_time),
                        itemNameHmac: itemNameHmac
                      });
@@ -118,10 +128,22 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
   });
 };
 
+/**!
+ * ### createItem(itemNameHmac, accountId, value, callback)
+ * Save Item
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {Number} accountId
+ * @param {String} value
+ * @param {Function} callback
+ */
 exports.createItem =
 function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
   connect(function (client, done) {
-    // do multiple queries before commiting so we can rollback if needed
     client.query('begin');
     var query = {
       /*jslint multistr: true*/
@@ -138,14 +160,12 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
     };
 
     client.query(query, function (err, result) {
-      console.log('ItemQuery');
       if (err) {
         console.error(err);
         client.query('rollback');
         done();
         return callback(err);
       }
-      console.log('result: ', result);
       var itemId = result.rows[0].item_id;
       var modTime = result.rows[0].modified_time;
 
@@ -158,14 +178,12 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
       };
 
       client.query(sessionKeyQuery, function (err, result) {
-        console.log('sessionKeyQuery');
         if (err) {
           console.error(err);
           client.query('rollback');
           done();
           return callback(err);
         }
-        console.log(result);
         var itemSessionKeyId = result.rows[0].item_session_key_id;
 
         // sessionkey share query
@@ -177,7 +195,6 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
         };
 
         client.query(sessionKeyShareQuery, function (err, result) {
-          console.log('sessionKeyShareQuery');
           if (err) {
             console.error(err);
             client.query('rollback');
@@ -195,7 +212,19 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
   });
 };
 
-// removeItem
+/**!
+ * ### removeItem(itemNameHmac, accountId, value, callback)
+ * Remove Item
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {Number} accountId
+ * @param {String} value
+ * @param {Function} callback
+ */
 exports.removeItem =
 function (itemNameHmac, accountId, callback) {
   connect(function (client, done) {
@@ -204,7 +233,8 @@ function (itemNameHmac, accountId, callback) {
       /*jslint multistr: true*/
       text: '\
         delete from item where name_hmac = $1 and account_id = $2',
-        // All child rows in item_session_key & item_session_key_share will cascade delete
+        // All child rows in item_session_key &
+        // item_session_key_share will cascade delete
       /*jslint multistr: false*/
       values: [
         itemNameHmac,
@@ -213,7 +243,6 @@ function (itemNameHmac, accountId, callback) {
     };
 
     client.query(query, function (err, result) {
-      console.log('ItemDelete');
       if (err) {
         console.error(err);
         done();
@@ -221,7 +250,6 @@ function (itemNameHmac, accountId, callback) {
       }
       client.query('commit');
       done();
-      console.log(result);
       return callback(null, result.rows[0]);
     });
   });

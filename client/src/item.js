@@ -44,7 +44,7 @@ var Item = crypton.Item = function Item (name, value, session, creator, callback
     if (err) {
       // throws if there is an error
       // and no callback supplied
-      console.log(err);
+      console.error(err);
       throw new Error(err);
     }
   });
@@ -70,7 +70,6 @@ var Item = crypton.Item = function Item (name, value, session, creator, callback
 Item.prototype.getPublicName = function () {
   // Must always return nameHmac
   if (!this.name) {
-    console.log(ERRS.PROPERTY_MISSING);
     throw new Error(ERRS.PROPERTY_MISSING);
   }
   if (this.nameHmac) {
@@ -88,34 +87,25 @@ Item.prototype.sync = function (callback) {
 };
 
 Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
-  console.log('syncWithHmac()');
   var that = this;
   var url = crypton.url() + '/item/' + itemNameHmac;
 
   superagent.get(url)
     .withCredentials()
     .end(function (res) {
-      console.log('syncWithHmac result: ', res);
-
       var doesNotExist = 'Item does not exist';
-
       if ((!res.body || res.body.success !== true) && res.body.error != doesNotExist) {
         return callback(res.body.error);
       }
-
       if (res.body.error == doesNotExist) {
-        console.log('does not exist, creating....');
         return that.create(callback);
       }
-
       // XXXddahl: alert listeners?
       that.parseAndOverwrite(res.body.rawData, callback);
     });
 };
 
 Item.prototype.parseAndOverwrite = function (rawData, callback) {
-  console.log('parseAndOverwrite', rawData);
-  // We were just handed the latest version stored on the server. overwrite locally
   var cipherItem = rawData.ciphertext;
   var wrappedSessionKey = JSON.parse(rawData.wrappedSessionKey);
 
@@ -138,7 +128,6 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
       this.session.account.verifyAndDecrypt(wrappedSessionKey,
                                             this.session.createSelfPeer());
     if (sessionKeyResult.error) {
-      console.log('Unwrapping Session Key Error: ', sessionKeyResult.error);
       return callback(ERRS.UNWRAP_KEY_ERROR);
     }
     this.sessionKey = JSON.parse(sessionKeyResult.plaintext);
@@ -178,8 +167,6 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
 };
 
 Item.prototype.save = function (callback) {
-  console.log('saving', this._value);
-
   if (!callback || typeof callback != 'function') {
     console.error(ERRS.ARG_MISSING_CALLBACK);
     return callback(ERRS.ARG_MISSING_CALLBACK);
@@ -207,8 +194,6 @@ Item.prototype.save = function (callback) {
     .withCredentials()
     .send(payload)
     .end(function (res) {
-      // XXXdddahl: error checking
-      console.log('success: ', res.body.success);
       if (!res.body.success) {
         return callback('Cannot save item');
       }
@@ -241,7 +226,6 @@ Item.prototype.update = function item_update (newValue, callback) {
  * @param {Function} callback
  */
 Item.prototype.create = function (callback) {
-  console.log('create()');
   if (!callback) {
     throw new Error('Callback function required');
   } else {
@@ -266,8 +250,6 @@ Item.prototype.create = function (callback) {
   // post create item
   var url = crypton.url() + '/createitem';
   superagent.post(url).withCredentials().send(payload).end(function (res) {
-    // XXXddahl: better error checking & reporting needed
-    console.log(res);
     if (!res.body.success) {
       return callback('Cannot create item');
     }
@@ -354,7 +336,6 @@ Item.prototype.remove = function (callback) {
     .withCredentials()
     .send(payload)
     .end(function (res) {
-    console.log(res);
     if (!res.body.success) {
       return callback('Cannot remove item');
     }

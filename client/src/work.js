@@ -27,11 +27,12 @@
  * with a bridge API to said worker
 */
 !self.worker && window.addEventListener('load', function () {
+  return;
   var scriptEls = document.getElementsByTagName('script');
   var path;
 
   for (var i in scriptEls) {
-    if (scriptEls[i].src && ~scriptEls[i].src.indexOf('crypton')) {
+    if (scriptEls[i].src && ~scriptEls[i].src.indexOf('crypton.js')) {
       path = scriptEls[i].src;
     }
   }
@@ -76,7 +77,7 @@ work.calculateSrpA = function (options, callback) {
       srpAstr: srpAstr
     });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     callback(e);
   }
 };
@@ -112,7 +113,7 @@ work.calculateSrpM1 = function (options, callback) {
 
     callback(null, srpM1, srpM2);
   } catch (e) {
-    console.log(e);
+    console.error(e);
     callback(e);
   }
 };
@@ -132,10 +133,11 @@ work.calculateSrpM1 = function (options, callback) {
 work.unravelAccount = function (account, callback) {
   var ret = {};
 
+  var numRounds =  crypton.MIN_PBKDF2_ROUNDS;
   // regenerate keypair key from password
-  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt);
-  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt);
-  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt);
+  var keypairKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairSalt, numRounds);
+  var keypairMacKey = sjcl.misc.pbkdf2(account.passphrase, account.keypairMacSalt, numRounds);
+  var signKeyPrivateMacKey = sjcl.misc.pbkdf2(account.passphrase, account.signKeyPrivateMacSalt, numRounds);
 
   var macOk = false;
 
@@ -259,7 +261,7 @@ work.decryptRecord = function (options, callback) {
   try {
     verified = peerSignKeyPub.verify(payloadCiphertextHash, record.signature);
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 
   if (!verified) {

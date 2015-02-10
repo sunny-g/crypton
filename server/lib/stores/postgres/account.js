@@ -341,3 +341,90 @@ exports.getUserCount = function (callback) {
     });
   });
 };
+
+/**!
+ * ### updateKeyring(account, callback)
+ * Update base_keyring rows with new data after passphrase change
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} keyring
+ * @param {Function} callback
+ */
+exports.updateKeyring = function updateKeyring(keyring, callback) {
+  var requiredFields = [
+    'accountId',
+    'keypairCiphertext',
+    'keypairMac',
+    'keypairSalt',
+    'keypairMacSalt',
+    'signKeyPrivateMacSalt',
+    'srpVerifier',
+    'srpSalt',
+    'signKeyPrivateCiphertext',
+    'signKeyPrivateMac',
+    'containerNameHmacKeyCiphertext',
+    'hmacKeyCiphertext'
+  ];
+
+  for (var i in requiredFields) {
+    if (!keyring[requiredFields[i]]) {
+      callback('Missing field: ' + requiredFields[i]);
+      return;
+    }
+  }
+  connect(function (client, done) {
+    var keyringQuery = {
+      text: '\
+      update base_keyring \
+      set keypair = $2, \
+      keypair_salt = $3, \
+      keypair_mac_salt = $4, \
+      keypair_mac = $5, \
+      container_name_hmac_key = $6, \
+      hmac_key = $7, \
+      srp_verifier = $8, \
+      srp_salt = $9, \
+      sign_key_private_mac_salt = $10, \
+      sign_key_private_ciphertext = $11, \
+      sign_key_private_mac = $12 \
+      where base_keyring.account_id = $1',
+      values: [
+        keyring.accountId,
+        keyring.keypairCiphertext,
+        keyring.keypairSalt,
+        keyring.keypairMacSalt,
+        keyring.keypairMac,
+        keyring.containerNameHmacKeyCiphertext,
+        keyring.hmacKeyCiphertext,
+        keyring.srpVerifier,
+        keyring.srpSalt,
+        keyring.signKeyPrivateMacSalt,
+        keyring.signKeyPrivateCiphertext,
+        keyring.signKeyPrivateMac
+      ]
+    };
+
+    client.query(keyringQuery, function (err) {
+      if (err) {
+        client.query('rollback');
+        done();
+
+        if (err.code === '23514') {
+          callback('Invalid keyring data.');
+        } else {
+          console.log('Unhandled database error: ' + err);
+          callback('Database error.');
+        }
+        return;
+      }
+
+      client.query('commit', function () {
+        done();
+        callback();
+      });
+    });
+  });
+};

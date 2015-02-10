@@ -153,13 +153,44 @@ app.post('/account/:username/answer', function (req, res) {
  * Placeholder route for posting regenerated
  * keyring data after a password change
 */
-// TODO implement this!
 app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {
     app.log('debug', 'handling POST /account/:username/keyring');
-    res.send({
-      success: true
+    var account = new Account();
+    account.get(req.params.username, function (err) {
+      if (err) {
+        res.send({
+          success: false,
+          error: err
+        });
+        return;
+      }
+      // Let's update the account
+      var newAccountData = {};
+      for (var key in req.body) {
+        newAccountData[key] = req.body[key];
+      }
+      // Need the account ID
+      newAccountData.accountId = account.accountId
+
+      // Write new keyring into the database
+      account.changePassphrase(newAccountData, function (err) {
+        if (err) {
+          app.log('debug', err);
+          res.send({
+            success: false,
+            error: 'Could not update passphrase'
+          });
+          return;
+        }
+        // success
+        res.send({
+          success: true
+        });
+        // XXXddahl: TODO: invalidate the user's session,
+        // any connected clients other than this one will be force logged out
+      });
     });
   }
 );

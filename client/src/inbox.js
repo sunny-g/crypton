@@ -24,8 +24,8 @@ var Inbox = crypton.Inbox = function Inbox (session) {
   this.session = session;
   this.rawMessages = [];
   this.messages = {};
-
-  this.poll();
+  // XXXddahl: let's turn poll() off for now
+  // this.poll();
 };
 
 Inbox.prototype.poll = function (callback) {
@@ -44,8 +44,9 @@ Inbox.prototype.poll = function (callback) {
     // should we merge or overwrite here?
     that.rawMessages = res.body.messages;
     that.parseRawMessages();
-
-    callback(null, res.body.messages);
+    if (callback) {
+      callback(null, res.body.messages);
+    }
   });
 };
 
@@ -113,6 +114,23 @@ Inbox.prototype.delete = function (id, callback) {
   });
 };
 
+Inbox.prototype.getAllMetadata = function (callback) {
+  var that = this;
+  var url = crypton.url() + '/inbox-metadata';
+  callback = callback || function () {};
+
+  superagent.get(url)
+    .withCredentials()
+    .end(function (res) {
+    if (!res.body || res.body.success !== true) {
+      callback(res.body.error);
+      return;
+    }
+    callback(null, res.body.metadata);
+    return;
+  });
+},
+
 Inbox.prototype.clear = function (callback) {
   // start + commit tx
   var chunk = {
@@ -132,7 +150,7 @@ Inbox.prototype.clear = function (callback) {
 Inbox.prototype.parseRawMessages = function () {
   var that = this;
 
-  for (var i in this.rawMessages) {
+  for (var i = 0; i < this.rawMessages.length; i++) {
     var rawMessage = this.rawMessages[i];
 
     if (this.messages[rawMessage.messageId]) {
@@ -141,6 +159,7 @@ Inbox.prototype.parseRawMessages = function () {
 
     var message = new crypton.Message(this.session, rawMessage);
     message.decrypt(function (err) {
+      // XXXddahl: fix this, check for error
       that.messages[message.messageId] = message;
     });
   }

@@ -48,9 +48,10 @@
 var fs = require('fs');
 var program = require('commander');
 var forever = require('forever');
+var version = require('../package.json').version;
 
 program
-  .version('0.0.2')
+  .version(version)
   .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
   .option('-d, --docker', 'Enable docker mode to use environment variables rather than a config file [default false]');
 
@@ -61,6 +62,22 @@ program.command('run')
     process.docker = program.docker;
     var app = require('../app');
     app.start();
+  });
+
+program.command('db:init')
+  .description('Initialize the Crypton database')
+  .action(function () {
+    process.configFile = program.config;
+    process.docker = program.docker;
+    require('./init')();
+  });
+
+program.command('db:drop')
+  .description('Drop the Crypton sdatabase')
+  .action(function () {
+    process.configFile = program.config;
+    process.docker = program.docker;
+    require('./drop')();
   });
 
 program.command('status')

@@ -320,3 +320,22 @@ Account.prototype.sendMessage = function (options, callback) {
     callback(null, messageId);
   });
 };
+
+/**!
+ * ### changePassphrase(options, callback)
+ * Change user's passphrase
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} keyring
+ * @param {Function} callback
+ */
+Account.prototype.changePassphrase = function (keyring, callback) {
+  if (!keyring && !(typeof keyring == 'object')) {
+    return callback('changePassphrase failed, keyring object required.');
+  }
+
+  db.updateKeyring(keyring, callback);
+};

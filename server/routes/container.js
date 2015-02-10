@@ -46,7 +46,7 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
       });
       return;
     }
-    
+
     res.send({
       success: true,
       records: container.records
@@ -75,7 +75,7 @@ app.get('/container/:containerNameHmac/:recordVersionIdentifier', verifySession,
       });
       return;
     }
-    
+
     // TODO this has to be a map because records is going to be an array
     if (!container.records[versionIdentifier]) {
       app.log('warn', 'record does not exist');

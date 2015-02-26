@@ -176,3 +176,40 @@ app.post('/removeitem', verifySession, function (req, res) {
     });
   });
 });
+
+/**!
+ * ### POST /itemshare/:itemNameHmac
+ * Share item for the given `itemNameHmac` with peer
+*/
+app.post('/shareitem/:itemNameHmac', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /itemshare/:itemNameHmac');
+
+  var accountId = req.session.accountId;
+  var itemNameHmac = req.params.itemNameHmac;
+
+  var item = new Item();
+
+  var toUsername = req.body.toUsername;
+  item.update('toUsername', toUsername);
+
+  var sessionKeyCiphertext = req.body.sessionKeyCiphertext;
+  item.update('sessionKeyCiphertext', sessionKeyCiphertext);
+
+  item.update('accountId', accountId);
+  item.update('itemNameHmac', itemNameHmac);
+
+  item.share(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      error: null
+    });
+  });
+});

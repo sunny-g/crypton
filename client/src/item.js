@@ -344,8 +344,45 @@ Item.prototype.remove = function (callback) {
   });
 };
 
-Item.prototype.share = function () {
-  throw new Error('Unimplemented');
+/**!
+ * ### share(peer, callback)
+ * Share an item with peer
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} peer
+ * @param {Function} callback
+ */
+Item.prototype.share = function (peer, callback) {
+  // XXX: 1. get the sessionKey, wrap it.
+  //      2. send sessionKey, itemNameHmac, owner (accountId), peer (username) to the server
+  // will have to get the toAccountId from the database on the server side
+  if (!peer) {
+    console.error(ERRS.ARG_MISSING);
+    return callback(ERRS.ARG_MISSING);
+  }
+  var sessionKeyCiphertext = peer.encryptAndSign(this.sessionKey);
+  var toUsername = peer.username;
+  var itemNameHmac = this.getPublicName();
+
+  var url = crypton.url() + '/shareitem/' + itemNameHmac;
+
+  var payload = {
+    toUsername: toUsername,
+    sessionKeyCiphertext: sessionKeyCiphertext
+  };
+
+  superagent.post(url)
+    .withCredentials()
+    .send(payload)
+    .end(function (res) {
+    if (!res.body.success) {
+      return callback('Cannot share item');
+    }
+    callback(null, res.body.success);
+  });
 };
 
 Item.prototype.unshare = function () {

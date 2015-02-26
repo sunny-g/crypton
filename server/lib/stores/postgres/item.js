@@ -20,6 +20,8 @@
 
 var datastore = require('./');
 var connect = datastore.connect;
+var app = process.app;
+var pg = require('pg');
 
 /**!
  * ### getItemValue(itemNameHmac, accountId, callback)
@@ -260,8 +262,215 @@ function (itemNameHmac, accountId, callback) {
       return callback(null, result.rows[0]);
     });
   });
-}
+};
 
-// XXX shareItem
+/**!
+ * ### shareItem(itemNameHmac, fromAccountId, toAccountId, callback)
+ * Share Item
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {String} sessionKeyCiphertext
+ * @param {String} toUsername
+ * @param {Number} fromAccountId
+ * @param {Function} callback
+ */
+exports.shareItem =
+function (itemNameHmac, sessionKeyCiphertext,
+          toUsername, fromAccountId, callback) {
+  console.log('shareItem()');
+  console.log(arguments);
 
-// XXX unShareItem
+  var toAccountId;
+  connect(function (client, done) {
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select account_id, username \
+             from account \
+             where \
+             username = $1',
+      /*jslint multistr: false*/
+      values: [
+        toUsername
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      if (err) {
+        client.query('rollback');
+        done();
+        console.error(err);
+        return callback(err);
+      }
+
+      if (result.rowCount != 1) {
+        return callback('Account with username' + toUsername  + 'does not exist');
+      }
+
+      toAccountId = result.rows[0].account_id;
+      console.log('toAccountId:::::::::::::::::::::::');
+      console.log(toAccountId);
+      console.log(result.rows[0].username);
+
+      client.query('begin');
+      // We have a user now, we need to insert item_session_key!
+      var itemSessionKeyQuery = {
+        /*jslint multistr: true*/
+        text: 'select item_session_key_id from item_session_key \
+               where item_id = \
+               (select item_id from item where name_hmac = $1) \
+               and account_id = $2;',
+        /*jslint multistr: false*/
+        values: [
+          itemNameHmac,
+          fromAccountId
+        ]
+      };
+
+      client.query(itemSessionKeyQuery, function (err, result) {
+        if (err) {
+          client.query('rollback');
+          done();
+          console.error(err);
+          return callback(err);
+        }
+
+        if (result.rowCount != 1) {
+          return callback('item_session_key lookup failed');
+        }
+
+        var itemSessionKeyId = result.rows[0].item_session_key_id;
+        console.log('itemSessionKeyId', itemSessionKeyId);
+        // We have a user now, we need to insert item_session_key_share
+        var itemSessionKeyShareQuery = {
+          /*jslint multistr: true*/
+          text: 'insert into item_session_key_share \
+                 (item_session_key_id, account_id, \
+                 to_account_id, session_key_ciphertext) values \
+                 ($1, $2, $3, $4) \
+                 returning item_session_key_share_id;',
+          /*jslint multistr: false*/
+          values: [
+            itemSessionKeyId,
+            fromAccountId,
+            toAccountId,
+            sessionKeyCiphertext
+          ]
+        };
+
+        client.query(itemSessionKeyShareQuery, function (err, result) {
+          if (err) {
+            client.query('rollback');
+            done();
+            console.error(err);
+            return callback(err);
+          }
+
+          if (result.rowCount != 1) {
+            client.query('rollback');
+            done();
+            return callback('item_session_key_share insert failed');
+          }
+          var itemSessionKeyShareId =
+            result.rows[0].item_session_key_share_id;
+
+          client.query('commit');
+          console.log('commit!!');
+          console.log({itemSessionKeyShareId: itemSessionKeyShareId,
+                       itemSessionKeyId: itemSessionKeyId,
+                       toAccountId: toAccountId,
+                       fromAccountId: fromAccountId
+                      });
+          return callback(null, {success: true});
+
+          // // We need to notify the user that an item was shared
+          // var pgNotifyQuery = {
+          //   text: 'select pg_notify("item_update", \
+          //          encode(name_hmac, "escape") || ":" \
+          //          || account_id::text || ":" || to_account_id::text) \
+          //          from item_session_key_share \
+          //          where item_session_key_share_id = $1;',
+          //   values: [
+          //     itemSessionKeyShareId
+          //   ]
+          // };
+          // client.query(pgNotifyQuery, function () {
+          //   if (err) {
+          //     client.query('rollback');
+          //     done();
+          //     console.error(err);
+          //     return callback(err);
+          //   }
+
+          //   if (result.rowCount != 1) {
+          //     client.query('rollback');
+          //     done();
+          //     return callback('item_session_key_share insert failed');
+          //   }
+          //   done();
+          //
+          //   console.log({itemSessionKeyShareId: itemSessionKeyShareId,
+          //                itemSessionKeyId: itemSessionKeyId,
+          //                toAccountId: toAccountId,
+          //                fromAccountId: fromAccountId
+          //               });
+          //   return callback(null, {success: true});
+          // });
+        });
+      });
+    });
+  });
+};
+
+// XXXddahl: unShareItem
+
+/**!
+ * Listen for item update notifications
+ *
+ * Upon item value update,
+ * the database will NOTIFY on the item_update channel
+ * with the following payload format:
+ *
+ * `itemNameHmac:fromAccountId:toAccountId`
+ *
+ * where account IDs refer to those in item_session_key_share.
+ *
+ * If the item value is created by the item's creator
+ * every account with access to the item that isn't the creator
+ * will be notified by this server if they have an active websocket
+ * XXXddahl: If not, a message is sent
+ */
+(function listenForItemUpdates () {
+  app.log('debug', 'listening for item updates');
+
+  var config = process.app.config.database;
+  var client = new pg.Client(config);
+  client.connect();
+  client.query('listen "item_update"');
+
+  client.on('notification', function (data) {
+    app.log('item update');
+
+    var payload = data.payload.split(':');
+    var itemNameHmac = payload[0];
+    var fromAccountId = payload[1];
+    var toAccountId = payload[2];
+
+    // if a client has written to their own container we
+    // won't need to let them know it was updated
+    // TODO perhaps this should be disabled in the case
+    // where the author edited something in a separate window
+    if (fromAccountId == toAccountId) {
+      return;
+    }
+
+    if (app.clients[toAccountId]) {
+      app.clients[toAccountId].emit('itemUpdate', itemNameHmac);
+    } else {
+      // XXXddahl: Can we store a message for later??
+    }
+  });
+})();

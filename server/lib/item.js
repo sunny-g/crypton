@@ -145,3 +145,26 @@ Item.prototype.remove = function item_remove(callback) {
     callback(null, result);
   });
 };
+
+/**!
+ * ### share()
+ * Share an Item
+ *
+ * @param {Number} toAccountId
+ * @param {Function} callback
+ *
+ */
+Item.prototype.share = function item_share(callback) {
+  app.log('debug', 'share item');
+
+  var that = this;
+  db.shareItem(that.itemNameHmac, that.sessionKeyCiphertext,
+               that.toUsername, that.accountId,
+  function (err, result) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    callback(null, result);
+  });
+};

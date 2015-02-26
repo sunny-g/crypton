@@ -92,5 +92,28 @@ function setStatus (status) {
 }
 
 var app = {
-  session: null
+  session: null,
+
+  shareItem: function shareItem (itemName, peerName) {
+    app.session.getOrCreateItem(itemName, function (err, item) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      app.session.getPeer(peerName, function (err, peer) {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        item.share(peer, function (err, result) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          console.log(result);
+          console.log('Item shared successully!!!');
+        });
+      });
+    });
+  }
 };

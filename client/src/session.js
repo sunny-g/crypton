@@ -69,6 +69,28 @@ var Session = crypton.Session = function (id) {
       }
     }
   });
+
+  // watch for Item update notifications
+  this.socket.on('ItemUpdated', function (itemNameHmac) {
+    console.log('Item updated!', itemNameHmac);
+    // if any of the cached items match the HMAC
+    // in the notification, sync the items and
+    // call the listener if one has been set
+    if (that.items[itemNameHmac]) {
+
+      that.items[itemNameHmac].sync(function (err) {
+        if (err) {
+          console.error(err);
+        }
+        if (that.items[itemNameHmac]._listener) {
+          that.items[itemNameHmac]._listener(err);
+        }
+      });
+    } else {
+      // load item!
+      
+    }
+  });
 };
 
 /**!

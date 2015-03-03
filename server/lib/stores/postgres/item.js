@@ -449,15 +449,15 @@ function (itemNameHmac, sessionKeyCiphertext,
   var config = process.app.config.database;
   var client = new pg.Client(config);
   client.connect();
-  client.query('listen "item_update"');
+  client.query('listen "SharedItemUpdated"');
 
   client.on('notification', function (data) {
-    app.log('item update');
+    app.log('SharedItemUpdated', data);
 
-    var payload = data.payload.split(':');
+    var payload = data.payload.split(' ');
     var itemNameHmac = payload[0];
-    var fromAccountId = payload[1];
-    var toAccountId = payload[2];
+    var toAccountId = payload[1];
+    var fromAccountId = payload[2];
 
     // if a client has written to their own container we
     // won't need to let them know it was updated
@@ -468,9 +468,9 @@ function (itemNameHmac, sessionKeyCiphertext,
     }
 
     if (app.clients[toAccountId]) {
-      app.clients[toAccountId].emit('itemUpdate', itemNameHmac);
+      app.clients[toAccountId].emit('itemUpdated', itemNameHmac);
     } else {
-      // XXXddahl: Can we store a message for later??
+      // XXXddahl: Can we store a message for later in Redis???
     }
   });
 })();

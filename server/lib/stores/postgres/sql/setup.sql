@@ -682,4 +682,41 @@ owned by to_account_id.';
 COMMENT ON COLUMN item_session_key_share.deletion_time IS
 'When an item is unshared, deletion_time';
 
+-- From the item_id we get a table of notifees where the shared item has been updated
+CREATE OR REPLACE FUNCTION getSharedItemNotifees(bigint) RETURNS TABLE(item_session_key_share_id bigint, account_id bigint, to_account_id bigint, item_id bigint, username text) AS $$
+SELECT s.item_session_key_share_id, s.account_id, s.to_account_id, k.item_id, a.username  
+  FROM item_session_key_share s 
+  JOIN item_session_key k ON (s.item_session_key_id = k.item_session_key_id)
+  JOIN account a on (s.to_account_id = a.account_id)
+  WHERE k.item_id = $1 AND k.supercede_time IS NULL;
+$$ LANGUAGE SQL;
+
+
+CREATE OR REPLACE FUNCTION notifyUpdatedItem() RETURNS TRIGGER AS $$
+  DECLARE
+  curs_notifications CURSOR FOR SELECT * FROM getSharedItemNotifees(NEW.item_id);
+  notify_row RECORD;
+  BEGIN
+  OPEN curs_notifications;
+  WHILE FOUND LOOP
+    FETCH curs_notifications INTO notify_row;
+
+      RAISE NOTICE 'Row read. Data: % ', notify_row.column(1);
+      RAISE NOTICE 'Row read. Data: % ', notify_row.column(2);
+      RAISE NOTICE 'Row read. Data: % ', notify_row.column(3);
+      RAISE NOTICE 'Row read. Data: % ', notify_row.column(4);
+      RAISE NOTICE 'Row read. Data: % ', notify_row.column(5);
+      PERFORM pg_notify('SharedItemUpdated', 
+        CAST(notify_row.column(3) AS text)|| ' ' ||
+        CAST(notify_row.column(2) AS text) || ' ' ||
+        CAST(NEW.name_hmac AS text) || ' ' ||  
+        notify_row.column(5));
+  END LOOP;
+  CLOSE curs_notifications;
+  RETURN NULL;
+  END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE TRIGGER UpdatedItemNotify AFTER UPDATE ON item FOR EACH ROW EXECUTE PROCEDURE notifyUpdatedItem();
+
 commit;

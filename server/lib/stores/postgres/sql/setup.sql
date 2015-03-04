@@ -693,27 +693,34 @@ $$ LANGUAGE SQL;
 
 
 CREATE OR REPLACE FUNCTION notifyUpdatedItem() RETURNS TRIGGER AS $$
-  DECLARE
-  curs_notifications CURSOR FOR SELECT * FROM getSharedItemNotifees(NEW.item_id);
-  notify_row RECORD;
+  DECLARE 
+    notify_row RECORD;
   BEGIN
-  OPEN curs_notifications;
-  WHILE FOUND LOOP
-    FETCH curs_notifications INTO notify_row;
+    RAISE NOTICE 'item_id: % ', NEW.item_id;
+    FOR notify_row IN 
+      SELECT s.item_session_key_share_id, 
+        s.account_id, s.to_account_id, k.item_id, a.username 
+        FROM item_session_key_share s 
+        JOIN item_session_key k ON 
+          (s.item_session_key_id = k.item_session_key_id)
+        JOIN account a ON 
+          (s.to_account_id = a.account_id)
+        WHERE k.item_id = NEW.item_id AND k.supercede_time IS NULL 
+    LOOP
+      RAISE NOTICE 'Row read. Data: % ', notify_row.account_id;
+      RAISE NOTICE 'Row read. Data: % ', notify_row.to_account_id;
+      RAISE NOTICE 'Row read. Data: % ', notify_row.item_id;
+      RAISE NOTICE 'Row read. Data: % ', notify_row.username;
 
-      RAISE NOTICE 'Row read. Data: % ', notify_row.column(1);
-      RAISE NOTICE 'Row read. Data: % ', notify_row.column(2);
-      RAISE NOTICE 'Row read. Data: % ', notify_row.column(3);
-      RAISE NOTICE 'Row read. Data: % ', notify_row.column(4);
-      RAISE NOTICE 'Row read. Data: % ', notify_row.column(5);
       PERFORM pg_notify('SharedItemUpdated', 
-        CAST(notify_row.column(3) AS text)|| ' ' ||
-        CAST(notify_row.column(2) AS text) || ' ' ||
+        CAST(notify_row.to_account_id AS text)|| ' ' ||
+        CAST(notify_row.account_id AS text) || ' ' ||
         CAST(NEW.name_hmac AS text) || ' ' ||  
-        notify_row.column(5));
-  END LOOP;
-  CLOSE curs_notifications;
-  RETURN NULL;
+        notify_row.username);
+
+    END LOOP;
+    RETURN NULL;
+  -- XXXddahl: EXCEPTION RAISE pg_notify notification???
   END;
 $$ LANGUAGE PLPGSQL;
 

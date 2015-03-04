@@ -707,15 +707,10 @@ CREATE OR REPLACE FUNCTION notifyUpdatedItem() RETURNS TRIGGER AS $$
           (s.to_account_id = a.account_id)
         WHERE k.item_id = NEW.item_id AND k.supercede_time IS NULL 
     LOOP
-      RAISE NOTICE 'Row read. Data: % ', notify_row.account_id;
-      RAISE NOTICE 'Row read. Data: % ', notify_row.to_account_id;
-      RAISE NOTICE 'Row read. Data: % ', notify_row.item_id;
-      RAISE NOTICE 'Row read. Data: % ', notify_row.username;
-
       PERFORM pg_notify('SharedItemUpdated', 
         CAST(notify_row.to_account_id AS text)|| ' ' ||
         CAST(notify_row.account_id AS text) || ' ' ||
-        CAST(NEW.name_hmac AS text) || ' ' ||  
+        encode(NEW.name_hmac, 'escape') || ' ' ||  
         notify_row.username);
 
     END LOOP;

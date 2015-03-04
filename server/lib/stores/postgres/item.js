@@ -311,7 +311,7 @@ function (itemNameHmac, sessionKeyCiphertext,
       }
 
       toAccountId = result.rows[0].account_id;
-      console.log('toAccountId:::::::::::::::::::::::');
+      console.log('toAccountId: ');
       console.log(toAccountId);
       console.log(result.rows[0].username);
 
@@ -378,47 +378,12 @@ function (itemNameHmac, sessionKeyCiphertext,
             result.rows[0].item_session_key_share_id;
 
           client.query('commit');
-          console.log('commit!!');
           console.log({itemSessionKeyShareId: itemSessionKeyShareId,
                        itemSessionKeyId: itemSessionKeyId,
                        toAccountId: toAccountId,
                        fromAccountId: fromAccountId
                       });
           return callback(null, {success: true});
-
-          // // We need to notify the user that an item was shared
-          // var pgNotifyQuery = {
-          //   text: 'select pg_notify("item_update", \
-          //          encode(name_hmac, "escape") || ":" \
-          //          || account_id::text || ":" || to_account_id::text) \
-          //          from item_session_key_share \
-          //          where item_session_key_share_id = $1;',
-          //   values: [
-          //     itemSessionKeyShareId
-          //   ]
-          // };
-          // client.query(pgNotifyQuery, function () {
-          //   if (err) {
-          //     client.query('rollback');
-          //     done();
-          //     console.error(err);
-          //     return callback(err);
-          //   }
-
-          //   if (result.rowCount != 1) {
-          //     client.query('rollback');
-          //     done();
-          //     return callback('item_session_key_share insert failed');
-          //   }
-          //   done();
-          //
-          //   console.log({itemSessionKeyShareId: itemSessionKeyShareId,
-          //                itemSessionKeyId: itemSessionKeyId,
-          //                toAccountId: toAccountId,
-          //                fromAccountId: fromAccountId
-          //               });
-          //   return callback(null, {success: true});
-          // });
         });
       });
     });
@@ -452,7 +417,7 @@ function (itemNameHmac, sessionKeyCiphertext,
   client.query('listen "SharedItemUpdated"');
 
   client.on('notification', function (data) {
-    app.log('SharedItemUpdated', data);
+    app.log('SharedItemUpdated', JSON.stringify(data));
 
     var payload = data.payload.split(' ');
     var itemNameHmac = payload[0];
@@ -464,7 +429,7 @@ function (itemNameHmac, sessionKeyCiphertext,
     // TODO perhaps this should be disabled in the case
     // where the author edited something in a separate window
     if (fromAccountId == toAccountId) {
-      return;
+      // return; XXXddahl: creator is going to be nmotified for now...
     }
 
     if (app.clients[toAccountId]) {

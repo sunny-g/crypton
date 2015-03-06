@@ -20,6 +20,8 @@
 
 'use strict';
 
+var ERRS = crypton.errors;
+
 /**!
  * # Session(id)
  *
@@ -71,24 +73,54 @@ var Session = crypton.Session = function (id) {
   });
 
   // watch for Item update notifications
-  this.socket.on('ItemUpdated', function (itemNameHmac) {
-    console.log('Item updated!', itemNameHmac);
+  this.socket.on('itemUpdate', function (itemObj) {
+    if (!itemObj.itemNameHmac || !itemObj.creator || !itemObj.toUsername) {
+      console.error(ERRS.ARG_MISSING);
+      throw new Error(ERRS.ARG_MISSING);
+    }
+    console.log('Item updated!', itemObj);
     // if any of the cached items match the HMAC
     // in the notification, sync the items and
     // call the listener if one has been set
-    if (that.items[itemNameHmac]) {
+    if (that.items[itemObj.itemNameHmac]) {
 
-      that.items[itemNameHmac].sync(function (err) {
+      that.items[itemObj.itemNameHmac].sync(function (err) {
         if (err) {
           console.error(err);
         }
-        if (that.items[itemNameHmac]._listener) {
-          that.items[itemNameHmac]._listener(err);
+        if (that.items[itemObj.itemNameHmac]._listener) {
+          that.items[itemObj.itemNameHmac]._listener(err);
         }
       });
     } else {
+      console.log('Loading the item as it is not cached');
       // load item!
-      
+      // get the peer first:
+      that.getPeer(itemObj.creator, function (err, peer) {
+        if (err) {
+          console.error(err);
+          console.error('Cannot load item: creator peer cannot be found');
+          return;
+        }
+        // XXXddahl: Make sure you trust this peer before loading the item
+        //           Perhaps we check this inside the Item constructor?
+        var itemCallback = function _itemCallback (err, item) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          that.items[itemObj.itemNameHmac] = item;
+          if (that.events.onSharedItemSync) {
+            that.events.onSharedItemSync(item);
+            // XXXddahl: add an item listener function here too
+          }
+        };
+
+        var item =
+          new crypton.Item(null, null, that, peer,
+                           itemCallback, itemObj.itemNameHmac);
+
+      });
     }
   });
 };

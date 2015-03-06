@@ -20,20 +20,38 @@
 
 'use strict';
 
-var ERRS = crypton.errors;
+var ERRS;
 
-var Item = crypton.Item = function Item (name, value, session, creator, callback) {
-  // XXXddahl: do argument validation
+var Item = crypton.Item = function Item (name, value, session, creator, callback, nameHmac) {
+  // name might be null but nameHmac not null if this is an item being loaded by a sharee
+  ERRS = crypton.errors;
+
   if (!callback || typeof callback != 'function') {
     console.error(ERRS.ARG_MISSING_CALLBACK);
     throw new Error(ERRS.ARG_MISSING_CALLBACK);
   }
-  if (!name || !session || !creator) {
+  if (!session || !creator) {
     console.error(ERRS.ARG_MISSING);
-    callback(ERRS.ARG_MISSING);
+    return callback(ERRS.ARG_MISSING);
   }
 
-  this.name = name;
+  if (!name && !nameHmac) {
+    console.error(ERRS.ARG_MISSING);
+    return callback(ERRS.ARG_MISSING);
+  }
+
+  if (!name && nameHmac) {
+    this.nameHmac = nameHmac;
+    this.name = nameHmac; // XXXddahl: TODO carry the plain text name in the otem ciphertext?
+  } else {
+    this.name = name;
+  }
+  if (nameHmac) {
+    this.sharedItem = true;
+  } else {
+    this.sharedItem = false;
+  }
+
   this.session = session;
   this.creator = creator; // The peer who owns this Item
   this._value = value || null;
@@ -90,6 +108,10 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
   var that = this;
   var url = crypton.url() + '/item/' + itemNameHmac;
 
+  if (this.sharedItem) {
+    url = url + '?shared=1';
+  }
+
   superagent.get(url)
     .withCredentials()
     .end(function (res) {
@@ -123,10 +145,16 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
 
   // Check for this.sessionKey, or unwrap it
   var sessionKeyResult;
+  var peer;
   if (!this.sessionKey) {
+    if (this.sharedItem) {
+      peer = this.creator;
+    } else {
+      peer = this.session.createSelfPeer();
+    }
+    console.log('peer: ', peer.username);
     sessionKeyResult =
-      this.session.account.verifyAndDecrypt(wrappedSessionKey,
-                                            this.session.createSelfPeer());
+      this.session.account.verifyAndDecrypt(wrappedSessionKey, peer);
     if (sessionKeyResult.error) {
       return callback(ERRS.UNWRAP_KEY_ERROR);
     }
@@ -363,6 +391,8 @@ Item.prototype.share = function (peer, callback) {
     console.error(ERRS.ARG_MISSING);
     return callback(ERRS.ARG_MISSING);
   }
+  console.log('share: peer: ', peer.username);
+
   var sessionKeyCiphertext = peer.encryptAndSign(this.sessionKey);
   var toUsername = peer.username;
   var itemNameHmac = this.getPublicName();

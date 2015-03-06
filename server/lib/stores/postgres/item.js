@@ -36,7 +36,7 @@ var pg = require('pg');
  * @param {Function} callback
  */
 exports.getItemValue = function (itemNameHmac, accountId, callback) {
-  var toAccountId = accountId; // XXXddahl: need to allow loading of items by non-owners
+  var toAccountId = accountId; // The query limits the results to any user that has a valid session_key_share, so all users are considered the "toAccount"
 
   console.log('getItemValue()', arguments);
 
@@ -53,16 +53,16 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
                        on sk.item_session_key_id = s.item_session_key_id \
              where \
              i.name_hmac = $1 and \
-             i.account_id = $2 and \
              i.deletion_time is null and \
              sk.supercede_time is null and \
              s.deletion_time is null and \
-             s.to_account_id = $3 \
+             s.to_account_id = $2 \
              limit 1',
+      // i.account_id = $2 and \
       /*jslint multistr: false*/
       values: [
         itemNameHmac,
-        accountId,
+        // accountId,
         toAccountId
       ]
     };
@@ -417,25 +417,37 @@ function (itemNameHmac, sessionKeyCiphertext,
   client.query('listen "SharedItemUpdated"');
 
   client.on('notification', function (data) {
+    if (data.channel != 'SharedItemUpdated') {
+      return;
+    }
     app.log('SharedItemUpdated', JSON.stringify(data));
-
     var payload = data.payload.split(' ');
-    var itemNameHmac = payload[0];
-    var toAccountId = payload[1];
-    var fromAccountId = payload[2];
+    var itemNameHmac = payload[2];
+    var toAccountId = payload[0];
+    var fromAccountId = payload[1];
+    var toUsername = payload[3];
+    var creatorUsername = payload[4];
 
-    // if a client has written to their own container we
+    // if a client has written to their own Item we
     // won't need to let them know it was updated
     // TODO perhaps this should be disabled in the case
     // where the author edited something in a separate window
     if (fromAccountId == toAccountId) {
-      // return; XXXddahl: creator is going to be nmotified for now...
+      return; // XXXddahl: creator is not going to be notified for now
     }
 
+    console.log('toAccountId: ', toAccountId);
+    console.log('app.clients: ', app.clients);
+
     if (app.clients[toAccountId]) {
-      app.clients[toAccountId].emit('itemUpdated', itemNameHmac);
+      console.log('notifying sharee: ', payload);
+      app.clients[toAccountId].emit('itemUpdate',
+                                    { itemNameHmac: itemNameHmac,
+                                      creator: creatorUsername,
+                                      toUsername: toUsername });
     } else {
       // XXXddahl: Can we store a message for later in Redis???
+      console.warn('Sharee is not connected via websocket');
     }
   });
 })();

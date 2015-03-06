@@ -49,6 +49,9 @@ var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toStr
   client.query('listen "container_update"');
 
   client.on('notification', function (data) {
+    if (data.channel != 'container_update') {
+      return;
+    }
     app.log('container update');
 
     var payload = data.payload.split(':');

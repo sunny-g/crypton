@@ -105,6 +105,7 @@ var app = {
           console.error(err);
           return;
         }
+        console.log('sharing with: ', peer);
         item.share(peer, function (err, result) {
           if (err) {
             console.error(err);

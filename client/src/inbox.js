@@ -92,6 +92,10 @@ Inbox.prototype.get = function (messageId, callback) {
 
     var message = new crypton.Message(that.session, res.body.message);
     message.decrypt(function (err) {
+      if (err) {
+        console.error(err);
+        return callback(err);
+      }
       that.messages[message.id] = message;
       callback(null, message);
     });

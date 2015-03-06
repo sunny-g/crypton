@@ -52,6 +52,8 @@ var Item = crypton.Item = function Item (name, value, session, creator, callback
     this.sharedItem = false;
   }
 
+  // XXXddahl: TODO: cache 'shared' data in another item
+  this.shared = {}; // who and when this was shared with
   this.session = session;
   this.creator = creator; // The peer who owns this Item
   this._value = value || null;
@@ -180,7 +182,7 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
       this._value = decrypted; // Just a string, not an object
     }
 
-    // XXXddahl: check to see if the modified_time is newer than our own
+    // XXXddahl: check to see if the modified_time is newer than the cached version (if any)
 
     var name;
     if (this.name) {
@@ -384,9 +386,7 @@ Item.prototype.remove = function (callback) {
  * @param {Function} callback
  */
 Item.prototype.share = function (peer, callback) {
-  // XXX: 1. get the sessionKey, wrap it.
-  //      2. send sessionKey, itemNameHmac, owner (accountId), peer (username) to the server
-  // will have to get the toAccountId from the database on the server side
+  // XXXddahl: check if item is already shared
   if (!peer) {
     console.error(ERRS.ARG_MISSING);
     return callback(ERRS.ARG_MISSING);
@@ -403,6 +403,7 @@ Item.prototype.share = function (peer, callback) {
     toUsername: toUsername,
     sessionKeyCiphertext: sessionKeyCiphertext
   };
+  var that = this;
 
   superagent.post(url)
     .withCredentials()
@@ -411,21 +412,60 @@ Item.prototype.share = function (peer, callback) {
     if (!res.body.success) {
       return callback('Cannot share item');
     }
-    callback(null, res.body.success);
+    // Send notification Message to user
+    that.notifyItemShared(peer, function (err) {
+      callback(null, res.body.success);
+      console.log('message sent: res.body.success: ', res.body.success);
+      that.shared[peer.username] = Date.now();
+    });
   });
 };
 
-Item.prototype.unshare = function () {
-  throw new Error('Unimplemented');
+Item.prototype.notifyItemShared = function (peer, callback) {
+  var headers = { notification: 'sharedItem' };
+  var nameHmac = this.getPublicName();
+  var payload = {
+    itemNameHmac: nameHmac,
+    from: this.creator.username,
+    sent: Date.now()
+  };
+
+  peer.sendMessage(headers, payload, function (err) {
+    if (err) {
+      console.error(err);
+      return callback(ERRS.PEER_MESSAGE_SEND_FAILED);
+    }
+    callback(null);
+  });
 };
 
-Item.prototype.watch = function (listener) {
-  throw new Error('Unimplemented');
-  // this.listeners.push(listener);
-};
+Item.prototype.unshare = function (peer, callback) {
+  // POST hmac & username to complete unshare
+  var that = this;
+  var shareeUsername = peer.username;
+  var itemNameHmac = this.getPublicName();
 
-Item.prototype.unwatch = function () {
-  throw new Error('Unimplemented');
+  var url = crypton.url() + '/unshareitem/' + itemNameHmac;
+
+  var payload = {
+    shareeUsername: shareeUsername
+  };
+
+  superagent.post(url)
+    .withCredentials()
+    .send(payload)
+    .end(function (res) {
+    if (!res.body.success) {
+      return callback('Cannot unshare item');
+    }
+    // XXXddahl: TODO Send notification Message to user ???
+    callback(null);
+    try {
+      delete that.shared[shareeUsername];
+    } catch (ex) {
+      console.warn('Sharee not listed in item.shared object');
+    }
+  });
 };
 
 })();

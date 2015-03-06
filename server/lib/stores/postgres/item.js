@@ -390,7 +390,58 @@ function (itemNameHmac, sessionKeyCiphertext,
   });
 };
 
-// XXXddahl: unShareItem
+/**!
+ * ### unshareItem(itemNameHmac, shareeAccountId, callback)
+ * unshare Item
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {Number} accountId
+ * @param {Number} shareeUsername
+ * @param {Function} callback
+ */
+exports.unshareItem =
+function (itemNameHmac, accountId, shareeUsername, callback) {
+  console.log('unshareItem()');
+
+  connect(function (client, done) {
+    var query = {
+      /*jslint multistr: true*/
+      text: 'delete from item_session_key_share \
+      where \
+      item_session_key_id = \
+         (select item_id from item_session_key where item_id = \
+           (select from item where name_hmac = $1)) \
+      and to_account_id = \
+        (select account_id from account where username = $2) \
+      and account_id = $3 \
+      limit 1',
+      /*jslint multistr: false*/
+      values: [
+        itemNameHmac,
+        shareeUsername,
+        accountId
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      if (err) {
+        done();
+        return callback(err);
+      }
+
+      if (result.rowCount != 1) {
+        return callback('ItemSessionKeyShare delete failed');
+      }
+
+      done();
+      callback(null);
+    });
+  });
+};
 
 /**!
  * Listen for item update notifications

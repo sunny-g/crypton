@@ -168,3 +168,24 @@ Item.prototype.share = function item_share(callback) {
     callback(null, result);
   });
 };
+
+/**!
+ * ### unshare()
+ * unshare an Item
+ *
+ * @param {Function} callback
+ *
+ */
+Item.prototype.unshare = function item_unshare(callback) {
+  app.log('debug', 'unshare item');
+
+  var that = this;
+  db.unshareItem(that.itemNameHmac,  that.accountId, that.shareeUsername,
+  function (err, result) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    callback(null, result);
+  });
+};

@@ -213,3 +213,37 @@ app.post('/shareitem/:itemNameHmac', verifySession, function (req, res) {
     });
   });
 });
+
+/**!
+ * ### POST /itemunshare/:itemNameHmac
+ * unshare item for the given `itemNameHmac` from peer
+*/
+app.post('/unshareitem/:itemNameHmac', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /unshareitem/:itemNameHmac');
+
+  var accountId = req.session.accountId;
+  var itemNameHmac = req.params.itemNameHmac;
+
+  var item = new Item();
+
+  var shareeUsername = req.body.shareeUsername;
+  item.update('toUsername', shareeUsername);
+
+  item.update('accountId', accountId);
+  item.update('itemNameHmac', itemNameHmac);
+
+  item.share(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      error: null
+    });
+  });
+});

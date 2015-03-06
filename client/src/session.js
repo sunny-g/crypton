@@ -196,6 +196,41 @@ function getOrCreateItem (itemName,  callback) {
 };
 
 /**!
+ * ### getSharedItem(itemNameHmac, peer, callback)
+ * Retrieve shared Item with given itemNameHmac,
+ * either from local cache or server
+ *
+ * Calls back with Item and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {Object} peer
+ * @param {Function} callback
+ */
+Session.prototype.getSharedItem =
+function getSharedItem (itemNameHmac,  peer, callback) {
+  // TODO:  Does not check for cached item or server having a fresher Item
+  if (!itemNameHmac) {
+    return callback(ERRS.ARG_MISSING);
+  }
+  if (!callback) {
+    throw new Error(ERRS.ARG_MISSING_CALLBACK);
+  }
+
+  function getItemCallback(err, item) {
+    if (err) {
+      console.error(err);
+      return callback(err);
+    }
+    callback(null, item);
+  }
+
+  var item =
+    new crypton.Item(null, null, this, peer, getItemCallback, itemNameHmac);
+};
+
+/**!
  * ### createSelfPeer()
  * returns a 'selfPeer' object which is needed for any kind of
  * self-signing, encryption or verification

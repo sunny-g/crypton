@@ -183,6 +183,7 @@ Item.prototype.unshare = function item_unshare(callback) {
   db.unshareItem(that.itemNameHmac,  that.accountId, that.shareeUsername,
   function (err, result) {
     if (err) {
+      console.log(err);
       callback(err);
       return;
     }

@@ -223,12 +223,12 @@ app.post('/unshareitem/:itemNameHmac', verifySession, function (req, res) {
   var item = new Item();
 
   var shareeUsername = req.body.shareeUsername;
-  item.update('toUsername', shareeUsername);
+  item.update('shareeUsername', shareeUsername);
 
   item.update('accountId', accountId);
   item.update('itemNameHmac', itemNameHmac);
 
-  item.share(function (err) {
+  item.unshare(function (err) {
     if (err) {
       res.send({
         success: false,

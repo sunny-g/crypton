@@ -60,16 +60,16 @@ var Item = crypton.Item = function Item (name, value, session, creator, callback
   this.listeners = [];
   this.sessionKey = null;
 
-  this.sync(callback || function (err) {
+  var that = this;
+
+  this.sync(function (err, item) {
     if (err) {
-      // throws if there is an error
-      // and no callback supplied
       console.error(err);
-      throw new Error(err);
+      return callback(err, null);
     }
+    return callback(null, item);
   });
 
-  var that = this;
   Object.defineProperty(this, 'value', {
     get: function () {
       return that._value;
@@ -114,6 +114,8 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
     url = url + '?shared=1';
   }
 
+  console.log('that.sharedItem', that.sharedItem);
+
   superagent.get(url)
     .withCredentials()
     .end(function (res) {
@@ -122,6 +124,9 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
         return callback(res.body.error);
       }
       if (res.body.error == doesNotExist) {
+        if (that.sharedItem) {
+          return callback('Item is no longer shared!', null);
+        }
         return that.create(callback);
       }
       // XXXddahl: alert listeners?
@@ -418,6 +423,17 @@ Item.prototype.share = function (peer, callback) {
   });
 };
 
+/**!
+ * ### notifyItemShared(peer, callback)
+ * notify peer of newly-shared item
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} peer
+ * @param {Function} callback
+ */
 Item.prototype.notifyItemShared = function (peer, callback) {
   var headers = { notification: 'sharedItem' };
   var nameHmac = this.getPublicName();
@@ -436,6 +452,17 @@ Item.prototype.notifyItemShared = function (peer, callback) {
   });
 };
 
+/**!
+ * ### unshare(peer, callback)
+ * unshare an item with peer
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} peer
+ * @param {Function} callback
+ */
 Item.prototype.unshare = function (peer, callback) {
   // POST hmac & username to complete unshare
   var that = this;
@@ -453,6 +480,7 @@ Item.prototype.unshare = function (peer, callback) {
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {
+      console.error(res.body);
       return callback('Cannot unshare item');
     }
     // XXXddahl: TODO Send notification Message to user ???
@@ -463,6 +491,20 @@ Item.prototype.unshare = function (peer, callback) {
       console.warn('Sharee not listed in item.shared object');
     }
   });
+};
+
+/**!
+ * ### lastUpdate(callback)
+ * Find out when the utem was last updated by the creator
+ *
+ * Calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Item.prototype.lastUpdate = function (callback) {
+  console.warn('Unimplemented!');
 };
 
 })();

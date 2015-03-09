@@ -162,6 +162,9 @@ Session.prototype.removeItem = function removeItem (itemNameHmac, callback) {
  * Create or Retrieve Item with given platintext `itemName`,
  * either from local cache or server
  *
+ * This method is for use by the creator of the item.
+ * Use 'session.getSharedItem' for items shared by the creator
+ *
  * Calls back with Item and without error if successful
  *
  * Calls back with error if unsuccessful
@@ -180,6 +183,8 @@ function getOrCreateItem (itemName,  callback) {
   }
   // Get cached item if exists
   // XXXddahl: check server for more recent item?
+  // We need another server API like /itemupdated/<itemHmacName> which returns
+  // the timestamp of the last update
   if (this.items[itemName]) {
     callback(null, this.items[itemName]);
     return;
@@ -227,8 +232,7 @@ function getSharedItem (itemNameHmac,  peer, callback) {
     callback(null, item);
   }
 
-  var item =
-    new crypton.Item(null, null, this, peer, getItemCallback, itemNameHmac);
+  new crypton.Item(null, null, this, peer, getItemCallback, itemNameHmac);
 };
 
 /**!

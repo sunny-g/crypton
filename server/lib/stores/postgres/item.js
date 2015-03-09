@@ -394,16 +394,16 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
   connect(function (client, done) {
     var query = {
       /*jslint multistr: true*/
-      text: 'delete from item_session_key_share \
+      text: 'update item_session_key_share \
+      set deletion_time = CURRENT_TIMESTAMP \
       where \
       item_session_key_id = \
-         (select item_id from item_session_key where item_id = \
-           (select from item where name_hmac = $1)) \
+         (select item_session_key_id from item_session_key where item_id = \
+           (select item_id from item where name_hmac = decode($1, \'escape\'))) \
       and to_account_id = \
-        (select account_id from account where username = $2) \
-      and account_id = $3 \
-      limit 1',
-      /*jslint multistr: false*/
+      (select account_id from account where username = $2) \
+      and account_id = $3',
+      /*jslint multistr: false  */
       values: [
         itemNameHmac,
         shareeUsername,
@@ -411,12 +411,17 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
       ]
     };
 
+    // XXXddahl: TODO: Create update trigger on item_session_key_share
+    // to remove row after deletion_time is set
     client.query(query, function (err, result) {
+      console.log('query: ', query);
       if (err) {
         done();
+        console.error('ERROR UPDATING ITEM SESSION KEY SHARE');
         return callback(err);
       }
 
+      console.log('result: ', result);
       if (result.rowCount != 1) {
         return callback('ItemSessionKeyShare delete failed');
       }

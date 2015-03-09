@@ -147,20 +147,38 @@ describe('Item sharing tests', function () {
 
     it('unshare item with bob', function (done) {
       // authorize Alice
-
-      //  getOrCreate shared item
-
-      // unshare it
-
+      crypton.authorize('alice4', 'pass', function (err, sess) {
+        if (err) throw err;
+        aliceSession = sess;
+        assert(sess);
+        // trust bob
+        aliceSession.getPeer('bob4', function (err, peer) {
+          if (err) { throw err };
+          aliceSession.getOrCreateItem('my-first-shared-item',
+          function (err, item) {
+            if (err) { throw err };
+            item.unshare(peer, function (err) {
+              assert.equal(err, null);
+              done();
+            });
+          });
+        });
+      });
     });
 
     it('Make sure bob cannot access unshared item', function (done) {
-      // authorize
-
-      // session.getSharedItem
-
-      // verify failure
-
+      crypton.authorize('bob4', 'pass', function (err, sess) {
+        if (err) throw err;
+        bobSession = sess;
+        bobSession.getPeer('alice4', function (err, peer) {
+          if (err) { throw err };
+          bobSession.getSharedItem(itemNameHmac, peer, function (err, item) {
+            assert(err);
+            assert.equal(item, null);
+            done();
+          });
+        });
+      });
     });
 
   });

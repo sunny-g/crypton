@@ -154,7 +154,6 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
     } else {
       peer = this.session.createSelfPeer();
     }
-    console.log('peer: ', peer.username);
     sessionKeyResult =
       this.session.account.verifyAndDecrypt(wrappedSessionKey, peer);
     if (sessionKeyResult.error) {
@@ -391,7 +390,6 @@ Item.prototype.share = function (peer, callback) {
     console.error(ERRS.ARG_MISSING);
     return callback(ERRS.ARG_MISSING);
   }
-  console.log('share: peer: ', peer.username);
 
   var sessionKeyCiphertext = peer.encryptAndSign(this.sessionKey);
   var toUsername = peer.username;
@@ -415,7 +413,6 @@ Item.prototype.share = function (peer, callback) {
     // Send notification Message to user
     that.notifyItemShared(peer, function (err) {
       callback(null, res.body.success);
-      console.log('message sent: res.body.success: ', res.body.success);
       that.shared[peer.username] = Date.now();
     });
   });

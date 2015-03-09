@@ -37,9 +37,6 @@ var pg = require('pg');
  */
 exports.getItemValue = function (itemNameHmac, accountId, callback) {
   var toAccountId = accountId; // The query limits the results to any user that has a valid session_key_share, so all users are considered the "toAccount"
-
-  console.log('getItemValue()', arguments);
-
   connect(function (client, done) {
     var query = {
       // TODO limit to to_account_id
@@ -83,7 +80,6 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
         modTime: Date.parse(result.rows[0].modified_time),
         wrappedSessionKey: result.rows[0].session_key_ciphertext
       };
-      console.log(rawData);
       callback(null, rawData);
     });
   });
@@ -281,9 +277,6 @@ function (itemNameHmac, accountId, callback) {
 exports.shareItem =
 function (itemNameHmac, sessionKeyCiphertext,
           toUsername, fromAccountId, callback) {
-  console.log('shareItem()');
-  console.log(arguments);
-
   var toAccountId;
   connect(function (client, done) {
     var query = {
@@ -309,11 +302,7 @@ function (itemNameHmac, sessionKeyCiphertext,
       if (result.rowCount != 1) {
         return callback('Account with username' + toUsername  + 'does not exist');
       }
-
       toAccountId = result.rows[0].account_id;
-      console.log('toAccountId: ');
-      console.log(toAccountId);
-      console.log(result.rows[0].username);
 
       client.query('begin');
       // We have a user now, we need to insert item_session_key!
@@ -343,7 +332,6 @@ function (itemNameHmac, sessionKeyCiphertext,
         }
 
         var itemSessionKeyId = result.rows[0].item_session_key_id;
-        console.log('itemSessionKeyId', itemSessionKeyId);
         // We have a user now, we need to insert item_session_key_share
         var itemSessionKeyShareQuery = {
           /*jslint multistr: true*/
@@ -378,11 +366,7 @@ function (itemNameHmac, sessionKeyCiphertext,
             result.rows[0].item_session_key_share_id;
 
           client.query('commit');
-          console.log({itemSessionKeyShareId: itemSessionKeyShareId,
-                       itemSessionKeyId: itemSessionKeyId,
-                       toAccountId: toAccountId,
-                       fromAccountId: fromAccountId
-                      });
+
           return callback(null, {success: true});
         });
       });
@@ -405,7 +389,7 @@ function (itemNameHmac, sessionKeyCiphertext,
  */
 exports.unshareItem =
 function (itemNameHmac, accountId, shareeUsername, callback) {
-  console.log('unshareItem()');
+  app.log('debug', 'unshareItem()');
 
   connect(function (client, done) {
     var query = {
@@ -487,11 +471,7 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
       return; // XXXddahl: creator is not going to be notified for now
     }
 
-    console.log('toAccountId: ', toAccountId);
-    console.log('app.clients: ', app.clients);
-
     if (app.clients[toAccountId]) {
-      console.log('notifying sharee: ', payload);
       app.clients[toAccountId].emit('itemUpdate',
                                     { itemNameHmac: itemNameHmac,
                                       creator: creatorUsername,

@@ -108,37 +108,26 @@ describe('Item sharing tests', function () {
 
     it('share item with bob', function (done) {
       var bobPeer = aliceSession.peers.bob4;
-      console.log('bobPeer: ', bobPeer.username);
       assert.equal(bobPeer.username, 'bob4');
-      console.log('item1: ', item1.name);
-      // assert(item1);
       item1.share(bobPeer, function (err) {
         if (err) throw err;
         assert.equal(null, err);
-        console.log('\nitem1.shared: \n', item1.shared);
         done();
       });
     });
 
-    // check item was shared
+    // check that an item was shared
     it('check item was shared', function (done) {
-
       crypton.authorize('bob4', 'pass', function (err, sess) {
         if (err) throw err;
         bobSession = sess;
         assert(sess);
         bobSession.inbox.getAllMetadata(function (err, messageList) {
-          console.log('messageList: ', messageList);
           assert.equal(messageList.length, 1);
           // Get and decrypt message:
           bobSession.inbox.get(messageList[0].messageId,
             function (err, message) {
               if (err) throw err;
-
-              console.log('Message Keys: ', Object.keys(message));
-              console.log('Message Headers Keys: ', Object.keys(message.headers));
-              console.log('Message Payload Keys: ', Object.keys(message.payload));
-
               assert.equal(message.headers.notification, 'sharedItem');
               assert.equal(message.payload.from, 'alice4');
               assert.equal(message.payload.itemNameHmac, item1.nameHmac);
@@ -154,6 +143,24 @@ describe('Item sharing tests', function () {
             });
         });
       });
+    });
+
+    it('unshare item with bob', function (done) {
+      // authorize Alice
+
+      //  getOrCreate shared item
+
+      // unshare it
+
+    });
+
+    it('Make sure bob cannot access unshared item', function (done) {
+      // authorize
+
+      // session.getSharedItem
+
+      // verify failure
+
     });
 
   });

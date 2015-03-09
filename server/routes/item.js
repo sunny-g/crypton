@@ -90,9 +90,7 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
  * Create item value for the given `itemNameHmac`
 */
 app.post('/createitem', verifySession, function (req, res) {
-
   app.log('debug', 'handling "create"');
-  app.log('debug', req);
 
   var item = new Item();
 
@@ -139,8 +137,6 @@ app.post('/createitem', verifySession, function (req, res) {
 */
 app.post('/removeitem', verifySession, function (req, res) {
   app.log('debug', 'handling "remove"');
-  app.log('debug', req);
-
   var item = new Item();
 
   var accountId = req.session.accountId;

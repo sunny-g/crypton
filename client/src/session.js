@@ -20,7 +20,7 @@
 
 'use strict';
 
-var ERRS = crypton.errors;
+var ERRS;
 
 /**!
  * # Session(id)
@@ -32,6 +32,7 @@ var ERRS = crypton.errors;
  * @param {Number} id
  */
 var Session = crypton.Session = function (id) {
+  ERRS = crypton.errors;
   this.id = id;
   this.peers = {};
   this.events = {};

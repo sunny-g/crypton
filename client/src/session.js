@@ -87,8 +87,15 @@ var Session = crypton.Session = function (id) {
 
       that.items[itemObj.itemNameHmac].sync(function (err) {
         if (err) {
-          console.error(err);
+          return console.error(err);
         }
+
+        try {
+          that.events.onSharedItemSync(that.items[itemObj.itemNameHmac]);
+        } catch (ex) {
+          console.warn(ex);
+        }
+
         if (that.items[itemObj.itemNameHmac]._listener) {
           that.items[itemObj.itemNameHmac]._listener(err);
         }
@@ -111,9 +118,10 @@ var Session = crypton.Session = function (id) {
             return;
           }
           that.items[itemObj.itemNameHmac] = item;
-          if (that.events.onSharedItemSync) {
+          try {
             that.events.onSharedItemSync(item);
-            // XXXddahl: add an item listener function here too
+          } catch (ex) {
+            console.warn(ex);
           }
         };
 

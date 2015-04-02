@@ -20,6 +20,8 @@
 
 'use strict';
 
+var ERRS;
+
 /**!
  * # Session(id)
  *
@@ -30,6 +32,7 @@
  * @param {Number} id
  */
 var Session = crypton.Session = function (id) {
+  ERRS = crypton.errors;
   this.id = id;
   this.peers = {};
   this.events = {};
@@ -67,6 +70,66 @@ var Session = crypton.Session = function (id) {
 
         break;
       }
+    }
+  });
+
+  // watch for Item update notifications
+  this.socket.on('itemUpdate', function (itemObj) {
+    if (!itemObj.itemNameHmac || !itemObj.creator || !itemObj.toUsername) {
+      console.error(ERRS.ARG_MISSING);
+      throw new Error(ERRS.ARG_MISSING);
+    }
+    console.log('Item updated!', itemObj);
+    // if any of the cached items match the HMAC
+    // in the notification, sync the items and
+    // call the listener if one has been set
+    if (that.items[itemObj.itemNameHmac]) {
+
+      that.items[itemObj.itemNameHmac].sync(function (err) {
+        if (err) {
+          return console.error(err);
+        }
+
+        try {
+          that.events.onSharedItemSync(that.items[itemObj.itemNameHmac]);
+        } catch (ex) {
+          console.warn(ex);
+        }
+
+        if (that.items[itemObj.itemNameHmac]._listener) {
+          that.items[itemObj.itemNameHmac]._listener(err);
+        }
+      });
+    } else {
+      console.log('Loading the item as it is not cached');
+      // load item!
+      // get the peer first:
+      that.getPeer(itemObj.creator, function (err, peer) {
+        if (err) {
+          console.error(err);
+          console.error('Cannot load item: creator peer cannot be found');
+          return;
+        }
+        // XXXddahl: Make sure you trust this peer before loading the item
+        //           Perhaps we check this inside the Item constructor?
+        var itemCallback = function _itemCallback (err, item) {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          that.items[itemObj.itemNameHmac] = item;
+          try {
+            that.events.onSharedItemSync(item);
+          } catch (ex) {
+            console.warn(ex);
+          }
+        };
+
+        var item =
+          new crypton.Item(null, null, that, peer,
+                           itemCallback, itemObj.itemNameHmac);
+
+      });
     }
   });
 };
@@ -107,6 +170,9 @@ Session.prototype.removeItem = function removeItem (itemNameHmac, callback) {
  * Create or Retrieve Item with given platintext `itemName`,
  * either from local cache or server
  *
+ * This method is for use by the creator of the item.
+ * Use 'session.getSharedItem' for items shared by the creator
+ *
  * Calls back with Item and without error if successful
  *
  * Calls back with error if unsuccessful
@@ -125,6 +191,8 @@ function getOrCreateItem (itemName,  callback) {
   }
   // Get cached item if exists
   // XXXddahl: check server for more recent item?
+  // We need another server API like /itemupdated/<itemHmacName> which returns
+  // the timestamp of the last update
   if (this.items[itemName]) {
     callback(null, this.items[itemName]);
     return;
@@ -139,6 +207,40 @@ function getOrCreateItem (itemName,  callback) {
     }
     callback(null, item);
   });
+};
+
+/**!
+ * ### getSharedItem(itemNameHmac, peer, callback)
+ * Retrieve shared Item with given itemNameHmac,
+ * either from local cache or server
+ *
+ * Calls back with Item and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {String} itemNameHmac
+ * @param {Object} peer
+ * @param {Function} callback
+ */
+Session.prototype.getSharedItem =
+function getSharedItem (itemNameHmac,  peer, callback) {
+  // TODO:  Does not check for cached item or server having a fresher Item
+  if (!itemNameHmac) {
+    return callback(ERRS.ARG_MISSING);
+  }
+  if (!callback) {
+    throw new Error(ERRS.ARG_MISSING_CALLBACK);
+  }
+
+  function getItemCallback(err, item) {
+    if (err) {
+      console.error(err);
+      return callback(err);
+    }
+    callback(null, item);
+  }
+
+  new crypton.Item(null, null, this, peer, getItemCallback, itemNameHmac);
 };
 
 /**!

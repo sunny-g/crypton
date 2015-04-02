@@ -682,4 +682,36 @@ owned by to_account_id.';
 COMMENT ON COLUMN item_session_key_share.deletion_time IS
 'When an item is unshared, deletion_time';
 
+CREATE OR REPLACE FUNCTION notifyUpdatedItem() RETURNS TRIGGER AS $$
+  DECLARE 
+    notify_row RECORD;
+  BEGIN
+    FOR notify_row IN 
+      SELECT s.item_session_key_share_id, 
+        s.account_id, s.to_account_id, k.item_id, 
+	  a.username AS toUser, b.username AS fromUser 
+        FROM item_session_key_share s 
+        JOIN item_session_key k ON 
+          (s.item_session_key_id = k.item_session_key_id)
+        JOIN account a ON 
+          (s.to_account_id = a.account_id)
+        JOIN account b ON 
+          (s.account_id = b.account_id)
+        WHERE k.item_id = NEW.item_id AND k.supercede_time IS NULL 
+    LOOP
+      PERFORM pg_notify('SharedItemUpdated', 
+        CAST(notify_row.to_account_id AS text)|| ' ' ||
+        CAST(notify_row.account_id AS text) || ' ' ||
+        encode(NEW.name_hmac, 'escape') || ' ' ||  
+        notify_row.toUser || ' ' || 
+	notify_row.fromUser);
+
+    END LOOP;
+    RETURN NULL;
+  -- XXXddahl: EXCEPTION RAISE pg_notify notification???
+  END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE TRIGGER UpdatedItemNotify AFTER UPDATE ON item FOR EACH ROW EXECUTE PROCEDURE notifyUpdatedItem();
+
 commit;

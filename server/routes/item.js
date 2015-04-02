@@ -90,9 +90,7 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
  * Create item value for the given `itemNameHmac`
 */
 app.post('/createitem', verifySession, function (req, res) {
-
   app.log('debug', 'handling "create"');
-  app.log('debug', req);
 
   var item = new Item();
 
@@ -139,8 +137,6 @@ app.post('/createitem', verifySession, function (req, res) {
 */
 app.post('/removeitem', verifySession, function (req, res) {
   app.log('debug', 'handling "remove"');
-  app.log('debug', req);
-
   var item = new Item();
 
   var accountId = req.session.accountId;
@@ -173,6 +169,77 @@ app.post('/removeitem', verifySession, function (req, res) {
     res.send({
       success: true,
       itemMetaData: result
+    });
+  });
+});
+
+/**!
+ * ### POST /itemshare/:itemNameHmac
+ * Share item for the given `itemNameHmac` with peer
+*/
+app.post('/shareitem/:itemNameHmac', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /itemshare/:itemNameHmac');
+
+  var accountId = req.session.accountId;
+  var itemNameHmac = req.params.itemNameHmac;
+
+  var item = new Item();
+
+  var toUsername = req.body.toUsername;
+  item.update('toUsername', toUsername);
+
+  var sessionKeyCiphertext = req.body.sessionKeyCiphertext;
+  item.update('sessionKeyCiphertext', sessionKeyCiphertext);
+
+  item.update('accountId', accountId);
+  item.update('itemNameHmac', itemNameHmac);
+
+  item.share(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      error: null
+    });
+  });
+});
+
+/**!
+ * ### POST /itemunshare/:itemNameHmac
+ * unshare item for the given `itemNameHmac` from peer
+*/
+app.post('/unshareitem/:itemNameHmac', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /unshareitem/:itemNameHmac');
+
+  var accountId = req.session.accountId;
+  var itemNameHmac = req.params.itemNameHmac;
+
+  var item = new Item();
+
+  var shareeUsername = req.body.shareeUsername;
+  item.update('shareeUsername', shareeUsername);
+
+  item.update('accountId', accountId);
+  item.update('itemNameHmac', itemNameHmac);
+
+  item.unshare(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      error: null
     });
   });
 });

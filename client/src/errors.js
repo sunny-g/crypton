@@ -32,7 +32,8 @@ Errors.prototype = {
   UNWRAP_KEY_ERROR: 'Cannot unwrap session key',
   DECRYPT_CIPHERTEXT_ERROR: 'Cannot decrypt ciphertext',
   UPDATE_PERMISSION_ERROR: 'Update permission denied',
-  LOCAL_ITEM_MISSING: 'Cannot delete local Item, not currently cached'
+  LOCAL_ITEM_MISSING: 'Cannot delete local Item, not currently cached',
+  PEER_MESSAGE_SEND_FAILED: 'Cannot send message to peer'
 };
 
 crypton.errors = new Errors();

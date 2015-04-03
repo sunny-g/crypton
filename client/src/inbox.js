@@ -35,6 +35,7 @@ Inbox.prototype.poll = function (callback) {
 
   superagent.get(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -84,6 +85,7 @@ Inbox.prototype.get = function (messageId, callback) {
 
   superagent.get(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -125,6 +127,7 @@ Inbox.prototype.getAllMetadata = function (callback) {
 
   superagent.get(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);

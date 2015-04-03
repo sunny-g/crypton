@@ -25,7 +25,7 @@ var middleware = module.exports = {};
 /**!
  * ### verifySession(req, res, next)
  * Determine if the `session-identifier` header exists in the session store
- * 
+ *
  * @param {Object} req
  * @param {Object} res
  * @param {Function} next
@@ -33,14 +33,31 @@ var middleware = module.exports = {};
 middleware.verifySession = function (req, res, next) {
   var session = req.session;
 
+  app.log('verifySession() headers: \n', Object.keys(req.headers));
+  app.log('\n', JSON.stringify(req.headers));
+
+  app.log('req.session: \n', Object.keys(req.session));
+  app.log('\n', JSON.stringify(req.session));
+
   if (!session || !session.accountId) {
     app.log('debug', 'session ' + req.sessionId + ' invalid');
+    // See if we can ressurect the session object via the crypton.sid in the headers:
 
-    return res.send({
-      success: false,
-      error: 'Invalid session'
+    var sid = req.headers['X-Session-ID'];
+    // keep this value in sessionStorage, send on each connection as a header
+
+    app.sessionStore.get(sid, function (err, session) {
+      if (err || !session) {
+        // reconnect after server died and flushed sessions
+        app.log('debug', 'websocket connection declined due to null session');
+        return res.send({
+          success: false,
+          error: 'Invalid session'
+        });
+      }
+      req.session = session;
+      next();
     });
   }
-
   next();
 };

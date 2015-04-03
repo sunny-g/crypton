@@ -52,9 +52,19 @@ crypton.versionCheck = function (skip, callback) {
   var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version;
   superagent.get(url)
   .end(function (res) {
+    console.warn("Versioncheck Response headers!!!");
+    console.warn(res);
+
     if (res.body.success !== true && res.body.error !== undefined) {
       crypton.clientVersionMismatch = true;
       return callback(res.body.error);
+    }
+    // sessionStorage setItem!
+    console.warn('XSessionID: ', res.header['x-session-id']);
+    console.warn('RES Headers:', res.header);
+    if (!crypton.sessionId) {
+      sessionStorage.setItem('sessionId', res.header['x-session-id']);
+      crypton.sessionId = res.header['x-session-id'];
     }
     callback(null);
   });
@@ -424,8 +434,11 @@ crypton.authorize = function (username, passphrase, callback, options) {
 
         superagent.post(crypton.url() + '/account/' + username)
         .withCredentials()
+        .set('X-Session-ID', crypton.sessionId)
         .send(response)
         .end(function (res) {
+          console.warn('account creation response 1: ');
+          console.warn(res);
           if (!res.body || res.body.success !== true) {
             return callback(res.body.error);
           }
@@ -443,8 +456,11 @@ crypton.authorize = function (username, passphrase, callback, options) {
 
             superagent.post(crypton.url() + '/account/' + username + '/answer')
             .withCredentials()
+            .set('X-Session-ID', crypton.sessionId)
             .send(response)
             .end(function (res) {
+              console.warn('account creation response 2: ');
+              console.warn(res);
               if (!res.body || res.body.success !== true) {
                 callback(res.body.error);
                 return;

@@ -42,6 +42,7 @@ var Account = crypton.Account = function Account () {};
 Account.prototype.save = function (callback) {
   superagent.post(crypton.url() + '/account')
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .send(this.serialize())
     .end(function (res) {
       if (res.body.success !== true) {
@@ -299,6 +300,7 @@ Account.prototype.changePassphrase =
 
     superagent.post(crypton.url() + '/account/' + that.username + '/keyring')
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .send(newKeyring)
     .end(function (res) {
       if (res.body.success !== true) {

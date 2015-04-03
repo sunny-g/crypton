@@ -19,6 +19,7 @@
 'use strict';
 
 var semver = require('semver');
+var Cookies = require('cookies');
 
 var app = process.app;
 
@@ -53,6 +54,11 @@ app.get('/versioncheck', function (req, res) {
       data: { server: 'crypton'}
     });
   }
+
+  var cookies = new Cookies(req, res);
+  var sid = cookies.get('crypton.sid');
+  app.log('sid: ', sid);
+  res.set('X-Session-ID', sid);
 
   return res.send({
     success: true,

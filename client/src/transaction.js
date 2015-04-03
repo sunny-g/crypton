@@ -73,13 +73,14 @@ var Transaction = crypton.Transaction = function (session, callback) {
  * Calls back with transaction id and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.create = function (callback) {
   var url = crypton.url() + '/transaction/create';
   superagent.post(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -97,7 +98,7 @@ Transaction.prototype.create = function (callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Object} chunk
  * @param {Function} callback
  */
@@ -132,7 +133,7 @@ Transaction.prototype.save = function () {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Object} chunk
  * @param {Function} callback
  */
@@ -143,6 +144,7 @@ Transaction.prototype.saveChunk = function (chunk, callback) {
 
   superagent.post(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .send(chunk)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
@@ -161,7 +163,7 @@ Transaction.prototype.saveChunk = function (chunk, callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.commit = function (callback) {
@@ -169,6 +171,7 @@ Transaction.prototype.commit = function (callback) {
   var url = crypton.url() + '/transaction/' + this.id + '/commit';
   superagent.post(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -186,7 +189,7 @@ Transaction.prototype.commit = function (callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.abort = function (callback) {
@@ -194,6 +197,7 @@ Transaction.prototype.abort = function (callback) {
   var url = crypton.url() + '/transaction/' + this.id;
   superagent.del(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -231,4 +235,3 @@ Transaction.prototype.verifyChunk = function (chunk) {
 };
 
 })();
-

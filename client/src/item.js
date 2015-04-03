@@ -118,6 +118,7 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
 
   superagent.get(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
       var doesNotExist = 'Item does not exist';
       if ((!res.body || res.body.success !== true) && res.body.error != doesNotExist) {
@@ -226,6 +227,7 @@ Item.prototype.save = function (callback) {
 
   superagent.post(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
       if (!res.body.success) {
@@ -283,7 +285,9 @@ Item.prototype.create = function (callback) {
   var that = this;
   // post create item
   var url = crypton.url() + '/createitem';
-  superagent.post(url).withCredentials().send(payload).end(function (res) {
+  superagent.post(url).withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
+    .send(payload).end(function (res) {
     if (!res.body.success) {
       return callback('Cannot create item');
     }
@@ -368,6 +372,7 @@ Item.prototype.remove = function (callback) {
 
   superagent.post(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {
@@ -410,6 +415,7 @@ Item.prototype.share = function (peer, callback) {
 
   superagent.post(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {
@@ -477,6 +483,7 @@ Item.prototype.unshare = function (peer, callback) {
 
   superagent.post(url)
     .withCredentials()
+    .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {

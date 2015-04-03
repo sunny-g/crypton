@@ -21,6 +21,7 @@
     "connect": "2.7.x",
     "connect-redis": "~1.4.5",
     "cookie": "0.1.x",
+    "cookies": "0.5.x",
     "cors": "~2.1.1",
     "cryptojs": "2.5.x",
     "express": "3.5.x",

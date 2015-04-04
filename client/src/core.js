@@ -185,6 +185,8 @@ function constEqual (str1, str2) {
 }
 crypton.constEqual = constEqual;
 
+crypton.sessionId = null;
+    
 /**!
  * ### randomBits(nbits)
  * Generate `nbits` bits of random data
@@ -434,7 +436,7 @@ crypton.authorize = function (username, passphrase, callback, options) {
 
         superagent.post(crypton.url() + '/account/' + username)
         .withCredentials()
-        .set('X-Session-ID', crypton.sessionId)
+        // .set('X-Session-ID', crypton.sessionId)
         .send(response)
         .end(function (res) {
           console.warn('account creation response 1: ');
@@ -442,7 +444,12 @@ crypton.authorize = function (username, passphrase, callback, options) {
           if (!res.body || res.body.success !== true) {
             return callback(res.body.error);
           }
-
+	  // check for response session header:
+	  console.log('sessionID header: ', res.header['x-session-id']);
+	  console.log('sessionID from body: ', res.body.sessionID);
+	  crypton.sessionId = res.body.sessionID;  
+	  sessionStorage.setItem('sessionId', res.body.sessionID);
+	    
           options.a = data.a;
           options.srpA = data.srpA;
           options.srpB = res.body.srpB;
@@ -451,12 +458,13 @@ crypton.authorize = function (username, passphrase, callback, options) {
           // calculateSrpM1
           crypton.work.calculateSrpM1(options, function (err, srpM1, ourSrpM2) {
             response = {
-              srpM1: srpM1
+		srpM1: srpM1,
+		sessionId: crypton.sessionId
             };
 
             superagent.post(crypton.url() + '/account/' + username + '/answer')
             .withCredentials()
-            .set('X-Session-ID', crypton.sessionId)
+            .set('X-Session-ID', sessionStorage.getItem('sessionId'))
             .send(response)
             .end(function (res) {
               console.warn('account creation response 2: ');
@@ -500,7 +508,7 @@ crypton.authorize = function (username, passphrase, callback, options) {
                   if (!err) {
                     return callback(null, session);
                   }
-
+		  
                   // if not, create it
                   session.create(crypton.trustStateContainer, function (err) {
                     if (err) {

@@ -39,7 +39,8 @@ middleware.verifySession = function (req, res, next) {
   app.log('req.session: \n', Object.keys(req.session));
   app.log('\n', JSON.stringify(req.session));
 
-  var sid = req.headers['X-Session-ID'];
+  var sid = req.headers['x-session-id'];
+  app.log(req.headers['x-session-id']);
   // keep this value in sessionStorage, send on each connection as a header
   // See if we can ressurect the session object via the crypton.sid in the headers:
   res.set('X-Session-ID', sid);

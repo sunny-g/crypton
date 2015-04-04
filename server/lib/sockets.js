@@ -25,7 +25,7 @@ var connect = require('connect');
 
 app.log('info', 'starting socket.io');
 
-app.io = io.listen(app.server, { log: false });
+app.io = io.listen(app.server, { log: true });
 app.io.set('log level', 1); // TODO make this configurable
 app.clients = {};
 
@@ -37,6 +37,9 @@ app.clients = {};
 // TODO is this necessary? we're retreiving the session on('connection')
 app.io.set('authorization', function (handshakeData, accept) {
   app.log('debug', 'authorizing websocket connection');
+
+  app.log('debug', handshakeData);
+  app.log('debug', accept);
 
   if (!handshakeData.headers.cookie) {
     app.log('debug', 'websocket authorization failed due to no cookies sent');

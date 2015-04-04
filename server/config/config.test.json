@@ -41,5 +41,5 @@
     }
   },
   "port": 1025,
-  "logLevel": "trace"
+  "logLevel": "debug"
 }

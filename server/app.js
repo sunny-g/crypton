@@ -27,6 +27,8 @@ var express = require('express');
 var util = require('./lib/util');
 var appsec = require('lusca');
 var version = require('./package.json').version;
+var redis = require("redis");
+var redisClient = redis.createClient();
 
 var app = process.app = module.exports = express();
 app.log = require('./lib/log');
@@ -132,6 +134,49 @@ var sessionMiddleware = express.session({
     secure: true
   }
 });
+
+redisClient.on("error", function (err) {
+  app.log('error', err);
+});
+
+app.redisClient = redisClient;
+
+app.getRedisCache = function getRedisCache(name, callback) {
+  app.redisClient.get(name, function redisClientCallback (err, reply) {
+    if (err) {
+      return callback(err);
+    }
+    app.log('info', name);
+    app.log('info', reply);
+    return callback(null, JSON.parse(reply));
+  });
+};
+
+app.setRedisCache = function setRedisCache(name, value, callback) {
+  app.redisClient.get(name, function (err, reply) {
+    if (err) {
+      return callback(err);
+    }
+    app.log('debug', reply)
+    if (!reply) {
+      var str = JSON.stringify(value);
+      app.log('info', str);
+      app.redisClient.set(name, str, function (err, reply) {
+        if (err) {
+          app.log('error', err);
+          return callback(err);
+        }
+        return callback(null);
+      });
+    } else {
+      var obj = JSON.parse(reply.toString());
+      for (var prop in obj) {
+        obj[prop] = value[prop];
+      }
+      app.redisClient.set(name, JSON.stringify(obj), callback);
+    }
+  });
+}
 
 app.use(function (req, res, next) {
   if (req._parsedUrl.pathname == '/') {

@@ -32,6 +32,9 @@ var Account = require('../lib/account');
 app.post('/account', function (req, res) {
   app.log('debug', 'handling POST /account');
 
+  app.log('debug', JSON.stringify(req.session));
+  app.log('debug', JSON.stringify(res.session));
+
   var account = new Account();
   account.update(req.body);
 
@@ -59,6 +62,15 @@ app.post('/account', function (req, res) {
 */
 app.post('/account/:username', function (req, res) {
   app.log('debug', 'handling POST /account/:username');
+  app.log('debug', 'req.sessionId');
+  app.log('debug', JSON.stringify(req.sessionID));
+  app.log('debug', 'req Keys:');
+  app.log('debug', Object.keys(req));
+  app.log('debug', JSON.stringify(res.sessionID));
+  app.log('debug', 'res Keys:');
+  app.log('debug', Object.keys(res));
+
+  res.set('X-Session-ID', req.sessionID);
 
   var account = new Account();
 
@@ -82,13 +94,23 @@ app.post('/account/:username', function (req, res) {
 
         return;
       }
-
+      console.log('srpParams: ', srpParams);
+      console.log('req.session: ', req.session);
       req.session.srpParams = srpParams;
-      res.send({
-        success: true,
-        srpB: srpParams.B,
-        srpSalt: account.srpSalt
+
+      app.setRedisCache(req.sessionID, srpParams, function (err, reply) {
+        if (err) {
+          res.send({success: false, error: err});
+          return;
+        }
+        res.send({
+          sessionID: req.sessionID,
+          success: true,
+          srpB: srpParams.B,
+          srpSalt: account.srpSalt
+	});
       });
+
     });
   });
 });
@@ -101,33 +123,41 @@ app.post('/account/:username', function (req, res) {
 */
 app.post('/account/:username/answer', function (req, res) {
   app.log('debug', 'handling POST /account/:username/answer');
-
+  
+  app.log('debug', req.sessionID); // this session ID is a new one! must ignore!
+  app.log('debug', req.body.sessionId);
   if (typeof req.session.srpParams == 'undefined') {
-    res.send({
-      success: false,
-      error: 'Session invalid'
+    app.getRedisCache(req.body.sessionId, function (err, srpData) {
+      if (err) {
+        app.log('error', err);
+        res.send({success: false, error: 'srp cache failure'});
+        return;
+      }
+      app.log('info', 'srpData: ');
+      app.log('info', srpData);
+      // check out the reply from redis...
+      if (typeof srpData != 'object') {
+        res.send({
+	  success: false,
+          error: 'Session invalid'
+        });
+        return; 
+      }
+      // Looks like we have srpData!
+      var srpParams = srpData;
+      finishSrp(srpParams, req.body.sessionId);
     });
-
-    return;
+  } else {
+    // Cookies work
+    finishSrp(req.session.srpParams, req.sessionID);
   }
 
-  var srpM1 = req.body.srpM1;
-  var account = new Account();
+  function finishSrp(params, sessionId) {
+    var srpM1 = req.body.srpM1;
+    var account = new Account();
 
-  account.get(req.params.username, function (err) {
-    if (err) {
-      res.send({
-        success: false,
-        error: err
-      });
-
-      return;
-    }
-
-    account.checkSrp(req.session.srpParams, srpM1, function (err, srpM2) {
-      delete req.session.srpParams;
+    account.get(req.params.username, function (err) {
       if (err) {
-        app.log('debug', 'SRP verification failed: ' + err);
         res.send({
           success: false,
           error: err
@@ -136,16 +166,37 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-      app.log('debug', 'SRP verification succcess');
-      req.session.accountId = account.accountId;
-      res.send({
-        success: true,
-        account: account.toJSON(),
-        sessionIdentifier: req.sessionID,
-        srpM2: srpM2.toString('hex')
+      account.checkSrp(params, srpM1, function (err, srpM2) {
+        // XXXddahl: fix this later... delete req.session.srpParams;
+        if (err) {
+          app.log('debug', 'SRP verification failed: ' + err);
+          res.send({
+            success: false,
+            error: err
+          });
+
+          return;
+        }
+
+        app.log('debug', 'SRP verification succcess');
+        try {
+          req.session.accountId = account.accountId;
+        } catch (ex) {
+          app.log('error', ex);
+        }
+        app.redisClient.set(sessionId, {accountId: account.accountId}, 
+        function (err, reply) {
+          res.send({
+            success: true,
+            account: account.toJSON(),
+            sessionIdentifier: sessionId,
+            srpM2: srpM2.toString('hex')
+           });
+        });
+        
       });
     });
-  });
+  }
 });
 
 /**!

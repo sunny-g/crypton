@@ -49,7 +49,7 @@ crypton.versionCheck = function (skip, callback) {
     return callback(null);
   }
 
-  var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version;
+  var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version + '&sid=' + crypton.sessionId || '';
   superagent.get(url)
   .end(function (res) {
     console.warn("Versioncheck Response headers!!!");
@@ -60,12 +60,12 @@ crypton.versionCheck = function (skip, callback) {
       return callback(res.body.error);
     }
     // sessionStorage setItem!
-    console.warn('XSessionID: ', res.header['x-session-id']);
-    console.warn('RES Headers:', res.header);
-    if (!crypton.sessionId) {
-      sessionStorage.setItem('sessionId', res.header['x-session-id']);
-      crypton.sessionId = res.header['x-session-id'];
-    }
+    // console.warn('XSessionID: ', res.header['x-session-id']);
+    // console.warn('RES Headers:', res.header);
+    // if (!crypton.sessionId) {
+    //   sessionStorage.setItem('sessionId', res.header['x-session-id']);
+    //  crypton.sessionId = res.header['x-session-id'];
+    // }
     callback(null);
   });
 };
@@ -445,10 +445,11 @@ crypton.authorize = function (username, passphrase, callback, options) {
             return callback(res.body.error);
           }
 	  // check for response session header:
-	  console.log('sessionID header: ', res.header['x-session-id']);
-	  console.log('sessionID from body: ', res.body.sessionID);
-	  crypton.sessionId = res.body.sessionID;  
-	  sessionStorage.setItem('sessionId', res.body.sessionID);
+	  // console.log('sessionID header: ', res.header['x-session-id']);
+	  console.log('sessionID from body: ', res.body.sid);
+	  // XXX: Make sure we have a sid! 
+	  crypton.sessionId = res.body.sid;  
+	  sessionStorage.setItem('sessionId', res.body.sid);
 	    
           options.a = data.a;
           options.srpA = data.srpA;
@@ -458,13 +459,15 @@ crypton.authorize = function (username, passphrase, callback, options) {
           // calculateSrpM1
           crypton.work.calculateSrpM1(options, function (err, srpM1, ourSrpM2) {
             response = {
-		srpM1: srpM1,
-		sessionId: crypton.sessionId
+		srpM1: srpM1
             };
 
-            superagent.post(crypton.url() + '/account/' + username + '/answer')
+	    var url = crypton.url() +
+		'/account/' + username + '/answer?sid=' + crypton.sessionId;
+	    console.log('url', url);
+            superagent.post(url)
             .withCredentials()
-            .set('X-Session-ID', sessionStorage.getItem('sessionId'))
+            // .set('X-Session-ID', sessionStorage.getItem('sessionId'))
             .send(response)
             .end(function (res) {
               console.warn('account creation response 2: ');
@@ -479,8 +482,8 @@ crypton.authorize = function (username, passphrase, callback, options) {
                 return;
               }
 
-              var sessionIdentifier = res.body.sessionIdentifier;
-              var session = new crypton.Session(sessionIdentifier);
+              // var sessionIdentifier = res.body.sessionIdentifier;
+              var session = new crypton.Session(crypton.sessionId);
               session.account = new crypton.Account();
               session.account.username = username;
               session.account.passphrase = passphrase;
@@ -497,11 +500,13 @@ crypton.authorize = function (username, passphrase, callback, options) {
               session.account.signKeyPrivateCiphertext = res.body.account.signKeyPrivateCiphertext;
               session.account.signKeyPrivateMacSalt = res.body.account.signKeyPrivateMacSalt;
               session.account.signKeyPrivateMac = res.body.account.signKeyPrivateMac;
+	      console.log('session', session);
               session.account.unravel(function (err) {
                 if (err) {
                   return callback(err);
                 }
 
+		console.log('session.load()');
                 // check for internal peer trust state container
                 session.load(crypton.trustStateContainer, function (err) {
                   // if it exists, callback with session

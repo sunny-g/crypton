@@ -108,17 +108,17 @@ Item.prototype.sync = function (callback) {
 
 Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
   var that = this;
-  var url = crypton.url() + '/item/' + itemNameHmac;
+  var url = crypton.url() + '/item/' + itemNameHmac + '?sid=' + crypton.sessionId;
 
   if (this.sharedItem) {
-    url = url + '?shared=1';
+    url = url + '&shared=1';
   }
 
   console.log('that.sharedItem', that.sharedItem);
 
   superagent.get(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
       var doesNotExist = 'Item does not exist';
       if ((!res.body || res.body.success !== true) && res.body.error != doesNotExist) {
@@ -223,11 +223,11 @@ Item.prototype.save = function (callback) {
   }
 
   var that = this;
-  var url = crypton.url() + '/item/' + this.getPublicName();
+  var url = crypton.url() + '/item/' + this.getPublicName() + '?sid=' + crypton.sessionId;
 
   superagent.post(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
       if (!res.body.success) {
@@ -284,9 +284,9 @@ Item.prototype.create = function (callback) {
 
   var that = this;
   // post create item
-  var url = crypton.url() + '/createitem';
+  var url = crypton.url() + '/createitem?sid=' + crypton.sessionId;
   superagent.post(url).withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .send(payload).end(function (res) {
     if (!res.body.success) {
       return callback('Cannot create item');
@@ -364,7 +364,7 @@ Item.prototype.remove = function (callback) {
 
   var that = this;
   // post remove item
-  var url = crypton.url() + '/removeitem';
+  var url = crypton.url() + '/removeitem?sid=' + crypton.sessionId;
 
   var payload = {
     itemNameHmac: this.getPublicName()
@@ -372,7 +372,7 @@ Item.prototype.remove = function (callback) {
 
   superagent.post(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {
@@ -405,7 +405,7 @@ Item.prototype.share = function (peer, callback) {
   var toUsername = peer.username;
   var itemNameHmac = this.getPublicName();
 
-  var url = crypton.url() + '/shareitem/' + itemNameHmac;
+  var url = crypton.url() + '/shareitem/' + itemNameHmac + '?sid=' + crypton.sessionId;
 
   var payload = {
     toUsername: toUsername,
@@ -415,7 +415,7 @@ Item.prototype.share = function (peer, callback) {
 
   superagent.post(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {
@@ -475,7 +475,7 @@ Item.prototype.unshare = function (peer, callback) {
   var shareeUsername = peer.username;
   var itemNameHmac = this.getPublicName();
 
-  var url = crypton.url() + '/unshareitem/' + itemNameHmac;
+  var url = crypton.url() + '/unshareitem/' + itemNameHmac + '?sid=' + crypton.sessionId;
 
   var payload = {
     shareeUsername: shareeUsername
@@ -483,7 +483,7 @@ Item.prototype.unshare = function (peer, callback) {
 
   superagent.post(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {

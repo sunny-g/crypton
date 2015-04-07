@@ -77,10 +77,10 @@ var Transaction = crypton.Transaction = function (session, callback) {
  * @param {Function} callback
  */
 Transaction.prototype.create = function (callback) {
-  var url = crypton.url() + '/transaction/create';
+  var url = crypton.url() + '/transaction/create' + '?sid=' + crypton.sessionId;
   superagent.post(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -140,11 +140,11 @@ Transaction.prototype.save = function () {
 Transaction.prototype.saveChunk = function (chunk, callback) {
   this.verify();
   this.verifyChunk(chunk);
-  var url = crypton.url() + '/transaction/' + this.id;
+  var url = crypton.url() + '/transaction/' + this.id + '?sid=' + crypton.sessionId;
 
   superagent.post(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .send(chunk)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
@@ -168,10 +168,10 @@ Transaction.prototype.saveChunk = function (chunk, callback) {
  */
 Transaction.prototype.commit = function (callback) {
   this.verify();
-  var url = crypton.url() + '/transaction/' + this.id + '/commit';
+  var url = crypton.url() + '/transaction/' + this.id + '/commit?sid=' + crypton.sessionId;
   superagent.post(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -194,10 +194,10 @@ Transaction.prototype.commit = function (callback) {
  */
 Transaction.prototype.abort = function (callback) {
   this.verify();
-  var url = crypton.url() + '/transaction/' + this.id;
+  var url = crypton.url() + '/transaction/' + this.id + '?sid=' + crypton.sessionId;
   superagent.del(url)
     .withCredentials()
-    .set('X-Session-ID', crypton.sessionId)
+    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);

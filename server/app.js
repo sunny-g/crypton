@@ -28,12 +28,15 @@ var util = require('./lib/util');
 var appsec = require('lusca');
 var version = require('./package.json').version;
 var redis = require("redis");
-var redisClient = redis.createClient();
+// var redisClient = redis.createClient();
+var redisSession = require('./redis-session')();
 
 var app = process.app = module.exports = express();
 app.log = require('./lib/log');
 app.config = require('./lib/config');
 app.datastore = require('./lib/storage');
+
+app.redisSession = redisSession;
 /*jslint camelcase: false*/
 app.id_translator = require('id_translator')
     .load_id_translator(app.config.id_translator.key_file);
@@ -43,15 +46,15 @@ app.log('info', 'configuring server');
 
 app.SERVER_VERSION = version;
 
-app.secret = util.readFileSync(
-  // TODO: 'binary' encoding is deprecated
-  // TODO: also do we need to do this at all?
-  app.config.cookieSecretFile, 'binary',
-  app.config.defaultKeySize
-);
+// app.secret = util.readFileSync(
+//   // TODO: 'binary' encoding is deprecated
+//   // TODO: also do we need to do this at all?
+//   app.config.cookieSecretFile, 'binary',
+//   app.config.defaultKeySize
+// );
 
 app.use(connect.urlencoded());
-app.use(connect.cookieParser());
+// app.use(connect.cookieParser());
 
 app.use(connect.json({
   limit: '20mb'
@@ -111,80 +114,80 @@ app.use(function (req, res, next) {
   next();
 });
 
-var redis = require('redis').createClient(
-  app.config.redis.port,
-  app.config.redis.host, {
-    /*jslint camelcase: false*/
-    auth_pass: app.config.redis.pass
-    /*jslint camelcase: true*/
-  }
-);
+// var redis = require('redis').createClient(
+//   app.config.redis.port,
+//   app.config.redis.host, {
+//     /*jslint camelcase: false*/
+//     auth_pass: app.config.redis.pass
+//     /*jslint camelcase: true*/
+//   }
+// );
 
-var RedisStore = require('connect-redis')(express);
-app.sessionStore = new RedisStore({
-  client: redis,
-  prefix: 'crypton.sid:'
-});
+// var RedisStore = require('connect-redis')(express);
+// app.sessionStore = new RedisStore({
+//   client: redis,
+//   prefix: 'crypton.sid:'
+// });
 
-var sessionMiddleware = express.session({
-  secret: app.secret,
-  store: app.sessionStore,
-  key: 'crypton.sid',
-  cookie: {
-    secure: true
-  }
-});
+// var sessionMiddleware = express.session({
+//   secret: app.secret,
+//   store: app.sessionStore,
+//   key: 'crypton.sid',
+//   cookie: {
+//     secure: true
+//   }
+// });
 
-redisClient.on("error", function (err) {
-  app.log('error', err);
-});
+// redisClient.on("error", function (err) {
+//   app.log('error', err);
+// });
 
-app.redisClient = redisClient;
+// app.redisClient = redisClient;
 
-app.getRedisCache = function getRedisCache(name, callback) {
-  app.redisClient.get(name, function redisClientCallback (err, reply) {
-    if (err) {
-      return callback(err);
-    }
-    app.log('info', name);
-    app.log('info', reply);
-    return callback(null, JSON.parse(reply));
-  });
-};
+// app.getRedisCache = function getRedisCache(name, callback) {
+//   app.redisClient.get(name, function redisClientCallback (err, reply) {
+//     if (err) {
+//       return callback(err);
+//     }
+//     app.log('info', name);
+//     app.log('info', reply);
+//     return callback(null, JSON.parse(reply));
+//   });
+// };
 
-app.setRedisCache = function setRedisCache(name, value, callback) {
-  app.redisClient.get(name, function (err, reply) {
-    if (err) {
-      return callback(err);
-    }
-    app.log('debug', reply)
-    if (!reply) {
-      var str = JSON.stringify(value);
-      app.log('info', str);
-      app.redisClient.set(name, str, function (err, reply) {
-        if (err) {
-          app.log('error', err);
-          return callback(err);
-        }
-        return callback(null);
-      });
-    } else {
-      var obj = JSON.parse(reply.toString());
-      for (var prop in obj) {
-        obj[prop] = value[prop];
-      }
-      app.redisClient.set(name, JSON.stringify(obj), callback);
-    }
-  });
-}
+// app.setRedisCache = function setRedisCache(name, value, callback) {
+//   app.redisClient.get(name, function (err, reply) {
+//     if (err) {
+//       return callback(err);
+//     }
+//     app.log('debug', reply)
+//     if (!reply) {
+//       var str = JSON.stringify(value);
+//       app.log('info', str);
+//       app.redisClient.set(name, str, function (err, reply) {
+//         if (err) {
+//           app.log('error', err);
+//           return callback(err);
+//         }
+//         return callback(null);
+//       });
+//     } else {
+//       var obj = JSON.parse(reply.toString());
+//       for (var prop in obj) {
+//         obj[prop] = value[prop];
+//       }
+//       app.redisClient.set(name, JSON.stringify(obj), callback);
+//     }
+//   });
+// }
 
-app.use(function (req, res, next) {
-  if (req._parsedUrl.pathname == '/') {
-    return next();
-  }
+// app.use(function (req, res, next) {
+//   if (req._parsedUrl.pathname == '/') {
+//     return next();
+//   }
 
-  sessionMiddleware(req, res, next);
-});
+//   sessionMiddleware(req, res, next);
+// });
 
 app.use(express.logger(function (info, req, res) {
   var color = 'green';

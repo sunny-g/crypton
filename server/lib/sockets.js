@@ -37,23 +37,23 @@ app.clients = {};
 // TODO is this necessary? we're retreiving the session on('connection')
 app.io.set('authorization', function (handshakeData, accept) {
   app.log('debug', 'authorizing websocket connection');
-
-  app.log('debug', handshakeData);
-  app.log('debug', accept);
+  app.log('debug', 'Handshake Data.............');
+  app.log('debug', JSON.stringify(handshakeData));
+  app.log('debug', JSON.stringify(accept));
 
   if (!handshakeData.headers.cookie) {
     app.log('debug', 'websocket authorization failed due to no cookies sent');
     return accept('No cookie transmitted.', false);
   } else {
-    handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
-    var ssid = handshakeData.cookie['crypton.sid'];
-    var usid = connect.utils.parseSignedCookie(ssid, app.secret);
-    handshakeData.sessionId = usid;
+    // handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
+    // var ssid = handshakeData.cookie['crypton.sid'];
+    // var usid = connect.utils.parseSignedCookie(ssid, app.secret);
+    // handshakeData.sessionId = usid;
 
-    if (usid == ssid) {
-      app.log('debug', 'websocket authorization failed due to invalid cookie');
-      return accept('Cookie is invalid.', false);
-    }
+    // if (usid == ssid) {
+    //   app.log('debug', 'websocket authorization failed due to invalid cookie');
+    //   return accept('Cookie is invalid.', false);
+    // }
   } 
 
   app.log('debug', 'websocket authorization successful');
@@ -66,16 +66,17 @@ app.io.set('authorization', function (handshakeData, accept) {
  * Remove handle from app.clients upon disconnection
  */
 app.io.sockets.on('connection', function (socket) {
-  var sid = socket.handshake.sessionId;
+  console.log('socket!!!!!!', socket);
+  var sid = socket.sessionId;
 
-  app.sessionStore.get(sid, function (err, session) {
-    if (err || !session) {
-      // reconnect after server died and flushed sessions
-      app.log('debug', 'websocket connection declined due to null session');
+  console.log('sid: ', sid);
+
+  app.redisSession.get(sid, socket, function _socketCallback(data, err, info) {
+    if (err) {
+      app.log('debug', err);
       return;
     }
-
-    var accountId = session.accountId;
+    var accountId = data.accountId;
     socket.accountId = accountId;
     app.clients[accountId] = socket;
     app.log('debug', 'websocket connection added to pool for account: ' + accountId);
@@ -83,8 +84,30 @@ app.io.sockets.on('connection', function (socket) {
 
     socket.on('disconnect', function () {
       delete app.clients[accountId];
+      // XXXddahl: delete the session as well!
       app.log('debug', 'websocket connection deleted for account: ' + accountId);
       app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
     });
+    
   });
+  
+  // app.sessionStore.get(sid, function (err, session) {
+  //   if (err || !session) {
+  //     // reconnect after server died and flushed sessions
+  //     app.log('debug', 'websocket connection declined due to null session');
+  //     return;
+  //   }
+
+  //   var accountId = session.accountId;
+  //   socket.accountId = accountId;
+  //   app.clients[accountId] = socket;
+  //   app.log('debug', 'websocket connection added to pool for account: ' + accountId);
+  //   app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
+
+  //   socket.on('disconnect', function () {
+  //     delete app.clients[accountId];
+  //     app.log('debug', 'websocket connection deleted for account: ' + accountId);
+  //     app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
+  //   });
+  // });
 });

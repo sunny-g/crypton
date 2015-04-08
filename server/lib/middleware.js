@@ -35,7 +35,7 @@ middleware.verifySession = function (req, res, next) {
 
   app.log('debug', 'sessionId: ');
   app.log('debug', sessionId);
-  
+
   if (!sessionId) {
     // we are not logged in and a client is attempting to reach a protected URL
     return res.send({
@@ -46,19 +46,12 @@ middleware.verifySession = function (req, res, next) {
 
   // Get the session
   app.redisSession.get(sessionId, req, function getSessionCB (data, err, info) {
-    app.log('debug', arguments);
-    
     if (err) {
       return res.send({
         success: false,
         error: 'Invalid session'
       });
     }
-    app.log('debug', 'info');
-    app.log('debug', info);
-    app.log('debug', 'data');
-    app.log('debug', data);
-    
     req.session = data;
 
     next();

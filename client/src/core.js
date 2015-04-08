@@ -59,13 +59,6 @@ crypton.versionCheck = function (skip, callback) {
       crypton.clientVersionMismatch = true;
       return callback(res.body.error);
     }
-    // sessionStorage setItem!
-    // console.warn('XSessionID: ', res.header['x-session-id']);
-    // console.warn('RES Headers:', res.header);
-    // if (!crypton.sessionId) {
-    //   sessionStorage.setItem('sessionId', res.header['x-session-id']);
-    //  crypton.sessionId = res.header['x-session-id'];
-    // }
     callback(null);
   });
 };
@@ -186,7 +179,7 @@ function constEqual (str1, str2) {
 crypton.constEqual = constEqual;
 
 crypton.sessionId = null;
-    
+
 /**!
  * ### randomBits(nbits)
  * Generate `nbits` bits of random data
@@ -445,12 +438,11 @@ crypton.authorize = function (username, passphrase, callback, options) {
             return callback(res.body.error);
           }
 	  // check for response session header:
-	  // console.log('sessionID header: ', res.header['x-session-id']);
 	  console.log('sessionID from body: ', res.body.sid);
-	  // XXX: Make sure we have a sid! 
-	  crypton.sessionId = res.body.sid;  
-	  sessionStorage.setItem('sessionId', res.body.sid);
-	    
+	  // XXX: Make sure we have a sid!
+	  crypton.sessionId = res.body.sid;
+	  window.sessionStorage.setItem('sessionId', res.body.sid);
+
           options.a = data.a;
           options.srpA = data.srpA;
           options.srpB = res.body.srpB;
@@ -500,20 +492,18 @@ crypton.authorize = function (username, passphrase, callback, options) {
               session.account.signKeyPrivateCiphertext = res.body.account.signKeyPrivateCiphertext;
               session.account.signKeyPrivateMacSalt = res.body.account.signKeyPrivateMacSalt;
               session.account.signKeyPrivateMac = res.body.account.signKeyPrivateMac;
-	      console.log('session', session);
               session.account.unravel(function (err) {
                 if (err) {
                   return callback(err);
                 }
 
-		console.log('session.load()');
                 // check for internal peer trust state container
                 session.load(crypton.trustStateContainer, function (err) {
                   // if it exists, callback with session
                   if (!err) {
                     return callback(null, session);
                   }
-		  
+
                   // if not, create it
                   session.create(crypton.trustStateContainer, function (err) {
                     if (err) {

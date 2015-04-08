@@ -54,7 +54,7 @@ app.clients = {};
 //     //   app.log('debug', 'websocket authorization failed due to invalid cookie');
 //     //   return accept('Cookie is invalid.', false);
 //     // }
-//   } 
+//   }
 
 //   app.log('debug', 'websocket authorization successful');
 //   accept(null, true);
@@ -66,9 +66,7 @@ app.clients = {};
  * Remove handle from app.clients upon disconnection
  */
 app.io.sockets.on('connection', function (socket) {
-  console.log('socket!!!!!!', socket);
   var sid = socket.sessionId;
-
   console.log('sid: ', sid);
 
   app.redisSession.get(sid, socket, function _socketCallback(data, err, info) {
@@ -90,7 +88,6 @@ app.io.sockets.on('connection', function (socket) {
       app.log('debug', 'websocket connection deleted for account: ' + accountId);
       app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
     });
-    
   });
-  
+
 });

@@ -29,6 +29,7 @@ describe('Item sharing tests', function () {
       crypton.generateAccount('alice4', 'pass', function (err, acct) {
         if (err) throw err;
         assert(acct);
+        console.log(acct);
         alice = acct;
       });
 
@@ -36,6 +37,7 @@ describe('Item sharing tests', function () {
         if (err) throw err;
         assert(acct);
         bob = acct;
+        console.log(acct);
         done();
       });
 
@@ -46,6 +48,7 @@ describe('Item sharing tests', function () {
         if (err) throw err;
         bobSession = sess;
         assert(sess);
+        console.log(sess);
         bobSession.events['message'] = function (message) {
           console.log('message rcvd: ', message);
         };
@@ -68,6 +71,7 @@ describe('Item sharing tests', function () {
         if (err) throw err;
         aliceSession = sess;
         assert(sess);
+        console.log(sess);
         // trust bob
         aliceSession.getPeer('bob4', function (err, peer) {
           if (err) { throw err };
@@ -86,6 +90,7 @@ describe('Item sharing tests', function () {
           console.error(err);
           throw (err);
         }
+        console.log(item);
         item1 = item;
         assert(item);
         assert(item.sessionKey);

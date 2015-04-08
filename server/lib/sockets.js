@@ -30,35 +30,35 @@ app.io.set('log level', 1); // TODO make this configurable
 app.clients = {};
 
 /**!
- * Configure socket.io connection autorization
+ * Configure socket.io connection authorization
  *
  * Looks up the provided session to make sure it is valid
  */
 // TODO is this necessary? we're retreiving the session on('connection')
-app.io.set('authorization', function (handshakeData, accept) {
-  app.log('debug', 'authorizing websocket connection');
-  app.log('debug', 'Handshake Data.............');
-  app.log('debug', JSON.stringify(handshakeData));
-  app.log('debug', JSON.stringify(accept));
+// app.io.set('authorization', function (handshakeData, accept) {
+//   app.log('debug', 'authorizing websocket connection');
+//   app.log('debug', 'Handshake Data.............');
+//   app.log('debug', JSON.stringify(handshakeData));
+//   app.log('debug', JSON.stringify(accept));
 
-  if (!handshakeData.headers.cookie) {
-    app.log('debug', 'websocket authorization failed due to no cookies sent');
-    return accept('No cookie transmitted.', false);
-  } else {
-    // handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
-    // var ssid = handshakeData.cookie['crypton.sid'];
-    // var usid = connect.utils.parseSignedCookie(ssid, app.secret);
-    // handshakeData.sessionId = usid;
+//   if (!handshakeData.headers.cookie) {
+//     app.log('debug', 'websocket authorization failed due to no cookies sent');
+//     return accept('No cookie transmitted.', false);
+//   } else {
+//     // handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
+//     // var ssid = handshakeData.cookie['crypton.sid'];
+//     // var usid = connect.utils.parseSignedCookie(ssid, app.secret);
+//     // handshakeData.sessionId = usid;
 
-    // if (usid == ssid) {
-    //   app.log('debug', 'websocket authorization failed due to invalid cookie');
-    //   return accept('Cookie is invalid.', false);
-    // }
-  } 
+//     // if (usid == ssid) {
+//     //   app.log('debug', 'websocket authorization failed due to invalid cookie');
+//     //   return accept('Cookie is invalid.', false);
+//     // }
+//   } 
 
-  app.log('debug', 'websocket authorization successful');
-  accept(null, true);
-});
+//   app.log('debug', 'websocket authorization successful');
+//   accept(null, true);
+// });
 
 /**!
  * Verify session, add session's accountId to socket handle,
@@ -74,6 +74,8 @@ app.io.sockets.on('connection', function (socket) {
   app.redisSession.get(sid, socket, function _socketCallback(data, err, info) {
     if (err) {
       app.log('debug', err);
+      // No session established.
+      app.log('info', 'Fatal Error: Cannot authorize WebSocket connection! No Session is established.');
       return;
     }
     var accountId = data.accountId;
@@ -91,23 +93,4 @@ app.io.sockets.on('connection', function (socket) {
     
   });
   
-  // app.sessionStore.get(sid, function (err, session) {
-  //   if (err || !session) {
-  //     // reconnect after server died and flushed sessions
-  //     app.log('debug', 'websocket connection declined due to null session');
-  //     return;
-  //   }
-
-  //   var accountId = session.accountId;
-  //   socket.accountId = accountId;
-  //   app.clients[accountId] = socket;
-  //   app.log('debug', 'websocket connection added to pool for account: ' + accountId);
-  //   app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
-
-  //   socket.on('disconnect', function () {
-  //     delete app.clients[accountId];
-  //     app.log('debug', 'websocket connection deleted for account: ' + accountId);
-  //     app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
-  //   });
-  // });
 });

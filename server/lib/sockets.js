@@ -46,16 +46,19 @@ app.io.set('authorization', function (handshakeData, accept) {
   accept(null, true);
 });
 
-/**!
+/**
  * Verify session, add session's accountId to socket handle,
  * and add handle to app.clients so we can look it up easily.
  * Remove handle from app.clients upon disconnection
  */
 app.io.sockets.on('connection', function (socket) {
+  app.log('debug', 'socket.io on(\'connection\')');
   var handshakeProp = Object.keys(socket.namespace.manager.handshaken);
+  app.log('debug', handshakeProp);
   var handshakeData = socket.namespace.manager.handshaken[handshakeProp];
-  
+  app.log('debug', JSON.stringify(socket.namespace.manager.handshaken[handshakeProp]));
   var sid = handshakeData.query.sid;
+  app.log('debug', sid);
 
   app.redisSession.get(sid, socket, function _socketCallback(data, err, info) {
     if (err) {

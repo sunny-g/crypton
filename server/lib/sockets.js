@@ -34,31 +34,17 @@ app.clients = {};
  *
  * Looks up the provided session to make sure it is valid
  */
-// TODO is this necessary? we're retreiving the session on('connection')
-// app.io.set('authorization', function (handshakeData, accept) {
-//   app.log('debug', 'authorizing websocket connection');
-//   app.log('debug', 'Handshake Data.............');
-//   app.log('debug', JSON.stringify(handshakeData));
-//   app.log('debug', JSON.stringify(accept));
 
-//   if (!handshakeData.headers.cookie) {
-//     app.log('debug', 'websocket authorization failed due to no cookies sent');
-//     return accept('No cookie transmitted.', false);
-//   } else {
-//     // handshakeData.cookie = cookie.parse(handshakeData.headers.cookie);
-//     // var ssid = handshakeData.cookie['crypton.sid'];
-//     // var usid = connect.utils.parseSignedCookie(ssid, app.secret);
-//     // handshakeData.sessionId = usid;
-
-//     // if (usid == ssid) {
-//     //   app.log('debug', 'websocket authorization failed due to invalid cookie');
-//     //   return accept('Cookie is invalid.', false);
-//     // }
-//   }
-
-//   app.log('debug', 'websocket authorization successful');
-//   accept(null, true);
-// });
+app.io.set('authorization', function (handshakeData, accept) {
+  app.log('debug', 'authorizing websocket connection');
+  
+  if (!handshakeData.query.sid) {
+    app.log('debug', 'websocket authorization failed due to no sessionId sent');
+    return accept('No sessionId transmitted.', false);
+  } 
+  app.log('debug', 'websocket authorization successful');
+  accept(null, true);
+});
 
 /**!
  * Verify session, add session's accountId to socket handle,
@@ -66,8 +52,10 @@ app.clients = {};
  * Remove handle from app.clients upon disconnection
  */
 app.io.sockets.on('connection', function (socket) {
-  var sid = socket.sessionId;
-  console.log('sid: ', sid);
+  var handshakeProp = Object.keys(socket.namespace.manager.handshaken);
+  var handshakeData = socket.namespace.manager.handshaken[handshakeProp];
+  
+  var sid = handshakeData.query.sid;
 
   app.redisSession.get(sid, socket, function _socketCallback(data, err, info) {
     if (err) {
@@ -77,7 +65,6 @@ app.io.sockets.on('connection', function (socket) {
       return;
     }
     var accountId = data.accountId;
-    socket.accountId = accountId;
     app.clients[accountId] = socket;
     app.log('debug', 'websocket connection added to pool for account: ' + accountId);
     app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');

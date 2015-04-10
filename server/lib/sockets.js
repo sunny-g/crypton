@@ -70,7 +70,7 @@ app.io.sockets.on('connection', function (socket) {
     app.log('debug', 'adding client to app.clients');
     var accountId = data.accountId;
     app.log('debug', 'accountId: ' + accountId);
-    app.log('debug', 'socket: ' + JSON.stringify(socket));
+    app.log('debug', 'socket: ' + socket);
     app.clients[accountId] = socket;
     app.log('debug', 'websocket connection added to pool for account: ' + accountId);
     app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');

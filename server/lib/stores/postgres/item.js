@@ -484,6 +484,7 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
     } else {
       // XXXddahl: Can we store a message for later in Redis???
       console.warn('Sharee is not connected via websocket');
+      console.log('Connected clients: ', app.clients);
     }
   });
 })();

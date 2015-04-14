@@ -19,7 +19,7 @@
 'use strict';
 
 var app = process.app;
-var io = require('socket.io')(app);
+var io = require('socket.io')();
 var cookie = require('cookie');
 var connect = require('connect');
 

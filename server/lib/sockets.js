@@ -54,6 +54,9 @@ app.clients = {};
 
 app.io.use(function(socket, next) {
   var handshakeData = socket.request;
+  app.log('debug', 'socket.handshake.query: ');
+  app.log('debug', socket.handshake.query);
+  app.log('debug', 'handshakeData: ');
   app.log('debug', handshakeData);
   // if (!handshakeData.query.sid) {
   //   next(new Error('No SessionId!'));

@@ -32,7 +32,7 @@
     "pg": "1.1.x",
     "redis": "~0.8.4",
     "semver": "^4.2.0",
-    "socket.io": "0.9.x",
+    "socket.io": "1.3.x",
     "srp": "git+https://github.com/SpiderOak/node-srp.git",
     "validator": "3.5.x"
   },

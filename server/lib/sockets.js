@@ -35,17 +35,36 @@ app.clients = {};
  * Looks up the provided session to make sure it is valid
  */
 
-app.io.set('authorization', function (handshakeData, accept) {
-  app.log('debug', 'authorizing websocket connection');
-  
-  if (!handshakeData.query.sid) {
-    app.log('debug', 'websocket authorization failed due to no sessionId sent');
-    return accept('No sessionId transmitted.', false);
-  } 
-  app.log('debug', 'websocket authorization successful');
-  accept(null, true);
-});
+// app.io.set('authorization', function (handshakeData, accept) {
+//   app.log('debug', 'authorizing websocket connection');
+//   app.log('debug', arguments);
+//   if (!handshakeData) {
+//     app.log('debug', 'handshakeData is undefined!');
+//     return accept('No sessionId transmitted.', false);
+//   }
 
+//   if (!handshakeData.query.sid) {
+//     app.log('debug', 'websocket authorization failed due to no sessionId sent');
+//     return accept('No sessionId transmitted.', false);
+//   }
+//   app.log('debug', 'websocket authorization successful');
+//   accept(null, true);
+// });
+
+
+app.io.use(function(socket, next) {
+  var handshakeData = socket.request;
+  app.log('debug', handshakeData);
+  // if (!handshakeData.query.sid) {
+  //   next(new Error('No SessionId!'));
+  // }
+  // XXXddahl: maybe make sure there is a sesison ID sent except for the versioncheck route???
+  // make sure the handshake data looks good as before
+  // if error do this:
+    // next(new Error('not authorized');
+  // else just call next
+  next();
+});
 /**
  * Verify session, add session's accountId to socket handle,
  * and add handle to app.clients so we can look it up easily.

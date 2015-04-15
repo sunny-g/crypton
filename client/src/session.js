@@ -48,9 +48,7 @@ var Session = crypton.Session = function (id) {
 
   this.socket = io.connect(url, {
     reconnection: true,
-    reconnectionDelay: 5000,
-    secure: true
-    // transports: ['websocket', 'polling']
+    reconnectionDelay: 5000
   });
 
   this.socket.sid = crypton.sessionId;

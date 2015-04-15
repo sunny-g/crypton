@@ -20,8 +20,8 @@
 
 var app = process.app;
 app.io = require('socket.io')(app.server,
-  { path: '/',
-    transports: ['polling', 'websockets'],
+  {
+    path: '/',
     cookie: false
   });
 // var cookie = require('cookie');

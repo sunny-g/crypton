@@ -57,6 +57,7 @@ app.clients = {};
 
 function getToken (socket) {
   var obj = JSON.parse(socket.handshake.query.joinServerParameters);
+  app.log('debug', 'getToken() : ' + obj.token);
   app.log('debug', obj.token);
   return obj.token || null;
 }
@@ -87,28 +88,29 @@ app.io.use(function(socket, next) {
  */
 app.io.sockets.on('connection', function (socket) {
   app.log('debug', 'socket.io on(\'connection\')');
-  app.log('debug', '\n\nSOCKET.....................');
-  app.log('debug', Object.keys(socket));
-  var sKeys = Object.keys(socket);
-  app.log('debug', Object.keys(socket.client));
-  for (var i=0; i < sKeys.length; i++) {
-    if (typeof socket[sKeys[i]] != 'object') {
-      app.log('debug', sKeys[i] + typeof socket[sKeys[i]]);
-      continue;
-    }
-    app.log('debug', '\n\n   ' + sKeys[i] + '.................');
-    app.log('debug', Object.keys(socket[sKeys[i]]));
-  }
+  // app.log('debug', '\n\nSOCKET.....................');
+  // app.log('debug', Object.keys(socket));
+  // var sKeys = Object.keys(socket);
+  // app.log('debug', Object.keys(socket.client));
+  // for (var i=0; i < sKeys.length; i++) {
+  //   if (typeof socket[sKeys[i]] != 'object') {
+  //     app.log('debug', sKeys[i] + typeof socket[sKeys[i]]);
+  //     continue;
+  //   }
+  //   app.log('debug', '\n\n   ' + sKeys[i] + '.................');
+  //   app.log('debug', Object.keys(socket[sKeys[i]]));
+  // }
 
 
 
-  var handshakeProp = Object.keys(socket.namespace.manager.handshaken);
-  app.log('debug', handshakeProp);
-  var handshakeData = socket.namespace.manager.handshaken[handshakeProp];
-  app.log('debug', JSON.stringify(socket.namespace.manager.handshaken[handshakeProp]));
-  var sid = handshakeData.query.sid;
-  app.log('debug', sid);
+  // var handshakeProp = Object.keys(socket.namespace.manager.handshaken);
+  // app.log('debug', handshakeProp);
+  // var handshakeData = socket.namespace.manager.handshaken[handshakeProp];
+  // app.log('debug', JSON.stringify(socket.namespace.manager.handshaken[handshakeProp]));
+  // var sid = handshakeData.query.sid;
+  // app.log('debug', sid);
 
+  var sid = getToken(socket);
   app.redisSession.get(sid, socket, function _socketCallback(data, err, info) {
     if (err) {
       app.log('debug', err);

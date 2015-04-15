@@ -80,8 +80,9 @@ app.io.use(function(socket, next) {
 app.io.sockets.on('connection', function (socket) {
   app.log('debug', 'socket.io on(\'connection\')');
   app.log('debug', '\n\nSOCKET.....................');
-  app.log('debug', socket);
-  
+  app.log('debug', Object.keys(socket));
+  app.log('debug', JSON.stringify(socket));
+
 
   var handshakeProp = Object.keys(socket.namespace.manager.handshaken);
   app.log('debug', handshakeProp);

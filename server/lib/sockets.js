@@ -19,11 +19,7 @@
 'use strict';
 
 var app = process.app;
-app.io = require('socket.io')(app.server,
-  {
-    path: '/',
-    cookie: false
-  });
+app.io = require('socket.io')(app.server);
 // var cookie = require('cookie');
 // var connect = require('connect');
 

@@ -19,9 +19,13 @@
 'use strict';
 
 var app = process.app;
-app.io = require('socket.io')(app.server);
-var cookie = require('cookie');
-var connect = require('connect');
+app.io = require('socket.io')(app.server,
+  { path: '/',
+    transports: ['polling', 'websockets'],
+    cookie: false
+  });
+// var cookie = require('cookie');
+// var connect = require('connect');
 
 app.log('info', 'starting socket.io');
 

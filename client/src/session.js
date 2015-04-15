@@ -46,13 +46,21 @@ var Session = crypton.Session = function (id) {
   //   secure: true
   // });
 
-  this.socket = io.connect(crypton.url(), {
-    reconnection: true,
-    reconnectionDelay: 5000,
-    sessionId: crypton.sessionId
-  });
+  var joinServerParameters = { token: crypton.sessionId };
+  this.socket = io.connect(crypton.url(),
+                           { query: 'joinServerParameters='
+                                  + JSON.stringify(joinServerParameters),
+                             reconnection: true,
+                             reconnectionDelay: 5000
+                           });
 
-  this.socket.sid = crypton.sessionId;
+  // this.socket = io.connect(crypton.url(), {
+  //   reconnection: true,
+  //   reconnectionDelay: 5000,
+  //   sessionId: crypton.sessionId
+  // });
+
+  // this.socket.sid = crypton.sessionId;
   console.log('socket: ', this.socket);
 
   // watch for incoming Inbox messages

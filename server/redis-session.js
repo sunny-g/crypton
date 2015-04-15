@@ -4,7 +4,7 @@ var redis = require('redis');
 
 module.exports = function(config) {
     var mod = this;
-    
+
     mod.objMerge = function(obj1, obj2) {
         if (obj2) {
             var key, value;
@@ -244,7 +244,7 @@ module.exports = function(config) {
 		// XXXddahl: create new API called update()? instead?
 	    });
 	},
-	
+
         clear : function(sid, req, callback) {
             req.sessionData = null;
 
@@ -277,6 +277,12 @@ module.exports = function(config) {
             client.flushall(function() {
                 callback && callback.apply(mod, arguments);
             });
+        },
+
+        validateSessionId : function(sid) {
+          // XXXddahl TODO: decrypt SessionID with current secret & IV
+          // Assumption here is that  we can generate a new
+          // random IV and secret each time the server starts
         }
     });
 

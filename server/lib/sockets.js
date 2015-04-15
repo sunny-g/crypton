@@ -55,23 +55,31 @@ app.clients = {};
 //   accept(null, true);
 // });
 
+function getToken (socket) {
+  var obj = JSON.parse(socket.handshake.query.joinServerParameters);
+  app.log('debug', obj.token);
+  return obj.token || null;
+}
 
 app.io.use(function(socket, next) {
-  var handshakeData = socket.request;
-  app.log('debug', 'socket.handshake.query: ');
-  app.log('debug', Object.keys(socket.handshake.query));
-  app.log('debug', 'handshakeData: ');
-  app.log('debug', Object.keys(handshakeData));
-  // if (!handshakeData.query.sid) {
-  //   next(new Error('No SessionId!'));
-  // }
-  // XXXddahl: maybe make sure there is a sesison ID sent except for the versioncheck route???
-  // make sure the handshake data looks good as before
-  // if error do this:
-    // next(new Error('not authorized');
-  // else just call next
-  next();
+  if (getToken(socket)) {
+    // XXXddahl: TODO: decrypt/test token as a hash of a secret
+    next();
+  } else {
+    next(new Error('Authentication error'));
+  }
+  return;
 });
+
+// app.io.use(function(socket, next) {
+//   var handshakeData = socket.request;
+//   app.log('debug', 'socket.handshake.query: ');
+//   app.log('debug', Object.keys(socket.handshake.query));
+//   app.log('debug', 'handshakeData: ');
+//   app.log('debug', Object.keys(handshakeData));
+//   next();
+// });
+
 /**
  * Verify session, add session's accountId to socket handle,
  * and add handle to app.clients so we can look it up easily.

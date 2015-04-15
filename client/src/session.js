@@ -42,13 +42,19 @@ var Session = crypton.Session = function (id) {
 
   var that = this;
   var url = crypton.url() + '?sid=' + crypton.sessionId;
+  // this.socket = io.connect(url, {
+  //   secure: true
+  // });
+
   this.socket = io.connect(url, {
-    secure: true
+    reconnection: true,
+    reconnectionDelay: 2000
+    // secure: true
   });
 
   this.socket.sid = crypton.sessionId;
   console.log('socket: ', this.socket);
-  
+
   // watch for incoming Inbox messages
   this.socket.on('message', function (data) {
     that.inbox.get(data.messageId, function (err, message) {

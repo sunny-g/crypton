@@ -19,13 +19,13 @@
 'use strict';
 
 var app = process.app;
-var io = require('socket.io')();
+var io = require('socket.io')(app.server);
 var cookie = require('cookie');
 var connect = require('connect');
 
 app.log('info', 'starting socket.io');
 
-app.io = io.listen(app.server, { log: true });
+app.io = io.listen(app.server);
 // app.io.set('log level', 1); // TODO make this configurable
 app.clients = {};
 

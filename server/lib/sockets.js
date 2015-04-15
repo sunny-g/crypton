@@ -81,7 +81,13 @@ app.io.sockets.on('connection', function (socket) {
   app.log('debug', 'socket.io on(\'connection\')');
   app.log('debug', '\n\nSOCKET.....................');
   app.log('debug', Object.keys(socket));
-  app.log('debug', JSON.stringify(socket));
+  var sKeys = Object.keys(socket);
+  app.log('debug', Object.keys(socket.client));
+  for (var i=0; i < sKeys.length; i++) {
+    app.log('debug', '\n\n   ' + sKeys[i] + '.................');
+    app.log('debug', Object.keys(socket[sKeys[i]]));
+  }
+
 
 
   var handshakeProp = Object.keys(socket.namespace.manager.handshaken);

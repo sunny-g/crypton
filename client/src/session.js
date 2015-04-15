@@ -41,10 +41,6 @@ var Session = crypton.Session = function (id) {
   this.inbox = new crypton.Inbox(this);
 
   var that = this;
-  var url = crypton.url() + '?sid=' + crypton.sessionId;
-  // this.socket = io.connect(url, {
-  //   secure: true
-  // });
 
   var joinServerParameters = { token: crypton.sessionId };
   this.socket = io.connect(crypton.url(),
@@ -53,15 +49,6 @@ var Session = crypton.Session = function (id) {
                              reconnection: true,
                              reconnectionDelay: 5000
                            });
-
-  // this.socket = io.connect(crypton.url(), {
-  //   reconnection: true,
-  //   reconnectionDelay: 5000,
-  //   sessionId: crypton.sessionId
-  // });
-
-  // this.socket.sid = crypton.sessionId;
-  console.log('socket: ', this.socket);
 
   // watch for incoming Inbox messages
   this.socket.on('message', function (data) {

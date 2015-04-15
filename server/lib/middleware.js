@@ -46,6 +46,7 @@ middleware.verifySession = function (req, res, next) {
 
   // Get the session
   app.redisSession.get(sessionId, req, function getSessionCB (data, err, info) {
+    // XXXddahl TODO: verify the sessionId inside the redis-session module
     if (err) {
       return res.send({
         success: false,

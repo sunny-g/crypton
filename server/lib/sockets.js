@@ -84,6 +84,10 @@ app.io.sockets.on('connection', function (socket) {
   var sKeys = Object.keys(socket);
   app.log('debug', Object.keys(socket.client));
   for (var i=0; i < sKeys.length; i++) {
+    if (typeof socket[sKeys[i]] != 'object') {
+      app.log('debug', sKeys[i] + typeof socket[sKeys[i]]);
+      continue;
+    }
     app.log('debug', '\n\n   ' + sKeys[i] + '.................');
     app.log('debug', Object.keys(socket[sKeys[i]]));
   }

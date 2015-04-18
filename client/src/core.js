@@ -90,12 +90,6 @@ crypton.cipherOptions = {
 crypton.paranoia = 6;
 
 /**!
- * ### trustStateContainer
- * Internal name for trust state container
- */
-crypton.trustStateContainer = '_trust_state';
-
-/**!
  * ### trustedPeers
  * Internal name for trusted peer (contacts list)
  */

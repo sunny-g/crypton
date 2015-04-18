@@ -96,6 +96,12 @@ crypton.paranoia = 6;
 crypton.trustStateContainer = '_trust_state';
 
 /**!
+ * ### trustedPeers
+ * Internal name for trusted peer (contacts list)
+ */
+crypton.trustedPeers = '_trusted_peers';
+
+/**!
  * ### collectorsStarted
  * Internal flag to know if startCollectors has been called
  */
@@ -497,21 +503,16 @@ crypton.authorize = function (username, passphrase, callback, options) {
                   return callback(err);
                 }
 
-                // check for internal peer trust state container
-                session.load(crypton.trustStateContainer, function (err) {
-                  // if it exists, callback with session
-                  if (!err) {
-                    return callback(null, session);
+                // check for internal 'trusted peers' Item
+                session.getOrCreateItem(crypton.trustedPeers,
+                function (err, item) {
+                  if (err) {
+                    var _err = 'Cannot get "trusted peers" Item';
+                    console.error(_err, err);
+                    // still need to return the sesison
+                    return callback(_err, session);
                   }
-
-                  // if not, create it
-                  session.create(crypton.trustStateContainer, function (err) {
-                    if (err) {
-                      return callback(err);
-                    }
-
-                    callback(null, session);
-                  });
+                  return callback(null, session);
                 });
               });
             });

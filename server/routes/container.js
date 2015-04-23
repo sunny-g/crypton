@@ -32,7 +32,6 @@ app.get('/container/:containerNameHmac', verifySession, function (req, res) {
   app.log('debug', 'handling GET /container/:containerNameHmac');
 
   var accountId = req.session.accountId;
-  console.log('accountId: ', accountId);  
   var containerNameHmac = req.params.containerNameHmac;
   var after = req.query.after || 0;
 

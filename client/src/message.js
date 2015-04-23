@@ -85,7 +85,6 @@ Message.prototype.send = function (callback) {
 
   var url = crypton.url() + '/peer?sid=' + crypton.sessionId;
   superagent.post(url)
-    // .set('X-Session-ID', crypton.sessionId)
     .send(this.encrypted)
     .withCredentials()
     .end(function (res) {

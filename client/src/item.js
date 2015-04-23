@@ -114,11 +114,8 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
     url = url + '&shared=1';
   }
 
-  console.log('that.sharedItem', that.sharedItem);
-
   superagent.get(url)
     .withCredentials()
-    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
       var doesNotExist = 'Item does not exist';
       if ((!res.body || res.body.success !== true) && res.body.error != doesNotExist) {

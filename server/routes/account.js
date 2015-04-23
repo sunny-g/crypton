@@ -59,8 +59,6 @@ app.post('/account', function (req, res) {
 */
 app.post('/account/:username', function (req, res) {
 
-  // res.set('X-Session-ID', req.sessionID);
-
   var account = new Account();
 
   account.get(req.params.username, function (err) {
@@ -200,7 +198,7 @@ app.post('/account/:username/keyring',
         newAccountData[key] = req.body[key];
       }
       // Need the account ID
-      newAccountData.accountId = account.accountId
+      newAccountData.accountId = account.accountId;
 
       // Write new keyring into the database
       account.changePassphrase(newAccountData, function (err) {

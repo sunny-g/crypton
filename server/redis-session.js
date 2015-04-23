@@ -104,8 +104,6 @@ module.exports = function(config) {
 
         // @private
         _createSid : function(req, data, callback) {
-	    console.log('_createSid().............');
-	    console.log('data: ', JSON.stringify(data));
             var client = mod._connect(),
                 chars  = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz',
                 cLen   = chars.length,
@@ -122,8 +120,8 @@ module.exports = function(config) {
 
             client.exists(sid, function(err, exists) {
                 if (err && config.debug) {
-                    console.log('----_createSid ERROR');
-                    console.log(err);
+                    console.error('----_createSid ERROR');
+                    console.error(err);
                 }
 
                 if (exists === 1) {
@@ -143,8 +141,8 @@ module.exports = function(config) {
                 //session active?
                 client.exists(sid, function(err, exists) {
                     if (err && config.debug) {
-                        console.log('----_createSid ERROR');
-                        console.log(err);
+                        console.error('----_createSid ERROR');
+                        console.error(err);
                     }
 
                     if (exists === 1) {
@@ -168,8 +166,8 @@ module.exports = function(config) {
                         data.sid        = sid;
                         req.sessionData = data;
                     } else if (config.debug) {
-                        console.log('----createSet ERROR');
-                        console.log(err);
+                        console.error('----createSet ERROR');
+                        console.error(err);
                     }
 
                     callback && callback.call(mod, sid, err, status);
@@ -192,8 +190,8 @@ module.exports = function(config) {
 
             client.get(sid, function(err, info) {
                 if (err && config.debug) {
-                    console.log('----get ERROR');
-                    console.log(err);
+                    console.error('----get ERROR');
+                    console.error(err);
                     info = err;
                     err  = true;
                 } else if (info) {

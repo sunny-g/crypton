@@ -68,7 +68,6 @@ Peer.prototype.fetch = function (callback) {
   var url = crypton.url() + '/peer/' + this.username + '?sid=' + crypton.sessionId;
   superagent.get(url)
     .withCredentials()
-    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);
@@ -134,8 +133,8 @@ Peer.prototype.encryptAndSign = function (payload) {
     var signature = this.session.account.signKeyPrivate.sign(hash, crypton.paranoia);
     return { ciphertext: JSON.parse(ciphertext), signature: signature, error: null };
   } catch (ex) {
-    console.log(ex);
-    console.log(ex.stack);
+    console.error(ex);
+    console.error(ex.stack);
     var err = "Error: Could not complete encryptAndSign: " + ex;
     return { ciphertext: null, signature: null, error: err };
   }

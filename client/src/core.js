@@ -52,8 +52,6 @@ crypton.versionCheck = function (skip, callback) {
   var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version + '&sid=' + crypton.sessionId || '';
   superagent.get(url)
   .end(function (res) {
-    console.warn("Versioncheck Response headers!!!");
-    console.warn(res);
 
     if (res.body.success !== true && res.body.error !== undefined) {
       crypton.clientVersionMismatch = true;
@@ -429,16 +427,12 @@ crypton.authorize = function (username, passphrase, callback, options) {
 
         superagent.post(crypton.url() + '/account/' + username)
         .withCredentials()
-        // .set('X-Session-ID', crypton.sessionId)
         .send(response)
         .end(function (res) {
-          console.warn('account creation response 1: ');
-          console.warn(res);
           if (!res.body || res.body.success !== true) {
             return callback(res.body.error);
           }
 	  // check for response session header:
-	  console.log('sessionID from body: ', res.body.sid);
 	  // XXX: Make sure we have a sid!
 	  crypton.sessionId = res.body.sid;
 	  window.sessionStorage.setItem('sessionId', res.body.sid);
@@ -456,14 +450,10 @@ crypton.authorize = function (username, passphrase, callback, options) {
 
 	    var url = crypton.url() +
 		'/account/' + username + '/answer?sid=' + crypton.sessionId;
-	    console.log('url', url);
             superagent.post(url)
             .withCredentials()
-            // .set('X-Session-ID', sessionStorage.getItem('sessionId'))
             .send(response)
             .end(function (res) {
-              console.warn('account creation response 2: ');
-              console.warn(res);
               if (!res.body || res.body.success !== true) {
                 callback(res.body.error);
                 return;
@@ -474,7 +464,6 @@ crypton.authorize = function (username, passphrase, callback, options) {
                 return;
               }
 
-              // var sessionIdentifier = res.body.sessionIdentifier;
               var session = new crypton.Session(crypton.sessionId);
               session.account = new crypton.Account();
               session.account.username = username;

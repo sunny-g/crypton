@@ -122,8 +122,8 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
       try {
         modTime = result.rows[0].modified_time;
       } catch (ex) {
-        console.error(ex);
-        console.error(ex.stack);
+        app.log('info', ex);
+        app.log('info',ex.stack);
       }
       callback(null, { modTime: Date.parse(modTime),
                        itemNameHmac: itemNameHmac
@@ -166,7 +166,7 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
 
     client.query(query, function (err, result) {
       if (err) {
-        console.error(err);
+        app.log('debug', err);
         client.query('rollback');
         done();
         return callback(err);
@@ -184,7 +184,7 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
 
       client.query(sessionKeyQuery, function (err, result) {
         if (err) {
-          console.error(err);
+          app.log('debug', err);
           client.query('rollback');
           done();
           return callback(err);
@@ -201,7 +201,7 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
 
         client.query(sessionKeyShareQuery, function (err, result) {
           if (err) {
-            console.error(err);
+            app.log('debug', err);
             client.query('rollback');
             done();
             return callback(err);
@@ -249,7 +249,7 @@ function (itemNameHmac, accountId, callback) {
 
     client.query(query, function (err, result) {
       if (err) {
-        console.error(err);
+        app.log('debug', err);
         done();
         return callback(err);
       }
@@ -295,7 +295,7 @@ function (itemNameHmac, sessionKeyCiphertext,
       if (err) {
         client.query('rollback');
         done();
-        console.error(err);
+        app.log('debug', err);
         return callback(err);
       }
 
@@ -323,7 +323,7 @@ function (itemNameHmac, sessionKeyCiphertext,
         if (err) {
           client.query('rollback');
           done();
-          console.error(err);
+          app.log('debug', err);
           return callback(err);
         }
 

@@ -380,10 +380,8 @@ Container.prototype.decryptKey = function (record) {
  * @param {Function} callback
  */
  Container.prototype.sync = function (callback) {
-  console.log('container.sync()'); 
   var that = this;
   this.getHistory(function (err, records) {
-    console.log(arguments);
     if (err) {
       callback(err);
       return;

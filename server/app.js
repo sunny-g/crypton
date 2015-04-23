@@ -46,15 +46,7 @@ app.log('info', 'configuring server');
 
 app.SERVER_VERSION = version;
 
-// app.secret = util.readFileSync(
-//   // TODO: 'binary' encoding is deprecated
-//   // TODO: also do we need to do this at all?
-//   app.config.cookieSecretFile, 'binary',
-//   app.config.defaultKeySize
-// );
-
 app.use(connect.urlencoded());
-// app.use(connect.cookieParser());
 
 app.use(connect.json({
   limit: '20mb'
@@ -113,81 +105,6 @@ app.use(function (req, res, next) {
   });
   next();
 });
-
-// var redis = require('redis').createClient(
-//   app.config.redis.port,
-//   app.config.redis.host, {
-//     /*jslint camelcase: false*/
-//     auth_pass: app.config.redis.pass
-//     /*jslint camelcase: true*/
-//   }
-// );
-
-// var RedisStore = require('connect-redis')(express);
-// app.sessionStore = new RedisStore({
-//   client: redis,
-//   prefix: 'crypton.sid:'
-// });
-
-// var sessionMiddleware = express.session({
-//   secret: app.secret,
-//   store: app.sessionStore,
-//   key: 'crypton.sid',
-//   cookie: {
-//     secure: true
-//   }
-// });
-
-// redisClient.on("error", function (err) {
-//   app.log('error', err);
-// });
-
-// app.redisClient = redisClient;
-
-// app.getRedisCache = function getRedisCache(name, callback) {
-//   app.redisClient.get(name, function redisClientCallback (err, reply) {
-//     if (err) {
-//       return callback(err);
-//     }
-//     app.log('info', name);
-//     app.log('info', reply);
-//     return callback(null, JSON.parse(reply));
-//   });
-// };
-
-// app.setRedisCache = function setRedisCache(name, value, callback) {
-//   app.redisClient.get(name, function (err, reply) {
-//     if (err) {
-//       return callback(err);
-//     }
-//     app.log('debug', reply)
-//     if (!reply) {
-//       var str = JSON.stringify(value);
-//       app.log('info', str);
-//       app.redisClient.set(name, str, function (err, reply) {
-//         if (err) {
-//           app.log('error', err);
-//           return callback(err);
-//         }
-//         return callback(null);
-//       });
-//     } else {
-//       var obj = JSON.parse(reply.toString());
-//       for (var prop in obj) {
-//         obj[prop] = value[prop];
-//       }
-//       app.redisClient.set(name, JSON.stringify(obj), callback);
-//     }
-//   });
-// }
-
-// app.use(function (req, res, next) {
-//   if (req._parsedUrl.pathname == '/') {
-//     return next();
-//   }
-
-//   sessionMiddleware(req, res, next);
-// });
 
 app.use(express.logger(function (info, req, res) {
   var color = 'green';

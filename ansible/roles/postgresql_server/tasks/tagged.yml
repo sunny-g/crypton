@@ -1,0 +1,92 @@
+---
+
+- include: postgresql_common tags=role_postgresql_server
+
+# TODO FIXME: install this from source instead of binary
+# don't trust upstream binaries.
+
+- name: install postgres server
+  sudo: True
+  apt: pkg={{ item }} state=present
+  with_items:
+    - postgresql-{{pg_ver}}
+    - postgresql-plpython-{{pg_ver}}
+    - postgresql-plperl-{{pg_ver}}
+    - postgresql-contrib-{{pg_ver}}
+    - postgresql-server-dev-{{pg_ver}}
+
+- name: change ownership of postgres directory
+  sudo: True
+  file: >
+    state=directory
+    path=/var/lib/postgresql
+    owner=postgres
+    group=postgres
+    mode=0700
+
+- name: create main pg cluster
+  sudo: True
+  tags: pg_createcluster
+  command: >
+    pg_createcluster {{ pg_ver }} main --start
+    creates=/var/lib/postgresql/{{ pg_ver }}/main
+
+- name: increase shared memory allowances
+  sudo: True
+  template: >
+    src=postgresql-shm.conf.j2
+    dest=/etc/sysctl.d/30-postgresql-shm.conf
+    owner=root
+    group=root
+    mode=644
+  notify: sysctl update
+
+- name: write postgresql.conf file
+  tags: pgconf
+  sudo: True
+  template: >
+    src=postgresql.conf.j2
+    dest="/etc/postgresql/{{pg_ver}}/main/postgresql.conf"
+    owner=postgres
+    group=postgres
+    mode=644
+  notify: reload postgres
+  register: pg_conf_rewritten
+
+- meta: flush_handlers
+
+- name: start postgresql
+  sudo: True
+  service: name=postgresql state=started
+
+- name: restart postgres in dev when pg conf rewritten
+  tags: pgconf
+  when: >
+    development
+    and pg_conf_rewritten is defined
+    and pg_conf_rewritten.changed
+  sudo: True
+  service: name=postgresql state=restarted
+
+- name: write postgres log rotate conf file
+  tags: pglogconf
+  sudo: True
+  template: >
+    src=logrotate.conf.j2
+    dest=/etc/logrotate.d/postgresql-common
+    owner=root
+    group=root
+    mode=644
+
+- name: write postgresql hba conf file
+  sudo: True
+  tags: pgconf
+  template: >
+    src=roles/postgresql/templates/pg_hba.conf.j2
+    dest="/etc/postgresql/{{pg_ver}}/main/pg_hba.conf"
+    owner=postgres
+    group=postgres
+    mode=640
+  notify: reload postgres
+
+- meta: flush_handlers

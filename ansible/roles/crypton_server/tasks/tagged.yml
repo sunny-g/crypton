@@ -1,32 +1,40 @@
 - name: create unix user
   sudo: True
-  user: name=crypton_server
-        system=yes shell=/bin/false state=present
+  user: >
+    state=present
+    name=crypton_server
+    system=yes
+    shell=/bin/false
 
 - name: clone source code
   sudo: "{{ production }}"
-  git: repo={{ crypton_source_repository }}
+  git: >
+    repo={{ crypton_source_repository }}
     dest={{ crypton_checkout }}
     version=master
 
 - name: install server node modules
   sudo: "{{ production }}"
-  command: npm install
+  command: >
+    npm install
     chdir={{ crypton_checkout }}/server
     creates={{ crypton_checkout }}/server/node_modules
 
 - name: build client dist files
   sudo: "{{ production }}"
-  command: make dist/crypton.js
+  command: >
+    make dist/crypton.js
     chdir={{ crypton_checkout }}/client
     creates={{ crypton_checkout }}/client/dist/crypton.js
 
 - name: copy server secret files
   sudo: yes
-  copy: src={{ item.src }} dest={{ item.dest }}
-        mode={{ item.mode|default(400) }}
-        owner={{ item.owner|default("root") }}
-        group={{ item.group|default("root") }}
+  copy: >
+    src={{ item.src }}
+    dest={{ item.dest }}
+    mode={{ item.mode|default(400) }}
+    owner={{ item.owner|default("root") }}
+    group={{ item.group|default("root") }}
   with_items:
    - src: secrets/{{ deployment_environment }}/id_translator.key
      dest: /home/crypton_server/id_translator.key
@@ -41,21 +49,23 @@
      group: crypton_server
      mode: 440
 
-- name: debug db
-  debug: var=db
-  tags: debug
-
 - name: write server config file from template
   sudo: True
-  template: src=crypton.conf.json.j2
+  template: >
+    src=crypton.conf.json.j2
     dest=/home/crypton_server/crypton.conf.json
-    owner=root group=crypton_server mode=440
+    owner=root
+    group=crypton_server
+    mode=440
 
 - name: make vendor dir for upstream static items
   sudo: True
-  file: state=directory
-   path=/home/crypton_server/{{ item }}
-   owner=crypton_server group=www-data mode=555
+  file: >
+    state=directory
+    path=/home/crypton_server/{{ item }}
+    owner=crypton_server
+    group=www-data
+    mode=555
   with_items:
     - vendor
     - vendor/jquery
@@ -64,11 +74,13 @@
 
 - name: fetch jquery so we can serve it locally
   sudo: True
-  get_url: 
+  get_url: >
     url=https://ajax.googleapis.com/ajax/libs/jquery/{{ item.version }}/jquery.min.js
     sha256sum={{ item.sha256sum }}
     dest=/home/crypton_server/vendor/jquery/{{ item.version }}/jquery.min.js
-    owner=crypton_server group=www-data mode=444
+    owner=crypton_server
+    group=www-data
+    mode=444
   with_items:
     - version: 1.8.3
       sha256sum: ba6eda7945ab8d7e57b34cc5a3dd292fa2e4c60a5ced79236ecf1a9e0f0c2d32
@@ -76,8 +88,9 @@
       sha256sum: 89a15e9c40bc6b14809f236ee8cd3ed1ea42393c1f6ca55c7855cd779b3f922e
 
 # note that nginx does not use /etc/hosts for resolution. but squid does.
-- name: add crypton server to /etc/hosts
+- name: add crypton server to /etc/hosts in dev
   sudo: True
+  when: development
   lineinfile: >
    dest=/etc/hosts
    line="{{ ansible_default_ipv4.address }} server.{{ crypton_server_domain }}"
@@ -87,14 +100,18 @@
 
 - name: install nginx config
   sudo: yes
-  template: src={{ crypton_server_domain }}.conf.j2
+  template: >
+    src={{ crypton_server_domain }}.conf.j2
     dest=/etc/nginx/sites-available/{{ crypton_server_domain }}.conf
-    owner=root group=root mode=400
+    owner=root
+    group=root
+    mode=400
   notify: reload nginx
 
 - name: enable nginx config
   sudo: yes
-  file: src=/etc/nginx/sites-available/{{ crypton_server_domain }}.conf
+  file: >
+    src=/etc/nginx/sites-available/{{ crypton_server_domain }}.conf
     dest=/etc/nginx/sites-enabled/{{ crypton_server_domain }}.conf
     state=link
   notify: reload nginx

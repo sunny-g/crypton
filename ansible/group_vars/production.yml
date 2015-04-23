@@ -1,12 +1,12 @@
-# dev, not production
-development: True
-production: False
-deployment_environment: dev
+# production, not dev
+development: False
+production: True
+deployment_environment: production
 
 crypton_source_repository: https://github.com/SpiderOak/crypton.git
-crypton_checkout: "/home/{{ ansible_user_id }}/crypton"
+crypton_checkout: "/home/crypton_server/crypton"
 
-crypton_server_domain: cryptondev.local
+crypton_server_domain: crypton.io
 crypton_server_local_port: 40087
 
 database_master: "{{ inventory_hostname }}"
@@ -14,4 +14,4 @@ database_master: "{{ inventory_hostname }}"
 database_slaves: []
 
 # is it a dedicated db server machine that does nothing else?
-pg_dedicated: False
+pg_dedicated: True

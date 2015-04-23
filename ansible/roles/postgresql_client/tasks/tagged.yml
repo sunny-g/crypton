@@ -1,0 +1,10 @@
+---
+
+- include: postgresql_common tags=role_postgresql_client
+
+- name: install postgres client
+  sudo: True
+  apt: pkg={{ item }} state=present
+  with_items:
+    - postgresql-client-{{pg_ver}}
+    - libpq-dev

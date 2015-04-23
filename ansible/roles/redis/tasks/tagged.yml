@@ -14,37 +14,43 @@
   with_items: 
     # these are deps for building jemalloc
     - debhelper
-    - autoconf 
-    - automake 
-    - autotools-dev 
-    - docbook-xsl 
-    - m4 
+    - autoconf
+    - automake
+    - autotools-dev
+    - docbook-xsl
+    - m4
     - xsltproc
 
 - name: add the apt keys for redis PPA
   sudo: True
-  apt_key: id=C7917B12 state=present 
-           data="{{ lookup('file', 'launchpad.net.chris-lea.key_C7917B12.asc' ) }}"
+  apt_key: >
+    state=present
+    id=C7917B12
+    data="{{ lookup('file', 'launchpad.net.chris-lea.key_C7917B12.asc' ) }}"
 
 - name: add the apt source repo for redis PPA
   sudo: True
   register: add_redis_ppa_result
-  apt_repository: 
-   repo="deb-src http://ppa.launchpad.net/chris-lea/redis-server/ubuntu {{ansible_distribution_release}} main"
+  apt_repository: >
+    repo="deb-src http://ppa.launchpad.net/chris-lea/redis-server/ubuntu {{ansible_distribution_release}} main"
 
 - name: update apt after adding redis PPA source
   sudo: True
   apt: update_cache=yes
-  when: add_redis_ppa_result.changed
-
+  when: >
+    add_redis_ppa_result is defined
+    and add_redis_ppa_result.changed
 
 - name: build and install source debs
   sudo: True
-  command: /usr/local/bin/deb_builder.sh {{ item.pkg }}
+  command: >
+    /usr/local/bin/deb_builder.sh {{ item.pkg }}
     creates={{ item.creates }}
-  with_items: 
-    - { pkg: libjemalloc-dev, creates: "/usr/include/jemalloc/jemalloc.h" }
-    - { pkg: redis-server, creates: "/usr/bin/redis-server" }
+  with_items:
+    - pkg: libjemalloc-dev
+      creates: "/usr/include/jemalloc/jemalloc.h"
+    - pkg: redis-server
+      creates: "/usr/bin/redis-server"
 
 - name: start redis
   sudo: True

@@ -6,27 +6,33 @@
 
 - name: make role organizational dir
   sudo: True
-  file: state=directory path={{ role_org_dir }}
-        owner=postgres group=postgres mode=0700
-
+  file: >
+    state=directory
+    path={{ role_org_dir }}
+    owner=postgres
+    group=postgres
+    mode=0700
 
 - name: create crypton database
   tags: createdb
   sudo: True
   sudo_user: postgres
-  postgresql_db: name={{ db.name }}
-                 owner=postgres state=present
-                 lc_collate=en_US.UTF-8 encoding=UTF8
+  postgresql_db: >
+    state=present
+    name={{ db.name }}
+    owner=postgres
+    lc_collate=en_US.UTF-8
+    encoding=UTF8
   register: create_crypton_database
   when: "development and inventory_hostname==database_master"
 
-- name: debug
-  debug: var=db
-  tags: debug
-
 - name: create crypton central database users
   tags: pg_db_user
-  postgresql_user: name={{db.username}} db={{db.name}} password={{db.password}} state=present
+  postgresql_user: >
+    state=present
+    name={{db.username}}
+    db={{db.name}}
+    password={{db.password}}
   sudo: True
   sudo_user: postgres
   when: "inventory_hostname==database_master"
@@ -35,40 +41,56 @@
   tags: createdb
   sudo: True
   sudo_user: postgres
-  copy: owner=postgres group=postgres mode=600
-        backup=yes
-        src=setup.sql
-        dest={{ role_org_dir }}/setup.sql
-  when: create_crypton_database.changed
+  copy: >
+    src=setup.sql
+    dest={{ role_org_dir }}/setup.sql
+    backup=yes
+    owner=postgres
+    group=postgres
+    mode=600
+  when: >
+    create_crypton_database is defined
+    and create_crypton_database.changed
 
 - name: install crypton database schema
   tags: createdb
   sudo: True
   sudo_user: postgres
-  command: /usr/bin/psql
+  command: >
+    /usr/bin/psql
     --echo-queries
     --file={{ role_org_dir }}/setup.sql
     --log-file={{ role_org_dir }}/setup.sql.log.{{ timestamp }}
     --dbname={{ db.name }}
-  when: create_crypton_database.changed
+  when: >
+    create_crypton_database is defined
+    and create_crypton_database.changed
 
 - name: copy crypton database permissions template
   tags: createdb
   sudo: True
   sudo_user: postgres
-  template: owner=postgres group=postgres mode=600
-            backup=yes
-            src=permissions.sql.j2
-            dest={{ role_org_dir }}/permissions.sql
-  when: create_crypton_database.changed
+  template: >
+    src=permissions.sql.j2
+    dest={{ role_org_dir }}/permissions.sql
+    backup=yes
+    owner=postgres
+    group=postgres
+    mode=600
+  when: >
+    create_crypton_database is defined
+    and create_crypton_database.changed
 
 - name: install crypton database permissions
   tags: createdb
   sudo: True
   sudo_user: postgres
-  command: /usr/bin/psql
+  command: >
+    /usr/bin/psql
     --echo-queries
     --file={{ role_org_dir }}/permissions.sql
     --log-file={{ role_org_dir }}/permissions.sql.log.{{ timestamp }}
     --dbname={{ db.name }}
-  when: create_crypton_database.changed
+  when: >
+    create_crypton_database is defined
+    and create_crypton_database.changed

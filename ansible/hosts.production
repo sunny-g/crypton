@@ -1,0 +1,20 @@
+# production inventory
+
+
+[web]
+www1.crypton.io
+
+[database]
+db1.crypton.io
+
+
+
+[redis:children]
+web
+
+[crypton:children]
+web
+
+[production:children]
+web
+database

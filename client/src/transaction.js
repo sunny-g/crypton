@@ -73,11 +73,11 @@ var Transaction = crypton.Transaction = function (session, callback) {
  * Calls back with transaction id and without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.create = function (callback) {
-  var url = crypton.url() + '/transaction/create';
+  var url = crypton.url() + '/transaction/create' + '?sid=' + crypton.sessionId;
   superagent.post(url)
     .withCredentials()
     .end(function (res) {
@@ -97,7 +97,7 @@ Transaction.prototype.create = function (callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Object} chunk
  * @param {Function} callback
  */
@@ -132,14 +132,14 @@ Transaction.prototype.save = function () {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Object} chunk
  * @param {Function} callback
  */
 Transaction.prototype.saveChunk = function (chunk, callback) {
   this.verify();
   this.verifyChunk(chunk);
-  var url = crypton.url() + '/transaction/' + this.id;
+  var url = crypton.url() + '/transaction/' + this.id + '?sid=' + crypton.sessionId;
 
   superagent.post(url)
     .withCredentials()
@@ -161,12 +161,12 @@ Transaction.prototype.saveChunk = function (chunk, callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.commit = function (callback) {
   this.verify();
-  var url = crypton.url() + '/transaction/' + this.id + '/commit';
+  var url = crypton.url() + '/transaction/' + this.id + '/commit?sid=' + crypton.sessionId;
   superagent.post(url)
     .withCredentials()
     .end(function (res) {
@@ -186,12 +186,12 @@ Transaction.prototype.commit = function (callback) {
  * Calls back without error if successful
  *
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.abort = function (callback) {
   this.verify();
-  var url = crypton.url() + '/transaction/' + this.id;
+  var url = crypton.url() + '/transaction/' + this.id + '?sid=' + crypton.sessionId;
   superagent.del(url)
     .withCredentials()
     .end(function (res) {
@@ -231,4 +231,3 @@ Transaction.prototype.verifyChunk = function (chunk) {
 };
 
 })();
-

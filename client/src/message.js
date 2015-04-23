@@ -83,7 +83,7 @@ Message.prototype.send = function (callback) {
     return callback('You must encrypt the message to a peer before sending!');
   }
 
-  var url = crypton.url() + '/peer';
+  var url = crypton.url() + '/peer?sid=' + crypton.sessionId;
   superagent.post(url)
     .send(this.encrypted)
     .withCredentials()

@@ -41,9 +41,14 @@ var Session = crypton.Session = function (id) {
   this.inbox = new crypton.Inbox(this);
 
   var that = this;
-  this.socket = io.connect(crypton.url(), {
-    secure: true
-  });
+
+  var joinServerParameters = { token: crypton.sessionId };
+  this.socket = io.connect(crypton.url(),
+                           { query: 'joinServerParameters='
+                                  + JSON.stringify(joinServerParameters),
+                             reconnection: true,
+                             reconnectionDelay: 5000
+                           });
 
   // watch for incoming Inbox messages
   this.socket.on('message', function (data) {
@@ -544,7 +549,7 @@ Session.prototype.getPeer = function (username, callback) {
       return callback(err);
     }
 
-    that.load(crypton.trustStateContainer, function (err, container) {
+    that.getOrCreateItem(crypton.trustedPeers, function (err, trustedPeers) {
       if (err) {
         return callback(err);
       }
@@ -552,15 +557,15 @@ Session.prototype.getPeer = function (username, callback) {
       // if the peer has previously been trusted,
       // we should check the saved fingerprint against
       // what the server has given us
-      if (!container.keys[username]) {
+      var peers = trustedPeers.value;
+
+      if (!peers[username]) {
         peer.trusted = false;
       } else {
-        var savedFingerprint = container.keys[username].fingerprint;
-
+        var savedFingerprint = peers[username].fingerprint;
         if (!crypton.constEqual(savedFingerprint, peer.fingerprint)) {
           return callback('Server has provided malformed peer', peer);
         }
-
         peer.trusted = true;
       }
 

@@ -238,9 +238,11 @@ Container.prototype.getHistory = function (callback) {
   var containerNameHmac = this.getPublicName();
   var currentVersion = this.latestVersion();
 
-  var url = crypton.url() + '/container/' + containerNameHmac + '?after=' + (currentVersion + 1);
+  var url = crypton.url() + '/container/' + containerNameHmac + '?after=' + (currentVersion + 1) + '&sid=' + crypton.sessionId;
+  console.log('getHistory', url);
   superagent.get(url)
     .withCredentials()
+    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
       if (!res.body || res.body.success !== true) {
         callback(res.body.error);
@@ -377,7 +379,7 @@ Container.prototype.decryptKey = function (record) {
  *
  * @param {Function} callback
  */
-Container.prototype.sync = function (callback) {
+ Container.prototype.sync = function (callback) {
   var that = this;
   this.getHistory(function (err, records) {
     if (err) {

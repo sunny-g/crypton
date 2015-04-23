@@ -40,7 +40,7 @@ var Account = crypton.Account = function Account () {};
  * @param {Function} callback
  */
 Account.prototype.save = function (callback) {
-  superagent.post(crypton.url() + '/account')
+  superagent.post(crypton.url() + '/account?sid=' + crypton.sessionId)
     .withCredentials()
     .send(this.serialize())
     .end(function (res) {
@@ -296,8 +296,12 @@ Account.prototype.changePassphrase =
     newKeyring.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
     newKeyring.srpVerifier = srpVerifier;
     newKeyring.srpSalt = srpSalt;
-
-    superagent.post(crypton.url() + '/account/' + that.username + '/keyring')
+    var url = crypton.url()
+	  + '/account/'
+	  + that.username
+	  + '/keyring?sid='
+	  + crypton.sessionId;
+    superagent.post(url)
     .withCredentials()
     .send(newKeyring)
     .end(function (res) {

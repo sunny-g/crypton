@@ -49,9 +49,10 @@ crypton.versionCheck = function (skip, callback) {
     return callback(null);
   }
 
-  var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version;
+  var url = crypton.url() + '/versioncheck?' + 'v=' + crypton.version + '&sid=' + crypton.sessionId || '';
   superagent.get(url)
   .end(function (res) {
+
     if (res.body.success !== true && res.body.error !== undefined) {
       crypton.clientVersionMismatch = true;
       return callback(res.body.error);
@@ -87,10 +88,10 @@ crypton.cipherOptions = {
 crypton.paranoia = 6;
 
 /**!
- * ### trustStateContainer
- * Internal name for trust state container
+ * ### trustedPeers
+ * Internal name for trusted peer (contacts list)
  */
-crypton.trustStateContainer = '_trust_state';
+crypton.trustedPeers = '_trusted_peers';
 
 /**!
  * ### collectorsStarted
@@ -174,6 +175,8 @@ function constEqual (str1, str2) {
   return mismatch === 0;
 }
 crypton.constEqual = constEqual;
+
+crypton.sessionId = null;
 
 /**!
  * ### randomBits(nbits)
@@ -429,6 +432,10 @@ crypton.authorize = function (username, passphrase, callback, options) {
           if (!res.body || res.body.success !== true) {
             return callback(res.body.error);
           }
+	  // check for response session header:
+	  // XXX: Make sure we have a sid!
+	  crypton.sessionId = res.body.sid;
+	  window.sessionStorage.setItem('sessionId', res.body.sid);
 
           options.a = data.a;
           options.srpA = data.srpA;
@@ -438,10 +445,12 @@ crypton.authorize = function (username, passphrase, callback, options) {
           // calculateSrpM1
           crypton.work.calculateSrpM1(options, function (err, srpM1, ourSrpM2) {
             response = {
-              srpM1: srpM1
+		srpM1: srpM1
             };
 
-            superagent.post(crypton.url() + '/account/' + username + '/answer')
+	    var url = crypton.url() +
+		'/account/' + username + '/answer?sid=' + crypton.sessionId;
+            superagent.post(url)
             .withCredentials()
             .send(response)
             .end(function (res) {
@@ -455,8 +464,7 @@ crypton.authorize = function (username, passphrase, callback, options) {
                 return;
               }
 
-              var sessionIdentifier = res.body.sessionIdentifier;
-              var session = new crypton.Session(sessionIdentifier);
+              var session = new crypton.Session(crypton.sessionId);
               session.account = new crypton.Account();
               session.account.username = username;
               session.account.passphrase = passphrase;
@@ -478,21 +486,16 @@ crypton.authorize = function (username, passphrase, callback, options) {
                   return callback(err);
                 }
 
-                // check for internal peer trust state container
-                session.load(crypton.trustStateContainer, function (err) {
-                  // if it exists, callback with session
-                  if (!err) {
-                    return callback(null, session);
+                // check for internal 'trusted peers' Item
+                session.getOrCreateItem(crypton.trustedPeers,
+                function (err, item) {
+                  if (err) {
+                    var _err = 'Cannot get "trusted peers" Item';
+                    console.error(_err, err);
+                    // still need to return the sesison
+                    return callback(_err, session);
                   }
-
-                  // if not, create it
-                  session.create(crypton.trustStateContainer, function (err) {
-                    if (err) {
-                      return callback(err);
-                    }
-
-                    callback(null, session);
-                  });
+                  return callback(null, session);
                 });
               });
             });

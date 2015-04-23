@@ -30,7 +30,7 @@ var Inbox = crypton.Inbox = function Inbox (session) {
 
 Inbox.prototype.poll = function (callback) {
   var that = this;
-  var url = crypton.url() + '/inbox';
+  var url = crypton.url() + '/inbox?sid=' + crypton.sessionId;
   callback = callback || function () {};
 
   superagent.get(url)
@@ -79,7 +79,7 @@ Inbox.prototype.get = function (messageId, callback) {
   }
 
   var that = this;
-  var url = crypton.url() + '/inbox/' + messageId;
+  var url = crypton.url() + '/inbox/' + messageId + '?sid=' + crypton.sessionId;
   callback = callback || function () {};
 
   superagent.get(url)
@@ -120,11 +120,12 @@ Inbox.prototype.delete = function (id, callback) {
 
 Inbox.prototype.getAllMetadata = function (callback) {
   var that = this;
-  var url = crypton.url() + '/inbox-metadata';
+  var url = crypton.url() + '/inbox-metadata?sid=' + crypton.sessionId;
   callback = callback || function () {};
 
   superagent.get(url)
     .withCredentials()
+    // .set('X-Session-ID', crypton.sessionId)
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
       callback(res.body.error);

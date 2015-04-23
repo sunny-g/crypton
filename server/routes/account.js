@@ -58,7 +58,6 @@ app.post('/account', function (req, res) {
  * state.
 */
 app.post('/account/:username', function (req, res) {
-  app.log('debug', 'handling POST /account/:username');
 
   var account = new Account();
 
@@ -83,12 +82,22 @@ app.post('/account/:username', function (req, res) {
         return;
       }
 
-      req.session.srpParams = srpParams;
-      res.send({
-        success: true,
-        srpB: srpParams.B,
-        srpSalt: account.srpSalt
+      app.redisSession.create(req, {srpParams: srpParams}, function createSessionCB(sid, err, status){
+	app.log('debug', arguments);
+
+	if (err) {
+	  res.send({success: false, error: err});
+          return;
+	}
+	res.send({
+          sid: sid,
+          success: true,
+          srpB: srpParams.B,
+          srpSalt: account.srpSalt
+	});
+
       });
+
     });
   });
 });
@@ -101,33 +110,25 @@ app.post('/account/:username', function (req, res) {
 */
 app.post('/account/:username/answer', function (req, res) {
   app.log('debug', 'handling POST /account/:username/answer');
+  app.log('debug', req.query.sid);
 
-  if (typeof req.session.srpParams == 'undefined') {
-    res.send({
-      success: false,
-      error: 'Session invalid'
-    });
-
-    return;
-  }
-
-  var srpM1 = req.body.srpM1;
-  var account = new Account();
-
-  account.get(req.params.username, function (err) {
+  var sid = req.query.sid;
+  app.redisSession.get(sid, req, function answerCallback(data, err, info) {
     if (err) {
-      res.send({
-        success: false,
-        error: err
-      });
-
+      app.log('error', err);
+      res.send({success: false, error: 'srp cache failure'});
       return;
     }
+    var srpParams = data.srpParams;
+    finishSrp(srpParams, sid);
+  });
 
-    account.checkSrp(req.session.srpParams, srpM1, function (err, srpM2) {
-      delete req.session.srpParams;
+  function finishSrp(params, sessionId) {
+    var srpM1 = req.body.srpM1;
+    var account = new Account();
+
+    account.get(req.params.username, function (err) {
       if (err) {
-        app.log('debug', 'SRP verification failed: ' + err);
         res.send({
           success: false,
           error: err
@@ -136,16 +137,41 @@ app.post('/account/:username/answer', function (req, res) {
         return;
       }
 
-      app.log('debug', 'SRP verification succcess');
-      req.session.accountId = account.accountId;
-      res.send({
-        success: true,
-        account: account.toJSON(),
-        sessionIdentifier: req.sessionID,
-        srpM2: srpM2.toString('hex')
+      account.checkSrp(params, srpM1, function (err, srpM2) {
+        // XXXddahl: fix this later... delete req.session.srpParams;
+        if (err) {
+          app.log('debug', 'SRP verification failed: ' + err);
+          res.send({
+            success: false,
+            error: err
+          });
+
+          return;
+        }
+
+        app.log('debug', 'SRP verification succcess');
+
+	// add accountId to session.
+	app.redisSession.set(sessionId, {accountId: account.accountId}, req,
+	function redisSessionSetCB(sid, err, status) {
+	  if (err) {
+	    res.send({
+	      success: false,
+	      error: 'Failure to authorize while setting accountId in session'
+	    });
+	    return;
+	  }
+	  res.send({
+            success: true,
+            account: account.toJSON(),
+            sid: sid,
+            srpM2: srpM2.toString('hex')
+           });
+	});
+
       });
     });
-  });
+  }
 });
 
 /**!
@@ -172,7 +198,7 @@ app.post('/account/:username/keyring',
         newAccountData[key] = req.body[key];
       }
       // Need the account ID
-      newAccountData.accountId = account.accountId
+      newAccountData.accountId = account.accountId;
 
       // Write new keyring into the database
       account.changePassphrase(newAccountData, function (err) {

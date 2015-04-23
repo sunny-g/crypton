@@ -65,7 +65,7 @@ Peer.prototype.fetch = function (callback) {
   }
 
   var that = this;
-  var url = crypton.url() + '/peer/' + this.username;
+  var url = crypton.url() + '/peer/' + this.username + '?sid=' + crypton.sessionId;
   superagent.get(url)
     .withCredentials()
     .end(function (res) {
@@ -133,8 +133,8 @@ Peer.prototype.encryptAndSign = function (payload) {
     var signature = this.session.account.signKeyPrivate.sign(hash, crypton.paranoia);
     return { ciphertext: JSON.parse(ciphertext), signature: signature, error: null };
   } catch (ex) {
-    console.log(ex);
-    console.log(ex.stack);
+    console.error(ex);
+    console.error(ex.stack);
     var err = "Error: Could not complete encryptAndSign: " + ex;
     return { ciphertext: null, signature: null, error: err };
   }
@@ -168,7 +168,7 @@ Peer.prototype.sendMessage = function (headers, payload, callback) {
 
 /**!
  * ### trust(callback)
- * Add peer's fingerprint to internal trust state container
+ * Add peer's fingerprint to internal trusted peers Item
  *
  * Calls back without error if successful
  *
@@ -179,21 +179,24 @@ Peer.prototype.sendMessage = function (headers, payload, callback) {
 Peer.prototype.trust = function (callback) {
   var that = this;
 
-  that.session.load(crypton.trustStateContainer, function (err, container) {
+  that.session.getOrCreateItem(crypton.trustedPeers,
+  function (err, trustedPeers) {
     if (err) {
       return callback(err);
     }
 
-    if (container.keys[that.username]) {
+    var peers = trustedPeers.value;
+    if (peers[that.username]) {
       return callback('Peer is already trusted');
     }
 
-    container.keys[that.username] = {
+    peers[that.username] = {
       trustedAt: +new Date(),
       fingerprint: that.fingerprint
     };
-
-    container.save(function (err) {
+    // TODO: When this item becomes very large we might consider
+    // creating items the letter of each peer's handle
+    trustedPeers.save(function (err) {
       if (err) {
         return callback(err);
       }

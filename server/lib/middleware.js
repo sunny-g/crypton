@@ -25,22 +25,36 @@ var middleware = module.exports = {};
 /**!
  * ### verifySession(req, res, next)
  * Determine if the `session-identifier` header exists in the session store
- * 
+ *
  * @param {Object} req
  * @param {Object} res
  * @param {Function} next
  */
 middleware.verifySession = function (req, res, next) {
-  var session = req.session;
+  var sessionId = req.query.sid;
 
-  if (!session || !session.accountId) {
-    app.log('debug', 'session ' + req.sessionId + ' invalid');
+  app.log('debug', 'sessionId: ');
+  app.log('debug', sessionId);
 
+  if (!sessionId) {
+    // we are not logged in and a client is attempting to reach a protected URL
     return res.send({
       success: false,
-      error: 'Invalid session'
+      error: 'sessionId (sid) GET query string missing'
     });
   }
 
-  next();
+  // Get the session
+  app.redisSession.get(sessionId, req, function getSessionCB (data, err, info) {
+    // XXXddahl TODO: verify the sessionId inside the redis-session module
+    if (err) {
+      return res.send({
+        success: false,
+        error: 'Invalid session'
+      });
+    }
+    req.session = data;
+
+    next();
+  });
 };

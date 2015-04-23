@@ -34,23 +34,24 @@ describe('Public key verification', function () {
     });
   });
 
-  describe('Internal trust state container', function () {
-    var container;
+  describe('Internal trusted peers item', function () {
+    var peers;
 
     before(function (done) {
-      session.load(crypton.trustStateContainer, function (err, rawContainer) {
+      session.getOrCreateItem(crypton.trustedPeers,
+      function (err, trustedPeers) {
         if (err) throw err;
-        container = rawContainer;
+        peers = trustedPeers.value;
         done();
       });
     });
 
     it('should exist', function () {
-      assert.isDefined(container);
+      assert.isDefined(peers);
     });
 
     it('should be empty for a new account', function () {
-      assert.deepEqual(container.keys, {});
+      assert.deepEqual(peers, {});
     });
   });
 
@@ -112,9 +113,10 @@ describe('Public key verification', function () {
         // force the session to load from server again
         session.containers = [];
 
-        session.load(crypton.trustStateContainer, function (err, trustContainer) {
+        session.getOrCreateItem(crypton.trustedPeers, function (err, trustedPeers) {
           if (err) throw err;
-          var savedKey = trustContainer.keys['notSoSmart'];
+          var peers = trustedPeers.value;
+          var savedKey = peers['notSoSmart'];
           assert.equal(typeof savedKey.trustedAt, 'number');
           assert.equal(savedKey.fingerprint, peer.fingerprint);
           done();

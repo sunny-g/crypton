@@ -5,7 +5,7 @@
   apt_key: >
     state=present
     id=ACCC4CF8
-    data="{{ lookup('file', 'apt.postgresql.org_key_ACCC4CF8.asc' ) }}"
+    data="{{ lookup('file', inventory_dir + '/files/apt.postgresql.org_key_ACCC4CF8.asc' ) }}"
 
 - name: add the apt source repo for postgresql DEBs
   sudo: True

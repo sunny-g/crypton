@@ -1,6 +1,8 @@
 ---
 
-- include: postgresql_common tags=role_postgresql_client
+- include: >
+    {{ inventory_dir }}/tasks/postgresql_common.yml
+    tags=role_postgresql_client
 
 - name: install postgres client
   sudo: True

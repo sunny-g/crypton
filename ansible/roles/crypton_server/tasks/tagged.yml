@@ -1,5 +1,5 @@
 - name: create unix user
-  sudo: True
+  sudo: yes
   user: >
     state=present
     name=crypton_server
@@ -7,21 +7,21 @@
     shell=/bin/false
 
 - name: clone source code
-  sudo: "{{ production }}"
+  sudo: yes
   git: >
     repo={{ crypton_source_repository }}
     dest={{ crypton_checkout }}
     version=master
 
 - name: install server node modules
-  sudo: "{{ production }}"
+  sudo: yes
   command: >
     npm install
     chdir={{ crypton_checkout }}/server
     creates={{ crypton_checkout }}/server/node_modules
 
 - name: build client dist files
-  sudo: "{{ production }}"
+  sudo: yes
   command: >
     make dist/crypton.js
     chdir={{ crypton_checkout }}/client
@@ -50,7 +50,7 @@
      mode: 440
 
 - name: write server config file from template
-  sudo: True
+  sudo: yes
   template: >
     src=crypton.conf.json.j2
     dest=/home/crypton_server/crypton.conf.json
@@ -59,7 +59,7 @@
     mode=440
 
 - name: make vendor dir for upstream static items
-  sudo: True
+  sudo: yes
   file: >
     state=directory
     path=/home/crypton_server/{{ item }}
@@ -73,7 +73,7 @@
     - vendor/jquery/1.10.2
 
 - name: fetch jquery so we can serve it locally
-  sudo: True
+  sudo: yes
   get_url: >
     url=https://ajax.googleapis.com/ajax/libs/jquery/{{ item.version }}/jquery.min.js
     sha256sum={{ item.sha256sum }}
@@ -89,7 +89,7 @@
 
 # note that nginx does not use /etc/hosts for resolution. but squid does.
 - name: add crypton server to /etc/hosts in dev
-  sudo: True
+  sudo: yes
   when: development
   lineinfile: >
    dest=/etc/hosts

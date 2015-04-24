@@ -6,20 +6,21 @@
   sudo_user: postgres
   postgresql_db: >
     state=present
-    name={{ db.name }}
+    name={{ crypton_db.name }}
     owner=postgres
     lc_collate=en_US.UTF-8
     encoding=UTF8
   register: create_crypton_database
-  when: development
+  when: >
+    development or create_crypton_db|default(False)
 
 - name: create crypton central database users
   tags: pg_db_user
   postgresql_user: >
     state=present
-    name={{db.username}}
-    db={{db.name}}
-    password={{db.password}}
+    name={{crypton_db.username}}
+    db={{crypton_db.name}}
+    password={{crypton_db.password}}
   sudo: True
   sudo_user: postgres
 
@@ -47,7 +48,7 @@
     --echo-queries
     --file={{ role_org_dir }}/setup.sql
     --log-file={{ role_org_dir }}/setup.sql.log.{{ timestamp }}
-    --dbname={{ db.name }}
+    --dbname={{ crypton_db.name }}
   when: >
     create_crypton_database is defined
     and create_crypton_database.changed
@@ -76,7 +77,7 @@
     --echo-queries
     --file={{ role_org_dir }}/permissions.sql
     --log-file={{ role_org_dir }}/permissions.sql.log.{{ timestamp }}
-    --dbname={{ db.name }}
+    --dbname={{ crypton_db.name }}
   when: >
     create_crypton_database is defined
     and create_crypton_database.changed

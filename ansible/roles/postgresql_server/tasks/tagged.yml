@@ -1,6 +1,8 @@
 ---
 
-- include: postgresql_common tags=role_postgresql_server
+- include: >
+    {{ inventory_dir }}/tasks/postgresql_common.yml
+    tags=role_postgresql_server
 
 # TODO FIXME: install this from source instead of binary
 # don't trust upstream binaries.
@@ -82,7 +84,7 @@
   sudo: True
   tags: pgconf
   template: >
-    src=roles/postgresql/templates/pg_hba.conf.j2
+    src=pg_hba.conf.j2
     dest="/etc/postgresql/{{pg_ver}}/main/pg_hba.conf"
     owner=postgres
     group=postgres

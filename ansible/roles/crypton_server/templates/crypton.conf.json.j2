@@ -1,11 +1,11 @@
 {
   "database": {
     "type": "postgres",
-    "user": "{{ db.username }}",
-    "password": "{{ db.password }}",
-    "database": "{{ db.name }}",
-    "host": "{{ db.host }}",
-    "port": {{ db.port }}
+    "user": "{{ crypton_db.username }}",
+    "password": "{{ crypton_db.password }}",
+    "database": "{{ crypton_db.name }}",
+    "host": "{{ crypton_db.host }}",
+    "port": {{ crypton_db.port }}
   },
     "defaultKeySize": 32,
     "id_translator": {

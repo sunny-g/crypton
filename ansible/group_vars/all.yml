@@ -2,6 +2,8 @@
 
 timestamp: "{{ lookup('pipe', 'date +%s') }}"
 
+pg_ver: 9.3
+
 crypton_db:
  username: crypton_server
  password: >

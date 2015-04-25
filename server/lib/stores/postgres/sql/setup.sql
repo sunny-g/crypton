@@ -625,7 +625,6 @@ create table item (
     item_id int8 not null primary key default nextval('version_identifier'),
     account_id int8 not null references account,
     name_hmac bytea not null unique,
-/*    item_session_key_id int8 not null references item_session_key, */
     creation_time timestamp not null default current_timestamp,
     modified_time timestamp not null default current_timestamp,
     deletion_time timestamp,
@@ -635,6 +634,27 @@ create table item (
 create unique index item_name_hmac_idx
     on item (name_hmac);
 
+create table item_history (
+    item_history_id int8 not null primary key default nextval('version_identifier'),
+    item_id int8 not null references item,
+    account_id int8 not null references account,
+    creation_time timestamp not null default current_timestamp,
+    modified_time timestamp not null default current_timestamp,
+    deletion_time timestamp,
+    value bytea
+);
+
+create table timeline (
+    timeline_id int8 not null primary key default nextval('version_identifier'),
+    creator_id int8 not null references account,
+    receiver_id int8 not null references account,
+    item_id int8 not null references item,
+    creation_time timestamp not null default current_timestamp,
+    modified_time timestamp not null default current_timestamp,
+    deletion_time timestamp,
+    value bytea
+);
+
 create table item_session_key (
     item_session_key_id int8 not null primary key
         default nextval('version_identifier'),
@@ -643,6 +663,7 @@ create table item_session_key (
     creation_time timestamp not null default current_timestamp,
     supercede_time timestamp
 );
+
 CREATE UNIQUE INDEX item_session_key_active_idx
     ON item_session_key (item_id)
     WHERE supercede_time IS NULL;
@@ -713,5 +734,48 @@ CREATE OR REPLACE FUNCTION notifyUpdatedItem() RETURNS TRIGGER AS $$
 $$ LANGUAGE PLPGSQL;
 
 CREATE TRIGGER UpdatedItemNotify AFTER UPDATE ON item FOR EACH ROW EXECUTE PROCEDURE notifyUpdatedItem();
+
+CREATE OR REPLACE FUNCTION populateItemHistoryInsertUpdate() RETURNS TRIGGER AS $$
+  BEGIN
+    INSERT INTO item_history (item_id, account_id, creation_time, value)
+    VALUES (NEW.item_id, NEW.account_id, NEW.creation_time, NEW.value);  	
+  END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE TRIGGER PopulateItemHistoryInsert AFTER INSERT ON item FOR EACH ROW EXECUTE PROCEDURE populateItemHistoryInsertUpdate();
+
+CREATE TRIGGER PopulateItemHistoryUpdate AFTER UPDATE ON item FOR EACH ROW EXECUTE PROCEDURE populateItemHistoryInsertUpdate();
+
+-- We need to insert a timeline record for each item / item_key_share pair insert/update event
+
+CREATE OR REPLACE FUNCTION populateTimeline() RETURNS TRIGGER AS $$
+  DECLARE 
+    item_row RECORD;
+  BEGIN
+    FOR item_row IN 
+      SELECT s.item_session_key_share_id, 
+        s.account_id, s.to_account_id, k.item_id, 
+	  a.username AS toUser, b.username AS fromUser 
+        FROM item_session_key_share s 
+        JOIN item_session_key k ON 
+          (s.item_session_key_id = k.item_session_key_id)
+        JOIN account a ON 
+          (s.to_account_id = a.account_id)
+        JOIN account b ON 
+          (s.account_id = b.account_id)
+        WHERE k.item_id = NEW.item_id AND k.supercede_time IS NULL 
+    LOOP
+      -- Insert a timeline row for each session_key_share
+      INSERT INTO timeline (creator_id, receiver_id, creation_time, value)
+      VALUES (item_row.account_id, item_row.to_account_id, NEW.creation_time, NEW.value)
+
+    END LOOP;
+    RETURN NULL;
+  END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE TRIGGER PopulateTimelineForEachItemInsert AFTER INSERT ON item FOR EACH ROW EXECUTE PROCEDURE populateTimeline();
+
+CREATE TRIGGER PopulateTimelineForEachItemUpdate AFTER UPDATE ON item FOR EACH ROW EXECUTE PROCEDURE populateTimeline();
 
 commit;

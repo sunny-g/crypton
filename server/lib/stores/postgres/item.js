@@ -433,6 +433,153 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
 };
 
 /**!
+ * ### getAuthorItems(accountId, offset, limit, callback)
+ * Get author's items from an offset
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId 
+ * @param {Number} offset
+ * @param {Number} limit
+ * @param {Function} callback
+ */
+exports.getAuthorItems = function (accountId, offset, limit, callback) {
+  connect(function (client, done) {
+    if (!offset) {
+      offset = 0;
+    }
+    if (!limit) {
+      limit = 10;
+    }
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select i.item_id, h.item_history_id, h.value, i.name_hmac \
+             s.session_key_ciphertext \
+             from item i, item_history h \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+                       on sk.item_session_key_id = s.item_session_key_id \
+             where \
+             h.account_id = $1 and \
+             i.deletion_time is null and \
+             sk.supercede_time is null and \
+             s.deletion_time is null and \
+             s.to_account_id = $1 \
+             order by h.item_history_id desc \
+             limit $3 offset $2',
+      /*jslint multistr: false*/
+      values: [
+        accountId,
+        offset,
+        limit
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      if (err) {
+        done();
+        return callback(err);
+      }
+
+      if (!result.rowCount) {
+        return callback('No history found');
+      }
+
+      done();
+      var resultData = [];
+      for (var i = 0; i < result.rows.length; i++) {
+	var record = {
+          ciphertext: JSON.parse(result.rows[0].value.toString()),
+	  modTime: Date.parse(result.rows[0].creation_time),
+          creationTime: Date.parse(result.rows[0].modified_time),
+          wrappedSessionKey: result.rows[0].session_key_ciphertext,
+	  itemHistoryId: result.rows[0].item_history_id
+	};
+	resultData.push(record);
+      }
+      
+      callback(null, resultData);
+    });
+  });
+};
+
+/**!
+ * ### getTimelineItems(accountId, offset, limit, callback)
+ * Get user's timeline items from an offset
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId 
+ * @param {Number} offset
+ * @param {Number} limit
+ * @param {Function} callback
+ */
+exports.getTimelineItems = function (accountId, offset, limit, callback) {
+  connect(function (client, done) {
+    if (!offset) {
+      offset = 0;
+    }
+    if (!limit) {
+      limit = 10;
+    }
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
+             t.value, t.creation_time \
+             s.session_key_ciphertext \
+             from item i, timeline t \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+                       on sk.item_session_key_id = s.item_session_key_id \
+             where \
+             t.receiver_id = $1 and \
+             i.deletion_time is null and \
+             sk.supercede_time is null and \
+             s.deletion_time is null and \
+             s.to_account_id = $1 \
+             order by t.timeline_id desc \
+             limit $3 offset $2',
+      /*jslint multistr: false*/
+      values: [
+        accountId,
+        offset,
+        limit
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      if (err) {
+        done();
+        return callback(err);
+      }
+
+      if (!result.rowCount) {
+        return callback('No history found');
+      }
+
+      done();
+      var resultData = [];
+      for (var i = 0; i < result.rows.length; i++) {
+	var record = {
+          ciphertext: JSON.parse(result.rows[0].value.toString()),
+	  modTime: Date.parse(result.rows[0].creation_time),
+          creationTime: Date.parse(result.rows[0].modified_time),
+          wrappedSessionKey: result.rows[0].session_key_ciphertext,
+	  itemHistoryId: result.rows[0].item_history_id
+	};
+	resultData.push(record);
+      }
+      
+      callback(null, resultData);
+    });
+  });
+};
+
+/**!
  * Listen for item update notifications
  *
  * Upon item value update,

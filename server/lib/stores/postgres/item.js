@@ -569,7 +569,7 @@ exports.getTimelineItems = function (accountId, offset, limit, callback) {
 	  modTime: Date.parse(result.rows[0].creation_time),
           creationTime: Date.parse(result.rows[0].modified_time),
           wrappedSessionKey: result.rows[0].session_key_ciphertext,
-	  itemHistoryId: result.rows[0].item_history_id
+	  timelineId: result.rows[0].timeline_id
 	};
 	resultData.push(record);
       }

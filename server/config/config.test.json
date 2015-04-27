@@ -8,9 +8,6 @@
     "port": 5432
   },
   "defaultKeySize": 32,
-  "id_translator": {
-    "key_file": "/dev/urandom"
-  },
   "cookieSecretFile": "/dev/urandom",
   "privateKey": "privateKeyExample.pem",
   "certificate": "certificateExample.pem",

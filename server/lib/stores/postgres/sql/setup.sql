@@ -739,6 +739,7 @@ CREATE OR REPLACE FUNCTION populateItemHistoryInsertUpdate() RETURNS TRIGGER AS 
   BEGIN
     INSERT INTO item_history (item_id, account_id, creation_time, value)
     VALUES (NEW.item_id, NEW.account_id, NEW.creation_time, NEW.value);  	
+    RETURN NULL;
   END;
 $$ LANGUAGE PLPGSQL;
 
@@ -767,7 +768,7 @@ CREATE OR REPLACE FUNCTION populateTimeline() RETURNS TRIGGER AS $$
     LOOP
       -- Insert a timeline row for each session_key_share
       INSERT INTO timeline (creator_id, receiver_id, creation_time, value)
-      VALUES (item_row.account_id, item_row.to_account_id, NEW.creation_time, NEW.value)
+      VALUES (item_row.account_id, item_row.to_account_id, NEW.creation_time, NEW.value);
 
     END LOOP;
     RETURN NULL;

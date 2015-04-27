@@ -43,12 +43,12 @@ else
   exit 1;
 fi
 
-NODE_VERSION="$($NODECMD --version | grep -o "0.10.")"
-if [ "$NODE_VERSION" = "0.10."  ]; then
-  echo "Found node 0.10.x..."
+NODE_VERSION="$($NODECMD --version | grep -o "0.12.")"
+if [ "$NODE_VERSION" = "0.12."  ]; then
+  echo "Found node 0.12.x..."
 else 
-  echo "Node.js 0.10.x is required for Crypton"
-  echo "Please install Node.js 0.10.x"
+  echo "Node.js 0.12.x is required for Crypton"
+  echo "Please install Node.js 0.12.x"
   exit 1;
 fi
 

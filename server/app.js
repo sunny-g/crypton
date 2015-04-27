@@ -28,7 +28,6 @@ var util = require('./lib/util');
 var appsec = require('lusca');
 var version = require('./package.json').version;
 var redis = require("redis");
-// var redisClient = redis.createClient();
 var redisSession = require('./redis-session')();
 
 var app = process.app = module.exports = express();
@@ -37,10 +36,6 @@ app.config = require('./lib/config');
 app.datastore = require('./lib/storage');
 
 app.redisSession = redisSession;
-/*jslint camelcase: false*/
-app.id_translator = require('id_translator')
-    .load_id_translator(app.config.id_translator.key_file);
-/*jslint camelcase: true*/
 
 app.log('info', 'configuring server');
 

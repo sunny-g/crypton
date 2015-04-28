@@ -5,7 +5,7 @@ hba_file = '/etc/postgresql/{{ pg_ver }}/main/pg_hba.conf'
 ident_file = '/etc/postgresql/{{ pg_ver }}/main/pg_ident.conf'
 external_pid_file = '/var/run/postgresql/{{ pg_ver }}-main.pid'
 
-listen_addresses = 'localhost,{{inventory_hostname}}'
+listen_addresses = 'localhost,{{ ansible_eth1.ipv4.address }}'
 port = 5432
 
 {% if production and pg_dedicated %}
@@ -50,7 +50,7 @@ commit_siblings = 5
 checkpoint_segments = 20
 checkpoint_timeout = 15min
 
-unix_socket_directory = '/var/run/postgresql'
+unix_socket_directories = '/var/run/postgresql'
 ssl = false
 
 log_directory = '/var/log/postgresql'

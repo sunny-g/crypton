@@ -3,9 +3,10 @@ development: False
 production: True
 deployment_environment: production
 
-database_master: encryptrdb.crypton.io
+database_master: encryptrdb1.crypton.io
 # no db slaves present
-database_slaves: []
+database_slaves:
+  - encryptrdb2.crypton.io
 
 # is it a dedicated db server machine that does nothing else?
 pg_dedicated: True

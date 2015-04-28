@@ -12,9 +12,7 @@ server {
     access_log /var/log/nginx/{{ fqdn }}-access.log;
     error_log /var/log/nginx/{{ fqdn }}-error.log;
 
-    add_header X-Frame-Options 'SAMEORIGIN';
-    add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload';
-    add-header Content-Security-Policy "default-src 'self'; connect-src wss://localhost localhost; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; object-src 'self'";
+    server_tokens off;
 
     ssl_certificate /etc/nginx/{{ crypton_service.domain }}-wildcard.pem;
     ssl_certificate_key /etc/nginx/{{ crypton_service.domain }}-wildcard.pem;
@@ -25,8 +23,10 @@ server {
     ssl_prefer_server_ciphers on;
     ssl_session_cache shared:crypton:10m;
 
-    Cache-Control 'no-cache';
-    server_tokens off;
+    add_header X-Frame-Options 'SAMEORIGIN';
+    add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains; preload';
+    add_header Content-Security-Policy "default-src 'self'; connect-src wss://localhost localhost; script-src 'self'; img-src 'self'; style-src 'self'; font-src 'self'; object-src 'self'";
+    add_header Cache-Control 'no-cache';
 
     rewrite ^/examples/.*/crypton.js /crypton.js;
 

@@ -6,4 +6,4 @@ SERVICE_USER={{ item.usr|default(item.name) }}
 
 cd {{ crypton_checkout }}/server
 exec chpst -u $SERVICE_USER:$SERVICE_USER:www-data -o 20000 -p 2000 ./bin/cli.js \
-    --config /home/$SERVICE_USER/crypton.conf.json 2>&1
+    --config /home/$SERVICE_USER/{{ crypton_service.name }}.conf.json 2>&1

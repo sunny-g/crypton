@@ -7,19 +7,39 @@
     "host": "{{ crypton_db.host }}",
     "port": {{ crypton_db.port }}
   },
-    "defaultKeySize": 32,
-    "id_translator": {
-      "key_file": "/home/crypton_server/id_translator.key"
-    },
-    "cookieSecretFile": "/home/crypton_server/cookie_secret.key",
-    "privateKey": "/etc/nginx/{{ crypton_server_domain }}-wildcard.pem",
-    "certificate": "/etc/nginx/{{ crypton_server_domain }}-wildcard.pem",
-    "appPath": "/dev/null",
-    "port": {{ crypton_server_local_port }},
-    "redis": {
-      "host": "localhost",
-      "port": 6379
-    },
+  "defaultKeySize": 32,
+  "id_translator": {
+    "key_file": "/dev/urandom"
+  },
+  "cookieSecretFile": "/home/crypton_server/{{ crypton_service.name }}_cookie.key",
+  "privateKey": "/etc/nginx/{{ crypton_service.domain }}-wildcard.pem",
+  "certificate": "/etc/nginx/{{ crypton_service.domain }}-wildcard.pem",
+  "appPath": ".",
+  "redis": {
+    "host": "{{ crypton_redis.host }}",
+    "port": {{ crypton_redis.port }},
+    "pass": "{{ crypton_redis.password }}"
+  },
   "commitStatusCheckDelay": 100,
-  "commitStatusCheckLimit": 100
+  "commitStatusCheckLimit": 100,
+  "securityHeaders": {
+    "csrf": false,
+    "csp": {
+      "policy": {
+        "default-src": "'self'",
+        "connect-src": "'self' wss://localhost:{{ crypton_service.local_port }}",
+        "script-src": "'self'",
+        "img-src": "'self'",
+        "style-src": "'self'",
+        "font-src": "'self'",
+        "object-src": "'self'"
+      }
+    },
+    "xframe": "SAMEORIGIN",
+    "hsts": {
+      "maxAge": 31536000
+    }
+  },
+  "port": {{ crypton_service.local_port }},
+  "logLevel": "debug"
 }

@@ -2,10 +2,10 @@
 
 
 [web]
-www1.crypton.io
+encryptrservice.crypton.io
 
 [database]
-db1.crypton.io
+encryptrdb.crypton.io
 
 
 

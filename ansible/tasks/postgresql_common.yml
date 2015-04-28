@@ -11,7 +11,7 @@
   sudo: True
   register: add_pg_apt_result
   apt_repository: >
-   repo="deb http://apt.postgresql.org/pub/repos/apt/ {{ansible_distribution_release}}-pgdg main"
+    repo="deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
 
 - name: update apt after adding postgresql source
   sudo: True

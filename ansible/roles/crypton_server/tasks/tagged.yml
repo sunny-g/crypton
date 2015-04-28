@@ -23,40 +23,9 @@
 - name: build client dist files
   sudo: yes
   command: >
-    make dist/crypton.js
+    make compile
     chdir={{ crypton_checkout }}/client
     creates={{ crypton_checkout }}/client/dist/crypton.js
-
-- name: copy server secret files
-  sudo: yes
-  copy: >
-    src={{ item.src }}
-    dest={{ item.dest }}
-    mode={{ item.mode|default(400) }}
-    owner={{ item.owner|default("root") }}
-    group={{ item.group|default("root") }}
-  with_items:
-   - src: secrets/{{ deployment_environment }}/id_translator.key
-     dest: /home/crypton_server/id_translator.key
-     owner: crypton_server
-     group: crypton_server
-   - src: secrets/{{ deployment_environment }}/cookie_secret.key
-     dest: /home/crypton_server/cookie_secret.key
-     owner: crypton_server
-     group: crypton_server
-   - src: secrets/{{ deployment_environment }}/{{ crypton_server_domain }}-wildcard.pem
-     dest: /etc/nginx/{{ crypton_server_domain }}-wildcard.pem
-     group: crypton_server
-     mode: 440
-
-- name: write server config file from template
-  sudo: yes
-  template: >
-    src=crypton.conf.json.j2
-    dest=/home/crypton_server/crypton.conf.json
-    owner=root
-    group=crypton_server
-    mode=440
 
 - name: make vendor dir for upstream static items
   sudo: yes
@@ -87,22 +56,40 @@
     - version: 1.10.2
       sha256sum: 89a15e9c40bc6b14809f236ee8cd3ed1ea42393c1f6ca55c7855cd779b3f922e
 
-# note that nginx does not use /etc/hosts for resolution. but squid does.
-- name: add crypton server to /etc/hosts in dev
+- name: copy server secret files
   sudo: yes
-  when: development
-  lineinfile: >
-   dest=/etc/hosts
-   line="{{ ansible_default_ipv4.address }} server.{{ crypton_server_domain }}"
-   regexp=server.{{ crypton_server_domain }}
+  copy: >
+    src=secrets/{{ deployment_environment }}/{{ item.src }}
+    dest={{ item.dest }}
+    mode={{ item.mode|default(400) }}
+    owner={{ item.owner|default("root") }}
+    group={{ item.group|default("root") }}
+  with_items:
+    - src: keys/{{ crypton_service.name }}_cookie.key
+      dest: /home/crypton_server/{{ crypton_service.name }}_cookie.key
+      owner: crypton_server
+      group: crypton_server
+    - src: certs/{{ crypton_service.domain }}-wildcard.pem
+      dest: /etc/nginx/{{ crypton_service.domain }}-wildcard.pem
+      group: crypton_server
+      mode: 440
+
+- name: write server config file from template
+  sudo: yes
+  template: >
+    src=crypton.conf.json.j2
+    dest=/home/crypton_server/{{ crypton_service.name }}.conf.json
+    owner=root
+    group=crypton_server
+    mode=440
 
 - include: runsv_services.yml tags=runit,role_crypton_server
 
 - name: install nginx config
   sudo: yes
   template: >
-    src={{ crypton_server_domain }}.conf.j2
-    dest=/etc/nginx/sites-available/{{ crypton_server_domain }}.conf
+    src=nginx-site.conf.j2
+    dest=/etc/nginx/sites-available/{{ crypton_service.name }}.{{ crypton_service.domain }}.conf
     owner=root
     group=root
     mode=400
@@ -111,9 +98,9 @@
 - name: enable nginx config
   sudo: yes
   file: >
-    src=/etc/nginx/sites-available/{{ crypton_server_domain }}.conf
-    dest=/etc/nginx/sites-enabled/{{ crypton_server_domain }}.conf
     state=link
+    src=/etc/nginx/sites-available/{{ crypton_service.name }}.{{ crypton_service.domain }}.conf
+    dest=/etc/nginx/sites-enabled/{{ crypton_service.name }}.{{ crypton_service.domain }}.conf
   notify: reload nginx
 
 - meta: flush_handlers

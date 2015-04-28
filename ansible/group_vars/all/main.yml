@@ -1,0 +1,21 @@
+---
+
+timestamp: "{{ lookup('pipe', 'date +%s') }}"
+
+pg_ver: 9.4
+
+crypton_db:
+  username: crypton_server
+  password: >
+    {{ lookup('password',
+    inventory_dir + '/secrets/' + deployment_environment
+    + '/auto/crypton_server.passwd
+    chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') }}
+  name: crypton_server
+  host: "{{ database_master }}"
+  port: 5432
+
+crypton_redis:
+  host: localhost
+  port: 6379
+  password: ""

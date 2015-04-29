@@ -7,9 +7,6 @@ database_master: "{{ inventory_hostname }}"
 # no db slaves present
 database_slaves: []
 
-# is it a dedicated db server machine that does nothing else?
-pg_dedicated: False
-
 crypton_source_repository: https://github.com/SpiderOak/crypton.git
 crypton_checkout: "/home/{{ ansible_user_id }}/crypton"
 

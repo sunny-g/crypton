@@ -2,7 +2,7 @@
 # Shared memory settings for PostgreSQL
 
 # Maximum size of shared memory segment in bytes
-{% if production and pg_dedicated %}
+{% if production %}
 kernel.shmmax = 5901085184
 {% else %}
 kernel.shmmax = 48676864

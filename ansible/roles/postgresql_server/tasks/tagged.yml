@@ -40,8 +40,23 @@
     dest=/etc/sysctl.d/30-postgresql-shm.conf
     owner=root
     group=root
-    mode=644
+    mode=0644
   notify: sysctl update
+
+- name: copy server secret files
+  sudo: yes
+  copy: >
+    src=secrets/{{ deployment_environment }}/{{ item.src }}
+    dest={{ item.dest }}
+    mode={{ item.mode|default(0400) }}
+    owner={{ item.owner|default("root") }}
+    group={{ item.group|default("root") }}
+  with_items:
+    - src: certs/{{ crypton_service.domain }}-wildcard.pem
+      dest: /var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_service.domain }}-wildcard.pem
+      group: postgres
+      mode: "0440"
+  notify: reload postgres
 
 - name: write postgresql.conf file
   tags: pgconf
@@ -51,7 +66,7 @@
     dest="/etc/postgresql/{{pg_ver}}/main/postgresql.conf"
     owner=postgres
     group=postgres
-    mode=644
+    mode=0644
   notify: reload postgres
   register: pg_conf_rewritten
 
@@ -78,7 +93,7 @@
     dest=/etc/logrotate.d/postgresql-common
     owner=root
     group=root
-    mode=644
+    mode=0644
 
 - name: write postgresql hba conf file
   sudo: True
@@ -88,7 +103,7 @@
     dest="/etc/postgresql/{{pg_ver}}/main/pg_hba.conf"
     owner=postgres
     group=postgres
-    mode=640
+    mode=0640
   notify: reload postgres
 
 - meta: flush_handlers

@@ -8,9 +8,6 @@ database_master: encryptrdb1.crypton.io
 database_slaves:
   - encryptrdb2.crypton.io
 
-# is it a dedicated db server machine that does nothing else?
-pg_dedicated: True
-
 crypton_source_repository: https://github.com/SpiderOak/crypton.git
 crypton_checkout: "/home/crypton_server/crypton"
 

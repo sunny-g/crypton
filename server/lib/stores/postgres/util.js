@@ -18,7 +18,7 @@
 
 'use strict';
 
-var pg = require('pg');
+var pg = require('pg').native;
 var datastore = require('./');
 
 datastore.util = {};

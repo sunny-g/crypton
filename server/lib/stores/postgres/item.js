@@ -21,7 +21,7 @@
 var datastore = require('./');
 var connect = datastore.connect;
 var app = process.app;
-var pg = require('pg');
+var pg = require('pg').native;
 
 /**!
  * ### getItemValue(itemNameHmac, accountId, callback)

@@ -1,5 +1,5 @@
 var fs = require('fs');
-var pg = require('pg');
+var pg = require('pg').native;
 var config = require('../lib/config');
 var oldConfig;
 

@@ -10,11 +10,13 @@ port = 5432
 
 unix_socket_directories = '/var/run/postgresql'
 
+{% if production %}
 ssl = on
 ssl_ciphers = '{{ ssl_ciphers|join(':') }}'
 ssl_prefer_server_ciphers = on
 ssl_cert_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_service.domain }}-wildcard.pem'
 ssl_key_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_service.domain }}-wildcard.pem'
+{% endif %}
 
 {% if production %}
 # settings for production

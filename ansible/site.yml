@@ -6,8 +6,7 @@
 
 - hosts: database
   roles:
-    - postgresql_server
-    - postgresql_client
+    - postgresql
     - crypton_db
 
 - hosts: web
@@ -20,7 +19,7 @@
 
 - hosts: crypton
   roles:
-    - postgresql_client
+    - postgresql
     - nodejs
     - crypton_server
 

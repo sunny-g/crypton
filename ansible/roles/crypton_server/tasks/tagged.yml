@@ -6,12 +6,12 @@
     system=yes
     shell=/bin/false
 
-- name: clone source code
-  sudo: yes
-  git: >
-    repo={{ crypton_source_repository }}
-    dest={{ crypton_checkout }}
-    version=master
+#- name: clone source code
+#  sudo: yes
+#  git: >
+#    repo={{ crypton_source_repository }}
+#    dest={{ crypton_checkout }}
+#    version={{ crypton_branch|default('master') }}
 
 - name: install server node modules
   sudo: yes
@@ -59,7 +59,7 @@
 - name: copy server secret files
   sudo: yes
   copy: >
-    src=secrets/{{ deployment_environment }}/{{ item.src }}
+    src={{ inventory_dir }}/secrets/{{ item.src }}
     dest={{ item.dest }}
     mode={{ item.mode|default(400) }}
     owner={{ item.owner|default("root") }}

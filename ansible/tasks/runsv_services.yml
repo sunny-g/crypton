@@ -27,7 +27,7 @@
   tags: runit
   sudo: True
   template: owner=root group=root mode=640 
-            src={{inventory_dir}}/templates/runsv_stdio_log_config.j2 
+            src={{ inventory_dir }}/../templates/runsv_stdio_log_config.j2 
             dest={{runit_stdio_log.path}}/{{item.name}}/config
   with_items: runit_services
 
@@ -35,7 +35,7 @@
   tags: runit
   sudo: True
   template: owner=root group=root mode=754 
-            src={{inventory_dir}}/templates/runsv_stdio_log.j2 
+            src={{ inventory_dir }}/../templates/runsv_stdio_log.j2 
             dest=/etc/service/{{item.name}}/log/run 
   with_items: runit_services
 

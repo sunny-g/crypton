@@ -3,18 +3,13 @@
 function generate_dev_secrets() {
     cd $BASE_DIR
 
-    if [[ ! -e secrets/dev/id_translator.key ]]; then
-        dd if=/dev/urandom of=secrets/dev/id_translator.key bs=96 count=1
-        chmod 400 secrets/dev/id_translator.key 
+    if [[ ! -e dev/secrets/cookie_secret.key ]]; then
+        dd if=/dev/urandom of=dev/secrets/cookie_secret.key bs=2048 count=1
+        chmod 400 dev/secrets/cookie_secret.key
     fi
 
-    if [[ ! -e secrets/dev/cookie_secret.key ]]; then
-        dd if=/dev/urandom of=secrets/dev/cookie_secret.key bs=2048 count=1
-        chmod 400 secrets/dev/cookie_secret.key 
-    fi
-
-    grep -sq 'END DH PARAMETERS' secrets/dev/cryptondev.local-wildcard.pem || {
-        cd secrets/dev
+    grep -sq 'END DH PARAMETERS' dev/secrets/cryptondev.local-wildcard.pem || {
+        cd dev/secrets
         openssl genrsa -aes256 -passout pass:x \
             -out cryptondev.local-wildcard.pass.key 2048
         openssl rsa -passin pass:x \

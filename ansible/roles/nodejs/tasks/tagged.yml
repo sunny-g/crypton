@@ -5,7 +5,7 @@
   apt_key: >
     state=present
     id=68576280
-    data="{{ lookup('file', inventory_dir + '/files/deb.nodesource.com_key_68576280.asc' ) }}"
+    data="{{ lookup('file', inventory_dir + '/../files/deb.nodesource.com_key_68576280.asc' ) }}"
 
 - name: add the apt source repo for nodesource DEBs
   sudo: True

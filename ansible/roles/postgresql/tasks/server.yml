@@ -1,14 +1,10 @@
 ---
 
-- include: >
-    {{ inventory_dir }}/tasks/postgresql_common.yml
-    tags=role_postgresql_server
-
 # TODO FIXME: install this from source instead of binary
 # don't trust upstream binaries.
 
 - name: install postgres server
-  sudo: True
+  sudo: yes
   apt: pkg={{ item }} state=present
   with_items:
     - postgresql-{{pg_ver}}
@@ -18,7 +14,7 @@
     - postgresql-server-dev-{{pg_ver}}
 
 - name: change ownership of postgres directory
-  sudo: True
+  sudo: yes
   file: >
     state=directory
     path=/var/lib/postgresql
@@ -27,14 +23,13 @@
     mode=0700
 
 - name: create main pg cluster
-  sudo: True
-  tags: pg_createcluster
+  sudo: yes
   command: >
     pg_createcluster {{ pg_ver }} main --start
     creates=/var/lib/postgresql/{{ pg_ver }}/main
 
 - name: increase shared memory allowances
-  sudo: True
+  sudo: yes
   template: >
     src=postgresql-shm.conf.j2
     dest=/etc/sysctl.d/30-postgresql-shm.conf
@@ -46,7 +41,7 @@
 - name: copy server secret files
   sudo: yes
   copy: >
-    src=secrets/{{ deployment_environment }}/{{ item.src }}
+    src={{ inventory_dir }}/secrets/{{ item.src }}
     dest={{ item.dest }}
     mode={{ item.mode|default(0400) }}
     owner={{ item.owner|default("root") }}
@@ -59,8 +54,8 @@
   notify: reload postgres
 
 - name: write postgresql.conf file
-  tags: pgconf
-  sudo: True
+  tags: pg_conf
+  sudo: yes
   template: >
     src=postgresql.conf.j2
     dest="/etc/postgresql/{{pg_ver}}/main/postgresql.conf"
@@ -68,26 +63,15 @@
     group=postgres
     mode=0644
   notify: reload postgres
-  register: pg_conf_rewritten
 
 - meta: flush_handlers
 
 - name: start postgresql
-  sudo: True
+  sudo: yes
   service: name=postgresql state=started
 
-- name: restart postgres in dev when pg conf rewritten
-  tags: pgconf
-  when: >
-    development
-    and pg_conf_rewritten is defined
-    and pg_conf_rewritten.changed
-  sudo: True
-  service: name=postgresql state=restarted
-
 - name: write postgres log rotate conf file
-  tags: pglogconf
-  sudo: True
+  sudo: yes
   template: >
     src=logrotate.conf.j2
     dest=/etc/logrotate.d/postgresql-common
@@ -96,8 +80,8 @@
     mode=0644
 
 - name: write postgresql hba conf file
-  sudo: True
-  tags: pgconf
+  sudo: yes
+  tags: pg_hba
   template: >
     src=pg_hba.conf.j2
     dest="/etc/postgresql/{{pg_ver}}/main/pg_hba.conf"

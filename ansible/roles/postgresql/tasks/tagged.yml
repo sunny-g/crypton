@@ -1,0 +1,7 @@
+---
+
+- include: common.yml tags=role_postgresql
+- include: client.yml tags=role_postgresql
+- include: server.yml tags=role_postgresql
+  when: >
+    inventory_hostname in groups.database

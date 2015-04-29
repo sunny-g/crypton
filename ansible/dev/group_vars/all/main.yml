@@ -1,0 +1,35 @@
+---
+# dev, not production
+development: True
+production: False
+deployment_environment: dev
+
+timestamp: "{{ lookup('pipe', 'date +%s') }}"
+
+database_master: "{{ inventory_hostname }}"
+# no db slaves present
+database_slaves: []
+
+crypton_source_repository: https://github.com/SpiderOak/crypton.git
+crypton_checkout: "/home/{{ ansible_user_id }}/crypton"
+
+crypton_db:
+  username: crypton_server
+  password: >
+    {{ lookup('password',
+    inventory_dir + '/secrets/'
+    + '/postgresql/crypton_server.passwd
+    chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') }}
+  name: crypton_server
+  host: "{{ database_master }}"
+  port: 5432
+
+crypton_redis:
+  host: localhost
+  port: 6379
+  password: ""
+
+crypton_service:
+  name: cryptondev
+  domain: local
+  local_port: 1025

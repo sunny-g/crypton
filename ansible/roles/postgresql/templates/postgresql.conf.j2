@@ -38,7 +38,7 @@ maintenance_work_mem = 16MB
 fsync = off
 {% endif %}
 
-{% if database_master is defined and inventory_hostname == database_master %}
+{% if inventory_hostname in groups.database_master %}
 # master db settings
 wal_level = hot_standby
 wal_buffers = 16MB
@@ -50,7 +50,7 @@ archive_command = '/bin/true %p'
 archive_timeout = 300
 max_wal_senders = 5
 wal_keep_segments = 100
-{% elif inventory_hostname in database_slaves %}
+{% elif inventory_hostname in groups.database_slaves %}
 hot_standby = on
 {% endif %}
 

@@ -11,8 +11,15 @@ crypton1
 [web:children]
 dev
 
-[database:childre]
+[database_master:children]
 dev
+
+[database_slaves:children]
+dev
+
+[database:children]
+database_master
+database_slaves
 
 [redis:children]
 dev

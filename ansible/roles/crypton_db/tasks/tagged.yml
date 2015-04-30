@@ -15,8 +15,8 @@
 
 - include: master.yml tags=role_crypton_db,crypton_db_master
   when: >
-    inventory_hostname == database_master
+    inventory_hostname in groups.database_master
 
 - include: slaves.yml tags=role_crypton_db,crypton_db_slaves
   when: >
-    inventory_hostname != database_master
+    inventory_hostname in groups.database_slaves

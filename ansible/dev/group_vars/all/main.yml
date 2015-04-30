@@ -6,9 +6,7 @@ deployment_environment: dev
 
 timestamp: "{{ lookup('pipe', 'date +%s') }}"
 
-database_master: "{{ inventory_hostname }}"
-# no db slaves present
-database_slaves: []
+pg_ver: 9.4
 
 crypton_source_repository: https://github.com/SpiderOak/crypton.git
 crypton_checkout: "/home/{{ ansible_user_id }}/crypton"

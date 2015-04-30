@@ -767,8 +767,8 @@ CREATE OR REPLACE FUNCTION populateTimeline() RETURNS TRIGGER AS $$
         WHERE k.item_id = NEW.item_id AND k.supercede_time IS NULL 
     LOOP
       -- Insert a timeline row for each session_key_share
-      INSERT INTO timeline (creator_id, receiver_id, creation_time, value)
-      VALUES (item_row.account_id, item_row.to_account_id, NEW.creation_time, NEW.value);
+      INSERT INTO timeline (item_id, creator_id, receiver_id, creation_time, value)
+      VALUES (NEW.item_id, item_row.account_id, item_row.to_account_id, NEW.creation_time, NEW.value);
 
     END LOOP;
     RETURN NULL;

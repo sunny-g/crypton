@@ -243,3 +243,79 @@ app.post('/unshareitem/:itemNameHmac', verifySession, function (req, res) {
     });
   });
 });
+
+/**!
+ * ### GET /itemhistory/
+ * Retrieve item history
+*/
+app.get('/itemhistory/', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /itemhistory/');
+
+  var accountId = req.session.accountId;
+  var lastItemRead = req.query.itemid || 0;
+  var offset = req.query.offset || 0;
+  // set max limit of 100
+  var limit = 10;
+  if (req.query.limit > 100) {
+    limit = 20; // TODO perf tests on large datasets
+  }
+
+  var item = new Item();
+  item.update('accountId', accountId);
+  item.update('lastItemRead', lastItemRead);
+  item.update('limit', limit);
+  item.update('offset', offset);
+
+  item.getAuthorItems(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      rawData: item.rows
+    });
+  });
+});
+
+/**!
+ * ### GET /timeline/
+ * Retrieve Timeline
+*/
+app.get('/timeline/', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /timeline/');
+
+  var accountId = req.session.accountId;
+  var lastItemRead = req.query.itemid || 0;
+  var offset = req.query.offset || 0;
+  // set max limit of 100
+  var limit = 10;
+  if (req.query.limit > 100) {
+    limit = 20; // TODO perf tests on large datasets
+  }
+
+  var item = new Item();
+  item.update('accountId', accountId);
+  item.update('lastItemRead', lastItemRead);
+  item.update('limit', limit);
+  item.update('offset', offset);
+
+  item.getTimelineItems(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+
+    res.send({
+      success: true,
+      rawData: item.rows
+    });
+  });
+});

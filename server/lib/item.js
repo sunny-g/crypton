@@ -190,3 +190,58 @@ Item.prototype.unshare = function item_unshare(callback) {
     callback(null, result);
   });
 };
+
+/**!
+ * ### getAuthorItems(accountId, lastItemReadId, offset, limit, callback)
+ * Retrieve items that an author created
+ *
+ * Gets specified 'history' Items calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} lastItemReadId
+ * @param {Number} offset
+ * @param {Number} limit
+ * @param {Function} callback
+ */
+Item.prototype.getAuthorItems =
+function getAuthorItems(callback) {
+  var that = this;
+  app.log('debug', 'getting author items from ' + that.lastItemRead);
+
+  db.getAuthorItems(that.accountId, that.lastItemRead, that.offset, that.limit, function (err, rows) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.update('rows', rows);
+    callback(null);
+  });
+};
+
+/**!
+ * ### getTimeline(callback)
+ * Retrieve user timeline
+ *
+ * Gets specified Timeline rows, calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Item.prototype.getTimeline =
+function getTimeline(callback) {
+  var that = this;
+  app.log('debug', 'getting timeline from ' + that.lastItemRead);
+
+  db.getTimelineItems(that.accountId, that.lastItemRead, that.offset, that.limit, function (err, rows) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.update('rows', rows);
+    callback(null);
+  });
+};

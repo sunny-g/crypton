@@ -480,7 +480,6 @@ Item.prototype.unshare = function (peer, callback) {
 
   superagent.post(url)
     .withCredentials()
-    // .set('X-Session-ID', crypton.sessionId)
     .send(payload)
     .end(function (res) {
     if (!res.body.success) {

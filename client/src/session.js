@@ -38,6 +38,8 @@ var Session = crypton.Session = function (id) {
   this.events = {};
   this.containers = [];
   this.items = {};
+  this.itemHistory = [];
+  this.timeline = [];
   this.inbox = new crypton.Inbox(this);
 
   var that = this;
@@ -265,6 +267,72 @@ Session.prototype.createSelfPeer = function () {
   selfPeer.trusted = true;
   return selfPeer;
 };
+
+/**!
+ * ### getItemHistory()
+ * returns a row of items the user created
+ */
+  Session.prototype.getItemHistory =
+  function getItemHistory (lastItemRead, offset, limit, callback) {
+    var that = this;
+    var url = crypton.url() + '/itemhistory/' + '?sid=' + crypton.sessionId
+            + '&historyid=' + lastItemRead // item_history_id
+            + '&offset=' + offset
+            + '&limit=' + limit;
+
+    superagent.post(url)
+    .withCredentials()
+    .end(function (res) {
+    if (!res.body || res.body.success !== true) {
+      console.error(res.body);
+      return callback('Cannot get item history');
+    }
+
+    // expand all item_history rows into actual items
+    var rows = res.body.rows;
+    var history = [];
+    // XXXddahl: use async() ?
+    for (var i = 0; i < rows.length; i++) {
+      var hitem = new crypton.HistoryItem(that, rows[i]);
+      history.push(hitem);
+    }
+    callback(null, history);
+  });
+};
+
+/**!
+ * ### getTimeline()
+ * returns a row of Timeline items
+ */
+  Session.prototype.getTimeline =
+  function getTimeline (lastItemRead, offset, limit, callback) {
+    var that = this;
+    var url = crypton.url() + '/timeline/' + '?sid=' + crypton.sessionId
+            + '&timelineid=' + lastItemRead // timeline_id
+            + '&offset=' + offset
+            + '&limit=' + limit;
+
+    superagent.post(url)
+    .withCredentials()
+    .end(function (res) {
+    if (!res.body || res.body.success !== true) {
+      console.error(res.body);
+      return callback('Cannot get timeline');
+    }
+
+    // expand all item_history rows into actual items
+    var rows = res.body.rows;
+    var history = [];
+    // XXXddahl: use async() ?
+    for (var i = 0; i < rows.length; i++) {
+      var hitem = new crypton.HistoryItem(that, rows[i]);
+      history.push(hitem);
+    }
+    callback(null, history);
+  });
+};
+
+// =================== Containers ===================== //
 
 /**!
  * ### load(containerName, callback)

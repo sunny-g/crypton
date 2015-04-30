@@ -440,12 +440,15 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
  *
  * Calls back with error if unsuccessful
  *
- * @param {Number} accountId 
+ * @param {Number} accountId
  * @param {Number} offset
+ * @param {Number} lastHistoryItemIdRead
  * @param {Number} limit
  * @param {Function} callback
  */
-exports.getAuthorItems = function (accountId, offset, limit, callback) {
+exports.getAuthorItems =
+function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callback) {
+  // lastHistoryItemIdRead is the item_history_id
   connect(function (client, done) {
     if (!offset) {
       offset = 0;
@@ -453,9 +456,13 @@ exports.getAuthorItems = function (accountId, offset, limit, callback) {
     if (!limit) {
       limit = 10;
     }
+    if (!lastHistoryItemIdRead) {
+      lastHistoryItemIdRead = 0;
+    }
+
     var query = {
       /*jslint multistr: true*/
-      text: 'select i.item_id, h.item_history_id, h.value, i.name_hmac \
+      text: 'select i.item_id, h.item_history_id, h.value, i.name_hmac, \
              s.session_key_ciphertext \
              from item i, item_history h \
              left join item_session_key sk on i.item_id = sk.item_id \
@@ -463,6 +470,7 @@ exports.getAuthorItems = function (accountId, offset, limit, callback) {
                        on sk.item_session_key_id = s.item_session_key_id \
              where \
              h.account_id = $1 and \
+             h.item_history_id > $4 and \
              i.deletion_time is null and \
              sk.supercede_time is null and \
              s.deletion_time is null and \
@@ -473,7 +481,8 @@ exports.getAuthorItems = function (accountId, offset, limit, callback) {
       values: [
         accountId,
         offset,
-        limit
+        limit,
+        lastHistoryItemIdRead
       ]
     };
 
@@ -491,34 +500,37 @@ exports.getAuthorItems = function (accountId, offset, limit, callback) {
       var resultData = [];
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {
-          ciphertext: JSON.parse(result.rows[0].value.toString()),
-	  modTime: Date.parse(result.rows[0].creation_time),
-          creationTime: Date.parse(result.rows[0].modified_time),
-          wrappedSessionKey: result.rows[0].session_key_ciphertext,
-	  itemHistoryId: result.rows[0].item_history_id
+          ciphertext: JSON.parse(result.rows[i].value.toString()),
+	  modTime: Date.parse(result.rows[i].creation_time),
+          creationTime: Date.parse(result.rows[i].modified_time),
+          wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	  itemHistoryId: result.rows[i].item_history_id,
+          itemNameHmac: result.rows[i].name_hmac
 	};
 	resultData.push(record);
       }
-      
+
       callback(null, resultData);
     });
   });
 };
 
 /**!
- * ### getTimelineItems(accountId, offset, limit, callback)
+ * ### getTimelineItems(accountId, lastTimelineIdRead, offset, limit, callback)
  * Get user's timeline items from an offset
  *
  * Calls back with value and without error if successful
  *
  * Calls back with error if unsuccessful
  *
- * @param {Number} accountId 
+ * @param {Number} accountId
+ * @param {Number} lastTimelineIdRead
  * @param {Number} offset
  * @param {Number} limit
  * @param {Function} callback
  */
-exports.getTimelineItems = function (accountId, offset, limit, callback) {
+exports.getTimelineItems =
+function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, callback) {
   connect(function (client, done) {
     if (!offset) {
       offset = 0;
@@ -526,17 +538,22 @@ exports.getTimelineItems = function (accountId, offset, limit, callback) {
     if (!limit) {
       limit = 10;
     }
+    if (!lastTimelineIdRead) {
+      lastTimelineIdRead = 0;
+    }
     var query = {
       /*jslint multistr: true*/
       text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
-             t.value, t.creation_time \
-             s.session_key_ciphertext \
+             t.value, t.creation_time, s.session_key_ciphertext, \
+             a.username as creator_username \
              from item i, timeline t \
              left join item_session_key sk on i.item_id = sk.item_id \
              left join item_session_key_share s \
                        on sk.item_session_key_id = s.item_session_key_id \
+             left join account a on t.creator_id = a.account_id \
              where \
              t.receiver_id = $1 and \
+             t.timeline_id > $4 and \
              i.deletion_time is null and \
              sk.supercede_time is null and \
              s.deletion_time is null and \
@@ -547,7 +564,8 @@ exports.getTimelineItems = function (accountId, offset, limit, callback) {
       values: [
         accountId,
         offset,
-        limit
+        limit,
+        lastTimelineIdRead
       ]
     };
 
@@ -565,15 +583,16 @@ exports.getTimelineItems = function (accountId, offset, limit, callback) {
       var resultData = [];
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {
-          ciphertext: JSON.parse(result.rows[0].value.toString()),
-	  modTime: Date.parse(result.rows[0].creation_time),
-          creationTime: Date.parse(result.rows[0].modified_time),
-          wrappedSessionKey: result.rows[0].session_key_ciphertext,
-	  timelineId: result.rows[0].timeline_id
+          ciphertext: JSON.parse(result.rows[i].value.toString()),
+	  modTime: Date.parse(result.rows[i].creation_time),
+          creationTime: Date.parse(result.rows[i].modified_time),
+          wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	  timelineId: result.rows[i].timeline_id,
+          creatorUsername: result.rows[i].creatorUsername
 	};
 	resultData.push(record);
       }
-      
+
       callback(null, resultData);
     });
   });

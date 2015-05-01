@@ -1,5 +1,29 @@
 ---
 
+- name: copy crypton database schema setup file
+  tags: createdb
+  sudo: True
+  sudo_user: postgres
+  copy: >
+    src=setup.sql
+    dest={{ role_org_dir }}/setup.sql
+    backup=yes
+    owner=postgres
+    group=postgres
+    mode=600
+
+- name: copy crypton database permissions template
+  tags: createdb
+  sudo: True
+  sudo_user: postgres
+  template: >
+    src=permissions.sql.j2
+    dest={{ role_org_dir }}/permissions.sql
+    backup=yes
+    owner=postgres
+    group=postgres
+    mode=600
+
 - name: create crypton database
   tags: createdb
   sudo: True
@@ -24,21 +48,6 @@
   sudo: True
   sudo_user: postgres
 
-- name: copy crypton database schema setup file
-  tags: createdb
-  sudo: True
-  sudo_user: postgres
-  copy: >
-    src=setup.sql
-    dest={{ role_org_dir }}/setup.sql
-    backup=yes
-    owner=postgres
-    group=postgres
-    mode=600
-  when: >
-    create_crypton_database is defined
-    and create_crypton_database.changed
-
 - name: install crypton database schema
   tags: createdb
   sudo: True
@@ -49,21 +58,6 @@
     --file={{ role_org_dir }}/setup.sql
     --log-file={{ role_org_dir }}/setup.sql.log.{{ timestamp }}
     --dbname={{ crypton_db.name }}
-  when: >
-    create_crypton_database is defined
-    and create_crypton_database.changed
-
-- name: copy crypton database permissions template
-  tags: createdb
-  sudo: True
-  sudo_user: postgres
-  template: >
-    src=permissions.sql.j2
-    dest={{ role_org_dir }}/permissions.sql
-    backup=yes
-    owner=postgres
-    group=postgres
-    mode=600
   when: >
     create_crypton_database is defined
     and create_crypton_database.changed

@@ -280,7 +280,7 @@ Session.prototype.createSelfPeer = function () {
             + '&offset=' + offset
             + '&limit=' + limit;
 
-    superagent.post(url)
+    superagent.get(url)
     .withCredentials()
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
@@ -289,7 +289,7 @@ Session.prototype.createSelfPeer = function () {
     }
 
     // expand all item_history rows into actual items
-    var rows = res.body.rows;
+    var rows = res.body.rawData;
     var history = [];
     // XXXddahl: use async() ?
     for (var i = 0; i < rows.length; i++) {
@@ -312,7 +312,7 @@ Session.prototype.createSelfPeer = function () {
             + '&offset=' + offset
             + '&limit=' + limit;
 
-    superagent.post(url)
+    superagent.get(url)
     .withCredentials()
     .end(function (res) {
     if (!res.body || res.body.success !== true) {
@@ -321,7 +321,7 @@ Session.prototype.createSelfPeer = function () {
     }
 
     // expand all item_history rows into actual items
-    var rows = res.body.rows;
+    var rows = res.body.rawData;
     var history = [];
     // XXXddahl: use async() ?
     for (var i = 0; i < rows.length; i++) {

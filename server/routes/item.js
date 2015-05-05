@@ -252,7 +252,7 @@ app.get('/itemhistory/', verifySession, function (req, res) {
   app.log('debug', 'handling GET /itemhistory/');
 
   var accountId = req.session.accountId;
-  var lastItemRead = req.query.itemid || 0;
+  var lastItemRead = req.query.historyid || 0;
   var offset = req.query.offset || 0;
   // set max limit of 100
   var limit = 10;
@@ -290,7 +290,7 @@ app.get('/timeline/', verifySession, function (req, res) {
   app.log('debug', 'handling GET /timeline/');
 
   var accountId = req.session.accountId;
-  var lastItemRead = req.query.itemid || 0;
+  var lastItemRead = req.query.timelineid || 0;
   var offset = req.query.offset || 0;
   // set max limit of 100
   var limit = 10;

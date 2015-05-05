@@ -97,7 +97,7 @@ function decryptHistoryItem (creator, sessionKey) {
       this.value = decrypted; // Just a string, not an object
     }
 
-    this.session.historyItems.push(this.value);
+    this.session.itemHistory.push(this.value);
     return this.value;
   }
 };

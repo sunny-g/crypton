@@ -464,7 +464,8 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
       /*jslint multistr: true*/
       text: 'select i.item_id, h.item_history_id, h.value, i.name_hmac, \
              s.session_key_ciphertext \
-             from item i, item_history h \
+             from item_history h \
+             left join item i on i.item_id = h.item_id \
              left join item_session_key sk on i.item_id = sk.item_id \
              left join item_session_key_share s \
                        on sk.item_session_key_id = s.item_session_key_id \

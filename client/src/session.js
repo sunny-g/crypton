@@ -39,6 +39,7 @@ var Session = crypton.Session = function (id) {
   this.containers = [];
   this.items = {};
   this.itemHistory = [];
+  this.itemKeyLedger = {};
   this.timeline = [];
   this.inbox = new crypton.Inbox(this);
 

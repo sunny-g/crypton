@@ -61,6 +61,12 @@ function decryptHistoryItem (creator, sessionKey) {
   var cipherItem = rawData.ciphertext;
   var wrappedSessionKey = JSON.parse(rawData.wrappedSessionKey);
 
+  // check if this key is already in memory
+  var _key = app.session.itemKeyLedger[wrappedSessionKey.ciphertext.kemtag];
+  if (_key) {
+    this.sessionKey = _key;
+  }
+
   // XXXddahl: create 'unwrapPayload()'
   var ct = JSON.stringify(cipherItem.ciphertext);
   var hash = sjcl.hash.sha256.hash(ct);
@@ -84,6 +90,8 @@ function decryptHistoryItem (creator, sessionKey) {
       return new Error(ERRS.UNWRAP_KEY_ERROR);
     }
     this.sessionKey = JSON.parse(sessionKeyResult.plaintext);
+    var tag = wrappedSessionKey.ciphertext.kemtag;
+    app.session.itemKeyLedger[tag] = this.sessionKey;
   }
 
   var decrypted;

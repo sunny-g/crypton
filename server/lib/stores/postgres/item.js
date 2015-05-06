@@ -474,7 +474,7 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
              sk.supercede_time is null and \
              s.deletion_time is null and \
              s.to_account_id = $1 \
-             order by h.item_history_id desc \
+             order by h.item_history_id asc \
              limit $3 offset $2',
       /*jslint multistr: false*/
       values: [
@@ -558,7 +558,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, callbac
              sk.supercede_time is null and \
              s.deletion_time is null and \
              s.to_account_id = $1 \
-             order by t.timeline_id desc \
+             order by t.timeline_id asc \
              limit $3 offset $2',
       /*jslint multistr: false*/
       values: [

@@ -414,14 +414,12 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
     // XXXddahl: TODO: Create update trigger on item_session_key_share
     // to remove row after deletion_time is set
     client.query(query, function (err, result) {
-      console.log('query: ', query);
       if (err) {
         done();
         console.error('ERROR UPDATING ITEM SESSION KEY SHARE');
         return callback(err);
       }
 
-      console.log('result: ', result);
       if (result.rowCount != 1) {
         return callback('ItemSessionKeyShare delete failed');
       }
@@ -463,7 +461,7 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
     var query = {
       /*jslint multistr: true*/
       text: 'select i.item_id, h.item_history_id, h.value, i.name_hmac, \
-             s.session_key_ciphertext \
+             s.session_key_ciphertext, h.creation_time, h.modified_time \
              from item_history h \
              left join item i on i.item_id = h.item_id \
              left join item_session_key sk on i.item_id = sk.item_id \
@@ -502,8 +500,8 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {
           ciphertext: JSON.parse(result.rows[i].value.toString()),
-	  modTime: Date.parse(result.rows[i].creation_time),
-          creationTime: Date.parse(result.rows[i].modified_time),
+	  modTime: Date.parse(result.rows[i].modified_time),
+          creationTime: Date.parse(result.rows[i].creation_time),
           wrappedSessionKey: result.rows[i].session_key_ciphertext,
 	  itemHistoryId: result.rows[i].item_history_id,
           itemNameHmac: result.rows[i].name_hmac
@@ -545,9 +543,10 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, callbac
     var query = {
       /*jslint multistr: true*/
       text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
-             t.value, t.creation_time, s.session_key_ciphertext, \
+             t.value, t.creation_time, t.modified_time, s.session_key_ciphertext, \
              a.username as creator_username \
-             from item i, timeline t \
+             from timeline t \
+             left join item i on i.item_id = t.item_id \
              left join item_session_key sk on i.item_id = sk.item_id \
              left join item_session_key_share s \
                        on sk.item_session_key_id = s.item_session_key_id \
@@ -585,11 +584,11 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, callbac
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {
           ciphertext: JSON.parse(result.rows[i].value.toString()),
-	  modTime: Date.parse(result.rows[i].creation_time),
-          creationTime: Date.parse(result.rows[i].modified_time),
+	  modTime: Date.parse(result.rows[i].modified_time),
+          creationTime: Date.parse(result.rows[i].creation_time),
           wrappedSessionKey: result.rows[i].session_key_ciphertext,
 	  timelineId: result.rows[i].timeline_id,
-          creatorUsername: result.rows[i].creatorUsername
+          creatorUsername: result.rows[i].creator_username
 	};
 	resultData.push(record);
       }

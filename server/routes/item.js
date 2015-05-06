@@ -304,7 +304,7 @@ app.get('/timeline/', verifySession, function (req, res) {
   item.update('limit', limit);
   item.update('offset', offset);
 
-  item.getTimelineItems(function (err) {
+  item.getTimeline(function (err) {
     if (err) {
       res.send({
         success: false,
@@ -312,7 +312,6 @@ app.get('/timeline/', verifySession, function (req, res) {
       });
       return;
     }
-
     res.send({
       success: true,
       rawData: item.rows

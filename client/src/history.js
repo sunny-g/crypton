@@ -27,11 +27,19 @@ crypton.HistoryItem = function HistoryItem (session, rawData) {
   ERRS = crypton.errors;
   this.rawData = rawData;
   this.session = session;
+  // fill out the rest of the properties needed at this level
+  this.modTime = this.rawData.modTime;
+  this.creationTime = this.rawData.creationTime;
+
   var record;
   if (!this.rawData.creatorUsername) {
+    this.itemHistoryId = this.rawData.itemHistoryId;
+    this.itemNameHmac = this.rawData.itemNameHmac;
     record = this.decryptHistoryItem(null, null); // No shortcuts for now...
     return record;
   } else {
+    this.creatorUsername = this.rawData.creatorUsername;
+    this.timelineId = this.rawData.timelineId;
     record = this.decryptTimelineItem(this.rawData.creatorUsername, null);
   }
   return record;
@@ -40,7 +48,7 @@ crypton.HistoryItem = function HistoryItem (session, rawData) {
 HistoryItem.prototype.decryptHistoryItem =
 function decryptHistoryItem (creator, sessionKey) {
   if (!creator) {
-    this.creator = this.session.createSelfPeer();
+    this.creator = this.session.selfPeer;
   } else {
     this.creator = creator;
   }
@@ -73,7 +81,7 @@ function decryptHistoryItem (creator, sessionKey) {
     sessionKeyResult =
       this.session.account.verifyAndDecrypt(wrappedSessionKey, this.creator);
     if (sessionKeyResult.error) {
-      return callback(ERRS.UNWRAP_KEY_ERROR);
+      return new Error(ERRS.UNWRAP_KEY_ERROR);
     }
     this.sessionKey = JSON.parse(sessionKeyResult.plaintext);
   }
@@ -86,7 +94,7 @@ function decryptHistoryItem (creator, sessionKey) {
     console.error(ex.stack);
     throw new Error(ERRS.DECRYPT_CIPHERTEXT_ERROR);
   }
-  var value;
+
   if (decrypted) {
     try {
       this.value = JSON.parse(decrypted);
@@ -106,12 +114,21 @@ HistoryItem.prototype.decryptTimelineItem =
 function decryptTimelineItem (creatorName, sessionKey) {
   var that = this;
   // get creator
+  // if creatorName is self, use selfPeer
+  if (creatorName == this.session.account.username) {
+    this.decryptHistoryItem(this.session.selfPeer, sessionKey);
+    return;
+  }
+  // Handle data from actual peers...
   this.session.getPeer(creatorName, function (err, peer) {
     if (err) {
       console.error(err);
       return { error: err };
     }
-    return that.decryptHistoryItem(peer, sessionKey);
+    if (!peer.trusted) {
+      return console.error('Cannot decrypt data: Peer is not trusted.');
+    }
+    that.decryptHistoryItem(peer, sessionKey);
   });
 };
 

@@ -86,7 +86,6 @@ var Session = crypton.Session = function (id) {
       console.error(ERRS.ARG_MISSING);
       throw new Error(ERRS.ARG_MISSING);
     }
-    console.log('Item updated!', itemObj);
     // if any of the cached items match the HMAC
     // in the notification, sync the items and
     // call the listener if one has been set
@@ -108,7 +107,6 @@ var Session = crypton.Session = function (id) {
         }
       });
     } else {
-      console.log('Loading the item as it is not cached');
       // load item!
       // get the peer first:
       that.getPeer(itemObj.creator, function (err, peer) {
@@ -205,7 +203,7 @@ function getOrCreateItem (itemName,  callback) {
     return;
   }
 
-  var creator = this.createSelfPeer();
+  var creator = this.selfPeer;
   var item =
   new crypton.Item(itemName, null, this, creator, function getItemCallback(err, item) {
     if (err) {
@@ -250,6 +248,14 @@ function getSharedItem (itemNameHmac,  peer, callback) {
   new crypton.Item(null, null, this, peer, getItemCallback, itemNameHmac);
 };
 
+Session.prototype.__defineGetter__("selfPeer", function() {
+  if (this._selfPeer) {
+    return this._selfPeer;
+  }
+  this._selfPeer = this.createSelfPeer();
+  return this._selfPeer;
+});
+
 /**!
  * ### createSelfPeer()
  * returns a 'selfPeer' object which is needed for any kind of
@@ -271,18 +277,44 @@ Session.prototype.createSelfPeer = function () {
 /**!
  * ### getItemHistory()
  * returns a row of items the user created
+ *
+ * Calls back with ItemHistory Array and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options // e.g.: {lastItemRead: 12,offset: 350,limit: 20 }
+ * @param {Function} callback
  */
-  Session.prototype.getItemHistory =
-  function getItemHistory (lastItemRead, offset, limit, callback) {
-    var that = this;
-    var url = crypton.url() + '/itemhistory/' + '?sid=' + crypton.sessionId
-            + '&historyid=' + lastItemRead // item_history_id
-            + '&offset=' + offset
-            + '&limit=' + limit;
+Session.prototype.getItemHistory =
+function getItemHistory (options, callback) {
+  if (typeof options != 'object') {
+    return callback(ERRS.ARG_MISSING_OBJECT);
+  }
+  if (typeof callback != 'function') {
+    return callback(ERRS.ARG_MISSING_CALLBACK);
+  }
+  var lastItemRead = options.lastItemRead; // item_history_id
+  var offset = options.offset;
+  var limit = options.limit;
+  if (typeof parseInt(lastItemRead) != 'number') {
+    lastItemRead = 0;
+  }
+  if (typeof parseInt(offset) != 'number') {
+    offset = 0;
+  }
+  if (typeof parseInt(limit) != 'number') {
+    limit = 10; // default MAX of 10 - for now
+  }
 
-    superagent.get(url)
-    .withCredentials()
-    .end(function (res) {
+  var that = this;
+  var url = crypton.url() + '/itemhistory/' + '?sid=' + crypton.sessionId
+          + '&historyid=' + lastItemRead // item_history_id
+          + '&offset=' + offset
+          + '&limit=' + limit;
+
+  superagent.get(url)
+  .withCredentials()
+  .end(function (res) {
     if (!res.body || res.body.success !== true) {
       console.error(res.body);
       return callback('Cannot get item history');
@@ -303,18 +335,45 @@ Session.prototype.createSelfPeer = function () {
 /**!
  * ### getTimeline()
  * returns a row of Timeline items
+ *
+ * Calls back with ItemHistory Array and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Object} options // e.g.: {lastItemRead: 12,offset: 350,limit: 20 }
+ * @param {Function} callback
  */
-  Session.prototype.getTimeline =
-  function getTimeline (lastItemRead, offset, limit, callback) {
-    var that = this;
-    var url = crypton.url() + '/timeline/' + '?sid=' + crypton.sessionId
-            + '&timelineid=' + lastItemRead // timeline_id
-            + '&offset=' + offset
-            + '&limit=' + limit;
+Session.prototype.getTimeline =
+function getTimeline (options, callback) {
+  if (typeof options != 'object') {
+    return callback(ERRS.ARG_MISSING_OBJECT);
+  }
+  if (typeof callback != 'function') {
+    return callback(ERRS.ARG_MISSING_CALLBACK);
+  }
 
-    superagent.get(url)
-    .withCredentials()
-    .end(function (res) {
+  var lastItemRead = options.lastItemRead; // item_history_id
+  var offset = options.offset;
+  var limit = options.limit;
+  if (typeof parseInt(lastItemRead) != 'number') {
+    lastItemRead = 0;
+  }
+  if (typeof parseInt(offset) != 'number') {
+    offset = 0;
+  }
+  if (typeof parseInt(limit) != 'number') {
+    limit = 10; // default MAX of 10 - for now
+  }
+
+  var that = this;
+  var url = crypton.url() + '/timeline/' + '?sid=' + crypton.sessionId
+          + '&timelineid=' + lastItemRead // timeline_id
+          + '&offset=' + offset
+          + '&limit=' + limit;
+
+  superagent.get(url)
+  .withCredentials()
+  .end(function (res) {
     if (!res.body || res.body.success !== true) {
       console.error(res.body);
       return callback('Cannot get timeline');

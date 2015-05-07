@@ -529,17 +529,45 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
  * @param {Function} callback
  */
 exports.getTimelineItems =
-function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, callback) {
+function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDirection, callback) {
   connect(function (client, done) {
-    if (!offset) {
+    if (!offset || (typeof offset != 'number')) {
       offset = 0;
     }
-    if (!limit) {
+    if (!limit || (typeof limit != 'number')) {
       limit = 10;
     }
-    if (!lastTimelineIdRead) {
+    if (!lastTimelineIdRead || (typeof lastTimelineIdRead != 'number')) {
       lastTimelineIdRead = 0;
     }
+    var whereClause;
+    /*jslint multistr: true*/
+    var wherePrev = ' where \
+      t.receiver_id = $1 and \
+      t.timeline_id < $4 and \
+      i.deletion_time is null and \
+      sk.supercede_time is null and \
+      s.deletion_time is null and \
+      s.to_account_id = $1 '
+    /*jslint multistr: false*/
+
+    /*jslint multistr: true*/
+    var whereNext = ' where \
+       t.receiver_id = $1 and \
+       t.timeline_id > $4 and \
+       i.deletion_time is null and \
+       sk.supercede_time is null and \
+       s.deletion_time is null and \
+       s.to_account_id = $1 '
+    /*jslint multistr: false*/
+    var direction = 'ASC';
+    if (!pageDirection || pageDirection == 'next') {
+      whereClause = whereNext;
+    } else {
+      whereClause = wherePrev;
+      direction = 'DESC';
+    }
+
     var query = {
       /*jslint multistr: true*/
       text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
@@ -550,16 +578,10 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, callbac
              left join item_session_key sk on i.item_id = sk.item_id \
              left join item_session_key_share s \
                        on sk.item_session_key_id = s.item_session_key_id \
-             left join account a on t.creator_id = a.account_id \
-             where \
-             t.receiver_id = $1 and \
-             t.timeline_id > $4 and \
-             i.deletion_time is null and \
-             sk.supercede_time is null and \
-             s.deletion_time is null and \
-             s.to_account_id = $1 \
-             order by t.timeline_id asc \
-             limit $3 offset $2',
+             left join account a on t.creator_id = a.account_id '
+             + whereClause +
+             ' order by t.timeline_id ' + direction +
+             ' limit $3 offset $2',
       /*jslint multistr: false*/
       values: [
         accountId,

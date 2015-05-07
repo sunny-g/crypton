@@ -235,7 +235,7 @@ function getTimeline(callback) {
   var that = this;
   app.log('debug', 'getting timeline from ' + that.lastItemRead);
 
-  db.getTimelineItems(that.accountId, that.lastItemRead, that.offset, that.limit, function (err, rows) {
+  db.getTimelineItems(that.accountId, that.lastItemRead, that.offset, that.limit, that.pageDirection, function (err, rows) {
     if (err) {
       callback(err);
       return;

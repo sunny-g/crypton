@@ -292,10 +292,20 @@ app.get('/timeline/', verifySession, function (req, res) {
   var accountId = req.session.accountId;
   var lastItemRead = req.query.timelineid || 0;
   var offset = req.query.offset || 0;
-  // set max limit of 100
-  var limit = 10;
-  if (req.query.limit > 100) {
-    limit = 20; // TODO perf tests on large datasets
+  var direction = req.query.direction;
+  if (direction != 'next' || direction != 'prev') {
+    direction = 'next';
+  } else {
+    direction = req.query.direction;
+  }
+  // set max limit
+  var limit = parseInt(req.query.limit);
+  if (typeof limit == 'number') {
+    if (limit > 10) {
+      limit = 10;
+    }
+  } else {
+    limit = 10;
   }
 
   var item = new Item();
@@ -303,6 +313,7 @@ app.get('/timeline/', verifySession, function (req, res) {
   item.update('lastItemRead', lastItemRead);
   item.update('limit', limit);
   item.update('offset', offset);
+  item.update('direction', direction);
 
   item.getTimeline(function (err) {
     if (err) {

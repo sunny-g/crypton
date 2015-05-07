@@ -356,6 +356,7 @@ function getTimeline (options, callback) {
   var lastItemRead = options.lastItemRead; // item_history_id
   var offset = options.offset;
   var limit = options.limit;
+  var direction = options.direction;
   if (typeof parseInt(lastItemRead) != 'number') {
     lastItemRead = 0;
   }
@@ -365,12 +366,19 @@ function getTimeline (options, callback) {
   if (typeof parseInt(limit) != 'number') {
     limit = 10; // default MAX of 10 - for now
   }
+  if (typeof direction != 'string') {
+    direction = 'next';
+  }
+  if (direction != 'prev' || direction != 'next') {
+    direction = 'next';
+  }
 
   var that = this;
   var url = crypton.url() + '/timeline/' + '?sid=' + crypton.sessionId
           + '&timelineid=' + lastItemRead // timeline_id
           + '&offset=' + offset
-          + '&limit=' + limit;
+          + '&limit=' + limit
+          + '&direction=' + direction;
 
   superagent.get(url)
   .withCredentials()

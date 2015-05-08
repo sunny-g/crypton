@@ -579,9 +579,9 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDir
              left join item_session_key_share s \
                        on sk.item_session_key_id = s.item_session_key_id \
              left join account a on t.creator_id = a.account_id '
-             + whereClause +
-             ' order by t.timeline_id ' + direction +
-             ' limit $3 offset $2',
+             + whereClause
+             + ' order by t.timeline_id ASC'
+             + ' limit $3 offset $2',
       /*jslint multistr: false*/
       values: [
         accountId,

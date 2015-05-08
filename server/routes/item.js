@@ -292,11 +292,11 @@ app.get('/timeline/', verifySession, function (req, res) {
   var accountId = req.session.accountId;
   var lastItemRead = req.query.timelineid || 0;
   var offset = req.query.offset || 0;
-  var direction = req.query.direction;
+  var direction;
   if (direction != 'next' || direction != 'prev') {
     direction = 'next';
   } else {
-    direction = req.query.direction;
+    direction = req.query.direction || 'next';
   }
   // set max limit
   var limit = parseInt(req.query.limit);

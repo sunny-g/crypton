@@ -560,12 +560,17 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDir
        s.deletion_time is null and \
        s.to_account_id = $1 '
     /*jslint multistr: false*/
-    var direction = 'ASC';
-    if (!pageDirection || pageDirection == 'next') {
+
+    if (!pageDirection) {
+      whereClause = whereNext;
+    } else if (typeof pageDirection != 'string') {
+      whereClause = whereNext;
+    } else if (pageDirection == 'prev') {
+      whereClause = wherePrev;
+    } else if (pageDirection == 'next') {
       whereClause = whereNext;
     } else {
-      whereClause = wherePrev;
-      direction = 'DESC';
+       whereClause = whereNext;
     }
 
     var query = {

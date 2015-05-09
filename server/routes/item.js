@@ -289,9 +289,9 @@ app.get('/itemhistory/', verifySession, function (req, res) {
 app.get('/timeline/', verifySession, function (req, res) {
   app.log('debug', 'handling GET /timeline/');
 
-  var accountId = req.session.accountId;
-  var lastItemRead = req.query.timelineid || 0;
-  var offset = req.query.offset || 0;
+  var accountId = parseInt(req.session.accountId);
+  var lastItemRead = parseInt(req.query.timelineid) || 0;
+  var offset = parseInt(req.query.offset) || 0;
   var direction;
   if (direction != 'next' || direction != 'prev') {
     direction = 'next';
@@ -301,8 +301,8 @@ app.get('/timeline/', verifySession, function (req, res) {
   // set max limit
   var limit = parseInt(req.query.limit);
   if (typeof limit == 'number') {
-    if (limit > 10) {
-      limit = 10;
+    if (limit > 30) {
+      limit = 20;
     }
   } else {
     limit = 10;

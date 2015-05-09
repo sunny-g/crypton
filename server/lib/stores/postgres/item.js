@@ -530,14 +530,15 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
  */
 exports.getTimelineItems =
 function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDirection, callback) {
+  console.log(arguments);
   connect(function (client, done) {
-    if (!offset || (typeof offset != 'number')) {
+    if (!offset || (typeof parseInt(offset) != 'number')) {
       offset = 0;
     }
-    if (!limit || (typeof limit != 'number')) {
+    if (!limit || (typeof parseInt(limit) != 'number')) {
       limit = 10;
     }
-    if (!lastTimelineIdRead || (typeof lastTimelineIdRead != 'number')) {
+    if (!lastTimelineIdRead || (typeof parseInt(lastTimelineIdRead) != 'number')) {
       lastTimelineIdRead = 0;
     }
     var whereClause;
@@ -595,7 +596,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDir
         lastTimelineIdRead
       ]
     };
-
+    console.log(query.text);
     client.query(query, function (err, result) {
       if (err) {
         done();

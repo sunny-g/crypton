@@ -27,10 +27,10 @@ crypton.HistoryItem = function HistoryItem (session, rawData) {
   ERRS = crypton.errors;
   this.rawData = rawData;
   this.session = session;
+  this.timelineId = rawData.timelineId;
   // fill out the rest of the properties needed at this level
   this.modTime = this.rawData.modTime;
   this.creationTime = this.rawData.creationTime;
-
   var record;
   if (!this.rawData.creatorUsername) {
     this.itemHistoryId = this.rawData.itemHistoryId;
@@ -113,7 +113,7 @@ function decryptHistoryItem (creator, sessionKey) {
       this.value = decrypted; // Just a string, not an object
     }
 
-    this.session.itemHistory.push(this.value);
+    this.session.itemHistory[this.timelineId] = this;
     return this.value;
   }
 };

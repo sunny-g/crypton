@@ -38,7 +38,7 @@ var Session = crypton.Session = function (id) {
   this.events = {};
   this.containers = [];
   this.items = {};
-  this.itemHistory = [];
+  this.itemHistory = {};
   this.itemKeyLedger = {};
   this.timeline = [];
   this.inbox = new crypton.Inbox(this);
@@ -326,6 +326,11 @@ function getItemHistory (options, callback) {
     var history = [];
     // XXXddahl: use async() ?
     for (var i = 0; i < rows.length; i++) {
+      var timelineId = rows[i].timelineId;
+      if (that.itemHistory[timelineId]) {
+        // Let's not re-decrypt something that is most likely in our feed
+        continue;
+      }
       var hitem = new crypton.HistoryItem(that, rows[i]);
       history.push(hitem);
     }

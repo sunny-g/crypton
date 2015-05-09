@@ -491,12 +491,13 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
         return callback(err);
       }
 
-      if (!result.rowCount) {
-        return callback('No history found');
+      var resultData = [];
+
+      if (result.rowCount < 1) {
+        return callback(null, resultData);
       }
 
       done();
-      var resultData = [];
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {
           ciphertext: JSON.parse(result.rows[i].value.toString()),
@@ -603,12 +604,14 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDir
         return callback(err);
       }
 
-      if (!result.rowCount) {
-        return callback('No history found');
+      var resultData = [];
+
+      if (result.rowCount < 1) {
+        return callback(null, resultData);
       }
 
       done();
-      var resultData = [];
+
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {
           ciphertext: JSON.parse(result.rows[i].value.toString()),

@@ -572,9 +572,9 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
       prev = true;
     } else if (direction == 'next') {
       whereClause = whereNext;
-    } else {
-       whereClause = whereNext;
     }
+
+    console.log('direction in query: ', direction);
 
     var values = [
       accountId,

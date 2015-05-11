@@ -293,11 +293,11 @@ app.get('/timeline/', verifySession, function (req, res) {
   var lastItemRead = parseInt(req.query.timelineid) || 0;
   var offset = parseInt(req.query.offset) || 0;
   var direction;
-  if (direction != 'next' || direction != 'prev') {
+  if (!direction) {
     direction = 'next';
-  } else {
-    direction = req.query.direction || 'next';
   }
+  direction = req.query.direction;
+
   // set max limit
   var limit = parseInt(req.query.limit);
   if (typeof limit == 'number') {
@@ -315,6 +315,8 @@ app.get('/timeline/', verifySession, function (req, res) {
   item.update('offset', offset);
   item.update('direction', direction);
 
+  console.log('direction: ', direction);
+  
   item.getTimeline(function (err) {
     if (err) {
       res.send({

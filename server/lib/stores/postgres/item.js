@@ -546,7 +546,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
     /*jslint multistr: true*/
     var wherePrev = ' where \
       t.receiver_id = $1 and \
-      t.timeline_id < (select timeline_id from timeline where account_id = $1 order by timeline_id DESC LIMIT 1) and \
+      t.timeline_id < (select timeline_id from timeline where receiver_id = $1 order by timeline_id DESC LIMIT 1) and \
       i.deletion_time is null and \
       sk.supercede_time is null and \
       s.deletion_time is null and \

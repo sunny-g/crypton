@@ -530,7 +530,7 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
  * @param {Function} callback
  */
 exports.getTimelineItems =
-function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDirection, callback) {
+function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, direction, callback) {
   console.log(arguments);
   connect(function (client, done) {
     if (!offset || (typeof parseInt(offset) != 'number')) {
@@ -550,26 +550,26 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, pageDir
       i.deletion_time is null and \
       sk.supercede_time is null and \
       s.deletion_time is null and \
-      s.to_account_id = $1 '
+      s.to_account_id = $1 ';
     /*jslint multistr: false*/
 
     /*jslint multistr: true*/
     var whereNext = ' where \
-       t.receiver_id = $1 and \
-       t.timeline_id > $4 and \
-       i.deletion_time is null and \
-       sk.supercede_time is null and \
-       s.deletion_time is null and \
-       s.to_account_id = $1 '
+      t.receiver_id = $1 and \
+      t.timeline_id > $4 and \
+      i.deletion_time is null and \
+      sk.supercede_time is null and \
+      s.deletion_time is null and \
+      s.to_account_id = $1 ';
     /*jslint multistr: false*/
 
-    if (!pageDirection) {
+    if (!direction) {
       whereClause = whereNext;
-    } else if (typeof pageDirection != 'string') {
+    } else if (typeof direction != 'string') {
       whereClause = whereNext;
-    } else if (pageDirection == 'prev') {
+    } else if (direction == 'prev') {
       whereClause = wherePrev;
-    } else if (pageDirection == 'next') {
+    } else if (direction == 'next') {
       whereClause = whereNext;
     } else {
        whereClause = whereNext;

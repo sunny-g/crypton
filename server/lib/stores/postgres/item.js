@@ -546,7 +546,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
     /*jslint multistr: true*/
     var wherePrev = ' where \
       t.receiver_id = $1 and \
-      t.timeline_id < $4 and \
+      t.timeline_id < (select timeline_id from timeline where account_id = $1 order by timeline_id DESC LIMIT 1) and \
       i.deletion_time is null and \
       sk.supercede_time is null and \
       s.deletion_time is null and \
@@ -562,17 +562,33 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
       s.deletion_time is null and \
       s.to_account_id = $1 ';
     /*jslint multistr: false*/
-
+    var prev;
     if (!direction) {
       whereClause = whereNext;
     } else if (typeof direction != 'string') {
       whereClause = whereNext;
     } else if (direction == 'prev') {
       whereClause = wherePrev;
+      prev = true;
     } else if (direction == 'next') {
       whereClause = whereNext;
     } else {
        whereClause = whereNext;
+    }
+
+    var values = [
+      accountId,
+      offset,
+      limit,
+      lastTimelineIdRead
+    ];
+
+    if (prev) {
+      values = [
+        accountId,
+        offset,
+        limit
+      ];
     }
 
     var query = {
@@ -590,12 +606,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
              + ' order by t.timeline_id ASC'
              + ' limit $3 offset $2',
       /*jslint multistr: false*/
-      values: [
-        accountId,
-        offset,
-        limit,
-        lastTimelineIdRead
-      ]
+      values: values
     };
     console.log(query.text);
     client.query(query, function (err, result) {

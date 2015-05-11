@@ -542,6 +542,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
     if (!lastTimelineIdRead || (typeof parseInt(lastTimelineIdRead) != 'number')) {
       lastTimelineIdRead = 0;
     }
+    var orderby = 'ASC';
     var whereClause;
     /*jslint multistr: true*/
     var wherePrev = ' where \
@@ -570,6 +571,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
     } else if (direction == 'prev') {
       whereClause = wherePrev;
       prev = true;
+      orderby = 'DESC';
     } else if (direction == 'next') {
       whereClause = whereNext;
     }
@@ -603,7 +605,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
                        on sk.item_session_key_id = s.item_session_key_id \
              left join account a on t.creator_id = a.account_id '
              + whereClause
-             + ' order by t.timeline_id ASC'
+             + ' order by t.timeline_id ' + orderby
              + ' limit $3 offset $2',
       /*jslint multistr: false*/
       values: values

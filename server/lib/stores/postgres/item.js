@@ -543,7 +543,6 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
       lastTimelineIdRead = 0;
     }
     var orderby = 'ASC';
-    var whereClause;
     /*jslint multistr: true*/
     var wherePrev = ' where \
       t.receiver_id = $1 and \
@@ -563,8 +562,11 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
       s.deletion_time is null and \
       s.to_account_id = $1 ';
     /*jslint multistr: false*/
+
+    var whereClause = whereNext;
     var prev;
     if (!direction) {
+      direction = 'next';
       whereClause = whereNext;
     } else if (typeof direction != 'string') {
       whereClause = whereNext;

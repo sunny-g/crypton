@@ -65,8 +65,8 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
     };
 
     client.query(query, function (err, result) {
+      done();
       if (err) {
-        done();
         return callback(err);
       }
 
@@ -74,7 +74,6 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
         return callback('Item does not exist');
       }
 
-      done();
       var rawData = {
         ciphertext: JSON.parse(result.rows[0].value.toString()),
         modTime: Date.parse(result.rows[0].modified_time),
@@ -115,6 +114,7 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
     };
 
     client.query(updateQuery, function (err, result) {
+      done();
       if (err) {
         return callback(err);
       }
@@ -128,7 +128,6 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
       callback(null, { modTime: Date.parse(modTime),
                        itemNameHmac: itemNameHmac
                      });
-      done();
     });
   });
 };
@@ -250,6 +249,7 @@ function (itemNameHmac, accountId, callback) {
     client.query(query, function (err, result) {
       if (err) {
         app.log('debug', err);
+	client.query('rollback');
         done();
         return callback(err);
       }
@@ -328,6 +328,7 @@ function (itemNameHmac, sessionKeyCiphertext,
         }
 
         if (result.rowCount != 1) {
+	  done();
           return callback('item_session_key lookup failed');
         }
 
@@ -366,7 +367,7 @@ function (itemNameHmac, sessionKeyCiphertext,
             result.rows[0].item_session_key_share_id;
 
           client.query('commit');
-
+	  done();
           return callback(null, {success: true});
         });
       });
@@ -414,17 +415,14 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
     // XXXddahl: TODO: Create update trigger on item_session_key_share
     // to remove row after deletion_time is set
     client.query(query, function (err, result) {
+      done();
       if (err) {
-        done();
         console.error('ERROR UPDATING ITEM SESSION KEY SHARE');
         return callback(err);
       }
-
       if (result.rowCount != 1) {
         return callback('ItemSessionKeyShare delete failed');
       }
-
-      done();
       callback(null);
     });
   });
@@ -486,8 +484,8 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
     };
 
     client.query(query, function (err, result) {
+      done();
       if (err) {
-        done();
         return callback(err);
       }
 
@@ -497,7 +495,6 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
         return callback(null, resultData);
       }
 
-      done();
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {
           ciphertext: JSON.parse(result.rows[i].value.toString()),
@@ -565,16 +562,19 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
 
     var whereClause = whereNext;
     var prev;
-    if (!direction) {
-      direction = 'next';
+    switch (direction) {
+    case 'undefined':
       whereClause = whereNext;
-    } else if (typeof direction != 'string') {
-      whereClause = whereNext;
-    } else if (direction == 'prev') {
+      break;
+    case 'prev':
       whereClause = wherePrev;
       prev = true;
       orderby = 'DESC';
-    } else if (direction == 'next') {
+      break;
+    case 'next':
+      whereClause = whereNext;
+      break;
+    default:
       whereClause = whereNext;
     }
 
@@ -614,18 +614,15 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
     };
     console.log(query.text);
     client.query(query, function (err, result) {
+      done();
       if (err) {
-        done();
         return callback(err);
       }
 
       var resultData = [];
-
       if (result.rowCount < 1) {
         return callback(null, resultData);
       }
-
-      done();
 
       for (var i = 0; i < result.rows.length; i++) {
 	var record = {

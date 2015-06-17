@@ -51,6 +51,9 @@
     dest=/etc/fstab
     line="none /dev/shm tmpfs rw,nosuid,nodev,noexec 0 0"
   register: fstab_dev_shm_added
+  when: >
+    ansible_distribution == 'Ubuntu' and
+    ansible_lsb.release|split('.')|map('int') < (11, 10)
 
 - name: mount /dev/shm
   sudo: True

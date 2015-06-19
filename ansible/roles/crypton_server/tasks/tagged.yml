@@ -15,6 +15,24 @@
     version={{ item.src_branch|default(crypton_src_branch) }}
   with_items: crypton_apps
 
+- name: remove old node modules
+  sudo: yes
+  file: >
+    state=absent
+    path={{ item.src_checkout|default('/home/' + item.user + '/crypton') }}/server/node_modules
+  when: >
+    rebuild_crypton is defined and rebuild_crypton
+  with_items: crypton_apps
+
+- name: remove old client dist files
+  sudo: yes
+  file: >
+    state=absent
+    path={{ item.src_checkout|default('/home/' + item.user + '/crypton') }}/client/dist/crypton.js
+  when: >
+    rebuild_crypton is defined and rebuild_crypton
+  with_items: crypton_apps
+
 - name: install server node modules
   sudo: yes
   command: >

@@ -12,8 +12,8 @@
     "key_file": "/dev/urandom"
   },
   "cookieSecretFile": "/home/{{ item.user }}/{{ item.name }}_cookie.key",
-  "privateKey": "/etc/nginx/{{ item.domain|default(crypton_domain) }}-wildcard.pem",
-  "certificate": "/etc/nginx/{{ item.domain|default(crypton_domain) }}-wildcard.pem",
+  "privateKey": "/home/{{ item.user }}/{{ item.domain|default(crypton_domain) }}-wildcard.pem",
+  "certificate": "/home/{{ item.user }}/{{ item.domain|default(crypton_domain) }}-wildcard.pem",
   "appPath": ".",
   "redis": {
     "host": "{{ item.redis.host }}",

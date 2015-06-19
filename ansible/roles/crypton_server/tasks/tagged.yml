@@ -72,6 +72,16 @@
     mode=0400
   with_items: crypton_apps
 
+- name: copy server certs
+  sudo: yes
+  copy: >
+    src={{ inventory_dir }}/secrets/certs/{{ item.domain|default(crypton_domain) }}-wildcard.pem
+    dest=/home/{{ item.user }}/{{ item.domain|default(crypton_domain) }}-wildcard.pem
+    owner={{ item.user }}
+    group={{ item.group|default(item.user) }}
+    mode=0400
+  with_items: crypton_apps
+
 - name: write server config file from template
   sudo: yes
   template: >
@@ -87,7 +97,7 @@
     runit_services={{ crypton_apps }}
     common_run_template=run.crypton_server.sh.j2
 
-- name: copy server certs
+- name: copy web server certs
   sudo: yes
   copy: >
     src={{ inventory_dir }}/secrets/certs/{{ item.domain|default(crypton_domain) }}-wildcard.pem

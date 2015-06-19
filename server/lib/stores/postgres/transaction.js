@@ -21,7 +21,7 @@
 var app = process.app;
 var datastore = require('./');
 var connect = datastore.connect;
-var pg = require('pg');
+var pg = require('pg').native;
 var fs = require('fs');
 var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toString();
 

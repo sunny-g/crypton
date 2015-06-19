@@ -45,22 +45,22 @@
 
 # nodejs will fail to compile if this is not available
 
-- name: enable shared memory mounts
-  sudo: True
-  lineinfile: >
-    dest=/etc/fstab
-    line="none /dev/shm tmpfs rw,nosuid,nodev,noexec 0 0"
-  register: fstab_dev_shm_added
-  when: >
-    ansible_distribution == 'Ubuntu' and
-    ansible_lsb.release|split('.')|map('int') < (11, 10)
+#- name: enable shared memory mounts
+#  sudo: True
+#  lineinfile: >
+#    dest=/etc/fstab
+#    line="none /dev/shm tmpfs rw,nosuid,nodev,noexec 0 0"
+#  register: fstab_dev_shm_added
+#  when: >
+#    ansible_distribution == 'Ubuntu' and
+#    ansible_lsb.release|split('.')|map('int') < (11, 10)
 
-- name: mount /dev/shm
-  sudo: True
-  when: >
-    fstab_dev_shm_added is defined
-    and fstab_dev_shm_added.changed
-  command: /bin/mount -a
+#- name: mount /dev/shm
+#  sudo: True
+#  when: >
+#    fstab_dev_shm_added is defined
+#    and fstab_dev_shm_added.changed
+#  command: /bin/mount -a
 
 - name: copy deb builder script
   sudo: True

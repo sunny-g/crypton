@@ -14,8 +14,8 @@ unix_socket_directories = '/var/run/postgresql'
 ssl = on
 ssl_ciphers = '{{ ssl_ciphers|join(':') }}'
 ssl_prefer_server_ciphers = on
-ssl_cert_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_service.domain }}-wildcard.pem'
-ssl_key_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_service.domain }}-wildcard.pem'
+ssl_cert_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_domain }}-wildcard.pem'
+ssl_key_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_domain }}-wildcard.pem'
 {% endif %}
 
 {% if production %}

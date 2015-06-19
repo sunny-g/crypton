@@ -43,7 +43,7 @@
   tags: runit
   sudo: True
   template: owner=root group=root mode=750 
-            src=run.{{item.name}}.sh.j2
+            src={{ common_run_template|default('run.' + item.name + '.sh.j2') }}
             dest=/etc/service/{{item.name}}/run 
   with_items: runit_services
 

@@ -2,8 +2,8 @@
 
 # {{ ansible_managed }}
 
-SERVICE_USER={{ item.usr|default(item.name) }}
+SERVICE_USER={{ item.user }}
 
-cd {{ crypton_checkout }}/server
+cd {{ item.src_checkout|default('/home/$SERVICE_USER/crypton') }}/server
 exec chpst -u $SERVICE_USER:$SERVICE_USER:www-data -o 20000 -p 2000 ./bin/cli.js \
-    --config /home/$SERVICE_USER/{{ crypton_service.name }}.conf.json run 2>&1
+    --config /home/$SERVICE_USER/{{ item.name }}.conf.json run 2>&1

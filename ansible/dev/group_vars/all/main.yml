@@ -8,26 +8,20 @@ timestamp: "{{ lookup('pipe', 'date +%s') }}"
 
 pg_ver: 9.4
 
-crypton_source_repository: https://github.com/SpiderOak/crypton.git
-crypton_checkout: "/home/{{ ansible_user_id }}/crypton"
+crypton_src_repository: https://github.com/SpiderOak/crypton.git
+crypton_src_branch: master
+crypton_domain: local
 
-crypton_db:
-  username: crypton_user
-  password: >
-    {{ lookup('password',
-    inventory_dir + '/secrets/'
-    + '/postgresql/crypton_user.passwd
-    chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') }}
-  name: crypton_dev
-  host: "{{ groups.database_master|first }}"
-  port: 5432
-
-crypton_redis:
-  host: localhost
-  port: 6379
-  password: ""
-
-crypton_service:
-  name: cryptondev
-  domain: local
-  local_port: 1025
+crypton_apps:
+  - name: crypton_dev
+    user: crypton_dev
+    local_port: 1025
+    db:
+      password: >
+        {{ lookup('password',
+        inventory_dir + '/secrets/'
+        + '/postgresql/crypton_dev.passwd
+        chars=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') }}
+      host: "{{ groups.database_master|first }}"
+    redis:
+      host: localhost

@@ -87,6 +87,16 @@
     runit_services={{ crypton_apps }}
     common_run_template=run.crypton_server.sh.j2
 
+- name: copy server certs
+  sudo: yes
+  copy: >
+    src={{ inventory_dir }}/secrets/certs/{{ item.domain|default(crypton_domain) }}-wildcard.pem
+    dest=/etc/nginx/{{ item.domain|default(crypton_domain) }}-wildcard.pem
+    owner=root
+    group=root
+    mode=0400
+  with_items: crypton_apps
+
 - name: install nginx config
   sudo: yes
   template: >

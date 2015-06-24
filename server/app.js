@@ -147,7 +147,9 @@ app.start = function start () {
 app.log('info', 'loading routes');
 require('./routes');
 
-process.on('uncaughtException', function (err) {
-  app.log('fatal', err.stack);
+function handleError(err) {
+  console.error("uncaught exception:", err, err.stack);
   process.exit(1);
-});
+}
+
+process.on("uncaughtException", handleError);

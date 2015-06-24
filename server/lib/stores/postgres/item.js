@@ -65,8 +65,8 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
     };
 
     client.query(query, function (err, result) {
+      done();
       if (err) {
-        done();
         return callback(err);
       }
 
@@ -74,7 +74,6 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
         return callback('Item does not exist');
       }
 
-      done();
       var rawData = {
         ciphertext: JSON.parse(result.rows[0].value.toString()),
         modTime: Date.parse(result.rows[0].modified_time),
@@ -115,6 +114,7 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
     };
 
     client.query(updateQuery, function (err, result) {
+      done();
       if (err) {
         return callback(err);
       }
@@ -128,7 +128,6 @@ exports.saveItem = function (itemNameHmac, accountId, value, callback) {
       callback(null, { modTime: Date.parse(modTime),
                        itemNameHmac: itemNameHmac
                      });
-      done();
     });
   });
 };
@@ -250,6 +249,7 @@ function (itemNameHmac, accountId, callback) {
     client.query(query, function (err, result) {
       if (err) {
         app.log('debug', err);
+	client.query('rollback');
         done();
         return callback(err);
       }
@@ -328,6 +328,7 @@ function (itemNameHmac, sessionKeyCiphertext,
         }
 
         if (result.rowCount != 1) {
+	  done();
           return callback('item_session_key lookup failed');
         }
 
@@ -366,7 +367,7 @@ function (itemNameHmac, sessionKeyCiphertext,
             result.rows[0].item_session_key_share_id;
 
           client.query('commit');
-
+	  done();
           return callback(null, {success: true});
         });
       });
@@ -414,20 +415,228 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
     // XXXddahl: TODO: Create update trigger on item_session_key_share
     // to remove row after deletion_time is set
     client.query(query, function (err, result) {
-      console.log('query: ', query);
+      done();
       if (err) {
-        done();
         console.error('ERROR UPDATING ITEM SESSION KEY SHARE');
         return callback(err);
       }
-
-      console.log('result: ', result);
       if (result.rowCount != 1) {
         return callback('ItemSessionKeyShare delete failed');
       }
-
-      done();
       callback(null);
+    });
+  });
+};
+
+/**!
+ * ### getAuthorItems(accountId, offset, limit, callback)
+ * Get author's items from an offset
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Number} offset
+ * @param {Number} lastHistoryItemIdRead
+ * @param {Number} limit
+ * @param {Function} callback
+ */
+exports.getAuthorItems =
+function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callback) {
+  // lastHistoryItemIdRead is the item_history_id
+  connect(function (client, done) {
+    if (!offset) {
+      offset = 0;
+    }
+    if (!limit) {
+      limit = 10;
+    }
+    if (!lastHistoryItemIdRead) {
+      lastHistoryItemIdRead = 0;
+    }
+
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select i.item_id, h.item_history_id, h.value, i.name_hmac, \
+             s.session_key_ciphertext, h.creation_time, h.modified_time \
+             from item_history h \
+             left join item i on i.item_id = h.item_id \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+                       on sk.item_session_key_id = s.item_session_key_id \
+             where \
+             h.account_id = $1 and \
+             h.item_history_id > $4 and \
+             i.deletion_time is null and \
+             sk.supercede_time is null and \
+             s.deletion_time is null and \
+             s.to_account_id = $1 \
+             order by h.item_history_id asc \
+             limit $3 offset $2',
+      /*jslint multistr: false*/
+      values: [
+        accountId,
+        offset,
+        limit,
+        lastHistoryItemIdRead
+      ]
+    };
+
+    client.query(query, function (err, result) {
+      done();
+      if (err) {
+        return callback(err);
+      }
+
+      var resultData = [];
+
+      if (result.rowCount < 1) {
+        return callback(null, resultData);
+      }
+
+      for (var i = 0; i < result.rows.length; i++) {
+	var record = {
+          ciphertext: JSON.parse(result.rows[i].value.toString()),
+	  modTime: Date.parse(result.rows[i].modified_time),
+          creationTime: Date.parse(result.rows[i].creation_time),
+          wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	  itemHistoryId: result.rows[i].item_history_id,
+          itemNameHmac: result.rows[i].name_hmac
+	};
+	resultData.push(record);
+      }
+
+      callback(null, resultData);
+    });
+  });
+};
+
+/**!
+ * ### getTimelineItems(accountId, lastTimelineIdRead, offset, limit, callback)
+ * Get user's timeline items from an offset
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Number} lastTimelineIdRead
+ * @param {Number} offset
+ * @param {Number} limit
+ * @param {Function} callback
+ */
+exports.getTimelineItems =
+function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, direction, callback) {
+  console.log(arguments);
+  connect(function (client, done) {
+    if (!offset || (typeof parseInt(offset) != 'number')) {
+      offset = 0;
+    }
+    if (!limit || (typeof parseInt(limit) != 'number')) {
+      limit = 10;
+    }
+    if (!lastTimelineIdRead || (typeof parseInt(lastTimelineIdRead) != 'number')) {
+      lastTimelineIdRead = 0;
+    }
+    var orderby = 'ASC';
+    /*jslint multistr: true*/
+    var wherePrev = ' where \
+      t.receiver_id = $1 and \
+      t.timeline_id < (select timeline_id from timeline where receiver_id = $1 order by timeline_id DESC LIMIT 1) and \
+      i.deletion_time is null and \
+      sk.supercede_time is null and \
+      s.deletion_time is null and \
+      s.to_account_id = $1 ';
+    /*jslint multistr: false*/
+
+    /*jslint multistr: true*/
+    var whereNext = ' where \
+      t.receiver_id = $1 and \
+      t.timeline_id > $4 and \
+      i.deletion_time is null and \
+      sk.supercede_time is null and \
+      s.deletion_time is null and \
+      s.to_account_id = $1 ';
+    /*jslint multistr: false*/
+
+    var whereClause = whereNext;
+    var prev;
+    switch (direction) {
+    case 'undefined':
+      whereClause = whereNext;
+      break;
+    case 'prev':
+      whereClause = wherePrev;
+      prev = true;
+      orderby = 'DESC';
+      break;
+    case 'next':
+      whereClause = whereNext;
+      break;
+    default:
+      whereClause = whereNext;
+    }
+
+    console.log('direction in query: ', direction);
+
+    var values = [
+      accountId,
+      offset,
+      limit,
+      lastTimelineIdRead
+    ];
+
+    if (prev) {
+      values = [
+        accountId,
+        offset,
+        limit
+      ];
+    }
+
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
+             t.value, t.creation_time, t.modified_time, s.session_key_ciphertext, \
+             a.username as creator_username \
+             from timeline t \
+             left join item i on i.item_id = t.item_id \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+                       on sk.item_session_key_id = s.item_session_key_id \
+             left join account a on t.creator_id = a.account_id '
+             + whereClause
+             + ' order by t.timeline_id ' + orderby
+             + ' limit $3 offset $2',
+      /*jslint multistr: false*/
+      values: values
+    };
+    console.log(query.text);
+    client.query(query, function (err, result) {
+      done();
+      if (err) {
+        return callback(err);
+      }
+
+      var resultData = [];
+      if (result.rowCount < 1) {
+        return callback(null, resultData);
+      }
+
+      for (var i = 0; i < result.rows.length; i++) {
+	var record = {
+          ciphertext: JSON.parse(result.rows[i].value.toString()),
+	  modTime: Date.parse(result.rows[i].modified_time),
+          creationTime: Date.parse(result.rows[i].creation_time),
+          wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	  timelineId: result.rows[i].timeline_id,
+          creatorUsername: result.rows[i].creator_username
+	};
+	resultData.push(record);
+      }
+
+      callback(null, resultData);
     });
   });
 };

@@ -116,5 +116,63 @@ var app = {
         });
       });
     });
+  },
+
+  trustPeer: function trustPeer (peerName) {
+    app.session.getPeer(peerName, function (err, trusted) {
+      console.log(err, trusted);
+    });
+  },
+
+  getTimeline: function getTimeline () {
+    app.session.getTimeline({lastItemRead: 0, offset: 0, limit: 10},
+    function (err, rows) {
+      if (err) {
+        return console.error(err);
+      }
+      console.log('timeline: ', rows);
+    });
+  },
+
+  testTimeline: function testTimeline (peerName) {
+    var that = this;
+    that.trustPeer(peerName, function (err, trusted) {
+      if (err) {
+        return console.err(err);
+      }
+      console.log(peerName + ' is trusted.');
+      app.session.getOrCreateItem('foo', function (err, item) {
+        var peer = app.session.peers[peerName];
+        item.share(peer, function (err) {
+          if (err) {
+            return console.error(err);
+          }
+          // update Item
+          var text = "this is some text";
+          item.value.text =  text;
+          item.update(function (err) {
+            if (err) {
+              return console.error(err);
+            }
+            item.value.text = 'another updated text string';
+            item.update(function (err) {
+              if (err) {
+                console.error(err);
+              }
+              // get timeline
+              app.session.getTimeline({lastItemRead: 0, limit: 10, offset: 0},
+              function (err, rows) {
+                if (err) {
+                  console.error(err);
+                }
+                console.log('TIMELINE: ', rows);
+              });
+            });
+          });
+
+        });
+      });
+
+    });
   }
 };

@@ -642,6 +642,242 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
 };
 
 /**!
+ * ### getLatestTimelineItems(accountId, limit, callback)
+ * Get user's latest N timeline items
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Number} limit
+ * @param {Function} callback
+ */
+exports.getLatestTimelineItems =
+function getLatestTimelineItems (accountId, limit, callback) {
+  console.log(arguments);
+  connect(function (client, done) {
+    if (!limit || (typeof parseInt(limit) != 'number')) {
+      limit = 10;
+    }
+
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
+             t.value, t.creation_time, t.modified_time, s.session_key_ciphertext, \
+             a.username as creator_username \
+             from timeline t \
+             left join item i on i.item_id = t.item_id \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+                       on sk.item_session_key_id = s.item_session_key_id \
+             left join account a on t.creator_id = a.account_id \
+	     where \
+	     t.receiver_id = $1 and \
+             i.deletion_time is null and \
+             sk.supercede_time is null and \
+             s.deletion_time is null and \
+             s.to_account_id = $1 \
+             order by t.timeline_id DESC \
+             limit $2',
+      /*jslint multistr: false*/
+      values: [
+	accountId,
+	limit
+      ]
+    };
+    console.log(query.text);
+    client.query(query, function (err, result) {
+      done();
+      if (err) {
+        return callback(err);
+      }
+
+      var resultData = [];
+      if (result.rowCount < 1) {
+        return callback(null, resultData);
+      }
+
+      for (var i = 0; i < result.rows.length; i++) {
+	var record = {
+          ciphertext: JSON.parse(result.rows[i].value.toString()),
+	  modTime: Date.parse(result.rows[i].modified_time),
+          creationTime: Date.parse(result.rows[i].creation_time),
+          wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	  timelineId: result.rows[i].timeline_id,
+          creatorUsername: result.rows[i].creator_username
+	};
+	resultData.push(record);
+      }
+
+      callback(null, resultData);
+    });
+  });
+};
+
+/**!
+ * ### getTimelineItemsBefore(accountId, limit, beforeId, callback)
+ * Get N timeline items before item 'beforeId'
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Number} limit
+ * @param {Number} beforeId
+ * @param {Function} callback
+ */
+exports.getTimelineItemsBefore =
+  function getTimelineItemsBefore (accountId, limit, beforeId, callback) {
+  console.log(arguments);
+  connect(function (client, done) {
+    if (!limit || (typeof parseInt(limit) != 'number')) {
+      limit = 10;
+    }
+    if (typeof parseInt(beforeId) != 'number') {
+      done();	  
+      return callback('beforeId argument is missing!');
+    }
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
+             t.value, t.creation_time, t.modified_time, s.session_key_ciphertext, \
+             a.username as creator_username \
+             from timeline t \
+             left join item i on i.item_id = t.item_id \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+                       on sk.item_session_key_id = s.item_session_key_id \
+             left join account a on t.creator_id = a.account_id \
+	     where \
+	     t.receiver_id = $1 and \
+             t.timeline_id < $2 and \
+             i.deletion_time is null and \
+             sk.supercede_time is null and \
+             s.deletion_time is null and \
+             s.to_account_id = $1 \
+             order by t.timeline_id DESC \
+             limit $3',
+      /*jslint multistr: false*/
+      values: [
+	accountId,
+	beforeId,
+	limit
+      ]
+    };
+    console.log(query.text);
+    client.query(query, function (err, result) {
+      done();
+      if (err) {
+        return callback(err);
+      }
+
+      var resultData = [];
+      if (result.rowCount < 1) {
+        return callback(null, resultData);
+      }
+
+      for (var i = 0; i < result.rows.length; i++) {
+	var record = {
+          ciphertext: JSON.parse(result.rows[i].value.toString()),
+	  modTime: Date.parse(result.rows[i].modified_time),
+          creationTime: Date.parse(result.rows[i].creation_time),
+          wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	  timelineId: result.rows[i].timeline_id,
+          creatorUsername: result.rows[i].creator_username
+	};
+	resultData.push(record);
+      }
+
+      callback(null, resultData);
+    });
+  });
+};
+
+
+
+/**!
+ * ### getTimelineItemsAfter(accountId, limit, afterId, callback)
+ * Get N timeline items after item 'afterId'
+ *
+ * Calls back with value and without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Number} accountId
+ * @param {Number} limit
+ * @param {Number} afterId
+ * @param {Function} callback
+ */
+exports.getTimelineItemsAfter =
+    function getTimelineItemsAfter (accountId, limit, afterId, callback) {
+  console.log(arguments);
+  connect(function (client, done) {
+    if (!limit || (typeof parseInt(limit) != 'number')) {
+      limit = 10;
+    }
+
+    var query = {
+      /*jslint multistr: true*/
+      text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
+             t.value, t.creation_time, t.modified_time, s.session_key_ciphertext, \
+             a.username as creator_username \
+             from timeline t \
+             left join item i on i.item_id = t.item_id \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+                       on sk.item_session_key_id = s.item_session_key_id \
+             left join account a on t.creator_id = a.account_id \
+	     where \
+	     t.receiver_id = $1 and \
+             t.timeline_id > $2 and \
+             i.deletion_time is null and \
+             sk.supercede_time is null and \
+             s.deletion_time is null and \
+             s.to_account_id = $1 \
+             order by t.timeline_id DESC \
+             limit $3',
+      /*jslint multistr: false*/
+      values: [
+	accountId,
+	afterId,
+	limit
+      ]
+    };
+    console.log(query.text);
+    client.query(query, function (err, result) {
+      done();
+      if (err) {
+        return callback(err);
+      }
+
+      var resultData = [];
+      if (result.rowCount < 1) {
+        return callback(null, resultData);
+      }
+
+      for (var i = 0; i < result.rows.length; i++) {
+	var record = {
+          ciphertext: JSON.parse(result.rows[i].value.toString()),
+	  modTime: Date.parse(result.rows[i].modified_time),
+          creationTime: Date.parse(result.rows[i].creation_time),
+          wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	  timelineId: result.rows[i].timeline_id,
+          creatorUsername: result.rows[i].creator_username
+	};
+	resultData.push(record);
+      }
+
+      callback(null, resultData);
+    });
+  });
+};
+
+
+
+
+/**!
  * Listen for item update notifications
  *
  * Upon item value update,

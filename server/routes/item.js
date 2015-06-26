@@ -331,3 +331,135 @@ app.get('/timeline/', verifySession, function (req, res) {
     });
   });
 });
+
+/**!
+ * ### GET /timeline-latest/
+ * Retrieve Latest Timeline Items
+*/
+app.get('/timeline-latest/', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /timeline-latest/');
+
+  var accountId = parseInt(req.session.accountId);
+
+  // set max limit
+  var limit = parseInt(req.query.limit);
+  if (typeof limit == 'number') {
+    if (!limit) {
+      limit = 10;
+    }
+  } else {
+    limit = 10;
+  }
+
+  var item = new Item();
+  item.update('accountId', accountId);
+  item.update('limit', limit);
+  
+  item.getLatestTimelineItems(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+    res.send({
+      success: true,
+      rawData: item.rows
+    });
+  });
+});
+
+/**!
+ * ### GET /timeline-before/
+ * Retrieve Timeline Items before 'beforeId'
+*/
+app.get('/timeline-before/', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /timeline-before/');
+
+  var accountId = parseInt(req.session.accountId);
+
+  var beforeId = parseInt(req.query.beforeId);
+  if (typeof beforeId != 'number') {
+    res.send({
+      success: false,
+      error: 'Error: Missing \'beforeId\' argument!'
+    });
+    return;
+  }
+  // set max limit
+  var limit = parseInt(req.query.limit);
+  if (typeof limit == 'number') {
+    if (!limit) {
+      limit = 10;
+    }
+  } else {
+    limit = 10;
+  }
+
+  var item = new Item();
+  item.update('accountId', accountId);
+  item.update('limit', limit);
+  item.update('beforeId', beforeId);
+    
+  item.getTimelineItemsBefore(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+    res.send({
+      success: true,
+      rawData: item.rows
+    });
+  });
+});
+
+/**!
+ * ### GET /timeline-after/
+ * Retrieve Timeline Items after 'afterId'
+*/
+app.get('/timeline-after/', verifySession, function (req, res) {
+  app.log('debug', 'handling GET /timeline-after/');
+
+  var accountId = parseInt(req.session.accountId);
+
+  var afterId = parseInt(req.query.afterId);
+  if (typeof afterId != 'number') {
+    res.send({
+      success: false,
+      error: 'Error: Missing \'afterId\' argument!'
+    });
+    return;
+  }
+  // set max limit
+  var limit = parseInt(req.query.limit);
+  if (typeof limit == 'number') {
+    if (!limit) {
+      limit = 10;
+    }
+  } else {
+    limit = 10;
+  }
+
+  var item = new Item();
+  item.update('accountId', accountId);
+  item.update('limit', limit);
+  item.update('afterId', afterId);
+    
+  item.getTimelineItemsAfter(function (err) {
+    if (err) {
+      res.send({
+        success: false,
+        error: err
+      });
+      return;
+    }
+    res.send({
+      success: true,
+      rawData: item.rows
+    });
+  });
+});

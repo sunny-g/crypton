@@ -501,7 +501,6 @@ function getTimelineBefore (options, callback) {
       var hitem = new crypton.HistoryItem(that, rows[i]);
       history.push(hitem);
     }
-    history.reverse();
   
     callback(null, history);
   });

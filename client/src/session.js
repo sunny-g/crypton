@@ -423,17 +423,10 @@ function getLatestTimeline (options, callback) {
   if (typeof parseInt(limit) != 'number') {
     limit = 10; // default MAX of 10 - for now
   }
-
-  var nameHmac = options.nameHmac;
-  if (!nameHmac) {
-    console.error('Error: Missing nameHmac!');
-    return callback(ERRS.ARG_MISSING);
-  }
   
   var that = this;
   var url = crypton.url() + '/timeline-latest/' + '?sid=' + crypton.sessionId
-        + '&limit=' + limit
-	+ '&namehmac=' + nameHmac;
+        + '&limit=' + limit;
 
   superagent.get(url)
   .withCredentials()

@@ -651,17 +651,16 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
  *
  * @param {Number} accountId
  * @param {Number} limit
- * @param {String} nameHmac
  * @param {Function} callback
  */
 exports.getLatestTimelineItems =
-  function getLatestTimelineItems (accountId, nameHmac, limit, callback) {
+  function getLatestTimelineItems (accountId, limit, callback) {
   console.log(arguments);
   connect(function (client, done) {
     if (!limit || (typeof parseInt(limit) != 'number')) {
       limit = 10;
     }
-
+    
     var query = {
       /*jslint multistr: true*/
       text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
@@ -676,7 +675,6 @@ exports.getLatestTimelineItems =
 	     where \
              t.timeline_id > (select timeline_id from timeline WHERE receiver_id = $1 ORDER BY timeline_id DESC limit 1 OFFSET 16) and \
 	     t.receiver_id = $1 and \
-             i.name_hmac = $3 and \
              i.deletion_time is null and \
              sk.supercede_time is null and \
              s.deletion_time is null and \
@@ -686,8 +684,7 @@ exports.getLatestTimelineItems =
       /*jslint multistr: false*/
       values: [
 	accountId,
-	limit,
-	nameHmac
+	limit
       ]
     };
     console.log(query.text);

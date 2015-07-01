@@ -670,9 +670,10 @@ function getLatestTimelineItems (accountId, limit, callback) {
              left join item i on i.item_id = t.item_id \
              left join item_session_key sk on i.item_id = sk.item_id \
              left join item_session_key_share s \
-                       on sk.item_session_key_id = s.item_session_key_id \
+             on sk.item_session_key_id = s.item_session_key_id \
              left join account a on t.creator_id = a.account_id \
 	     where \
+             t.timeline_id > (select timeline_id from timeline WHERE receiver_id = $1 ORDER BY timeline_id DESC limit 1 OFFSET 16) and \
 	     t.receiver_id = $1 and \
              i.deletion_time is null and \
              sk.supercede_time is null and \

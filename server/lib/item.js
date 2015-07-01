@@ -260,7 +260,7 @@ Item.prototype.getLatestTimelineItems =
 function getLatestTimelineItems(callback) {
   var that = this;
 
-  db.getLatestTimelineItems(that.accountId, that.limit, function (err, rows) {
+  db.getLatestTimelineItems(that.accountId, that.nameHmac, that.limit, function (err, rows) {
     if (err) {
       callback(err);
       return;

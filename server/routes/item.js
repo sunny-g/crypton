@@ -351,9 +351,19 @@ app.get('/timeline-latest/', verifySession, function (req, res) {
     limit = 10;
   }
 
+  var nameHmac = req.query.namehmac;
+  if (!nameHmac) {
+    res.send({
+        success: false,
+        error: 'Error: namehmac missing, required argument'
+    });
+    return;
+  }
+  
   var item = new Item();
   item.update('accountId', accountId);
   item.update('limit', limit);
+  item.update('nameHmac', nameHmac);
   
   item.getLatestTimelineItems(function (err) {
     if (err) {

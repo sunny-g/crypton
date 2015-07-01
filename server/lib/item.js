@@ -245,3 +245,78 @@ function getTimeline(callback) {
     callback(null);
   });
 };
+
+/**!
+ * ### getLatestTimelineItems(callback)
+ * Retrieve latest user timeline items
+ *
+ * Gets specified Timeline rows, calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Item.prototype.getLatestTimelineItems =
+function getLatestTimelineItems(callback) {
+  var that = this;
+
+  db.getLatestTimelineItems(that.accountId, that.limit, function (err, rows) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.update('rows', rows);
+    callback(null);
+  });
+};
+
+/**!
+ * ### getTimelineItemsBefore(callback)
+ * Retrieve timeline items before 'beforeId'
+ *
+ * Gets specified Timeline rows, calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Item.prototype.getTimelineItemsBefore =
+function getTimelineItemsBefore(callback) {
+  var that = this;
+
+  db.getTimelineItemsBefore(that.accountId, that.limit, that.beforeId, function (err, rows) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.update('rows', rows);
+    callback(null);
+  });
+};
+
+/**!
+ * ### getTimelineItemsAfter(callback)
+ * Retrieve timeline items after 'afterId'
+ *
+ * Gets specified Timeline rows, calls back without error if successful
+ *
+ * Calls back with error if unsuccessful
+ *
+ * @param {Function} callback
+ */
+Item.prototype.getTimelineItemsAfter =
+function getTimelineItemsAfter(callback) {
+  var that = this;
+
+  db.getTimelineItemsAfter(that.accountId, that.limit, that.afterId, function (err, rows) {
+    if (err) {
+      callback(err);
+      return;
+    }
+
+    that.update('rows', rows);
+    callback(null);
+  });
+};

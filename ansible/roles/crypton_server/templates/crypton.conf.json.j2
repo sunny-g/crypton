@@ -1,25 +1,45 @@
 {
   "database": {
     "type": "postgres",
-    "user": "{{ db.username }}",
-    "password": "{{ db.password }}",
-    "database": "{{ db.name }}",
-    "host": "{{ db.host }}",
-    "port": {{ db.port }}
+    "user": "{{ item.db.user|default(item.user) }}",
+    "password": "{{ item.db.password }}",
+    "database": "{{ item.db.name|default(item.name) }}",
+    "host": "{{ item.db.host }}",
+    "port": {{ item.db.port|default(5432) }}
   },
-    "defaultKeySize": 32,
-    "id_translator": {
-      "key_file": "/home/crypton_server/id_translator.key"
-    },
-    "cookieSecretFile": "/home/crypton_server/cookie_secret.key",
-    "privateKey": "/etc/nginx/{{ crypton_server_domain }}-wildcard.pem",
-    "certificate": "/etc/nginx/{{ crypton_server_domain }}-wildcard.pem",
-    "appPath": "/dev/null",
-    "port": {{ crypton_server_local_port }},
-    "redis": {
-      "host": "localhost",
-      "port": 6379
-    },
+  "defaultKeySize": 32,
+  "id_translator": {
+    "key_file": "/dev/urandom"
+  },
+  "cookieSecretFile": "/home/{{ item.user }}/{{ item.name }}_cookie.key",
+  "privateKey": "/home/{{ item.user }}/{{ item.domain|default(crypton_domain) }}-wildcard.pem",
+  "certificate": "/home/{{ item.user }}/{{ item.domain|default(crypton_domain) }}-wildcard.pem",
+  "appPath": ".",
+  "redis": {
+    "host": "{{ item.redis.host }}",
+    "port": {{ item.redis.port|default(6379) }},
+    "pass": "{{ item.redis.password|default('') }}"
+  },
   "commitStatusCheckDelay": 100,
-  "commitStatusCheckLimit": 100
+  "commitStatusCheckLimit": 100,
+  "securityHeaders": {
+    "csrf": false,
+    "csp": {
+      "policy": {
+        "default-src": "'self'",
+        "connect-src": "'self' wss://localhost:{{ item.local_port }}",
+        "script-src": "'self'",
+        "img-src": "'self'",
+        "style-src": "'self'",
+        "font-src": "'self'",
+        "object-src": "'self'"
+      }
+    },
+    "xframe": "SAMEORIGIN",
+    "hsts": {
+      "maxAge": 31536000
+    }
+  },
+  "port": {{ item.local_port }},
+  "logLevel": "debug"
 }

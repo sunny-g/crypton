@@ -1,18 +1,21 @@
 ---
 - name: install python package to manipulate apt from ansible
   sudo: yes
-  shell: apt-get -y install python-apt 
-           creates=/usr/share/doc/python-apt/README
+  shell: >
+    apt-get -y install python-apt
+    creates=/usr/share/doc/python-apt/README
 
 - name: install aptitude (also needed by ansible)
   sudo: yes
-  shell: apt-get -y install aptitude
-           creates=/usr/bin/aptitude
+  shell: >
+    apt-get -y install aptitude
+    creates=/usr/bin/aptitude
 
 - name: update apt cache if that has not happened recently
   sudo: yes
-  apt: update_cache=yes 
-       cache_valid_time={{ apt_cache_valid_time|default(86400) }}
+  apt: >
+    update_cache=yes
+    cache_valid_time={{ apt_cache_valid_time|default(86400) }}
   notify: install updated packages
 
 - name: install packages wanted
@@ -42,19 +45,28 @@
 
 # nodejs will fail to compile if this is not available
 
-- name: enable shared memory mounts
-  sudo: True
-  lineinfile: dest=/etc/fstab
-    line="none /dev/shm tmpfs rw,nosuid,nodev,noexec 0 0"
-  register: fstab_dev_shm_added
+#- name: enable shared memory mounts
+#  sudo: True
+#  lineinfile: >
+#    dest=/etc/fstab
+#    line="none /dev/shm tmpfs rw,nosuid,nodev,noexec 0 0"
+#  register: fstab_dev_shm_added
+#  when: >
+#    ansible_distribution == 'Ubuntu' and
+#    ansible_lsb.release|split('.')|map('int') < (11, 10)
 
-- name: mount /dev/shm
-  sudo: True
-  when: fstab_dev_shm_added.changed
-  command: /bin/mount -a
+#- name: mount /dev/shm
+#  sudo: True
+#  when: >
+#    fstab_dev_shm_added is defined
+#    and fstab_dev_shm_added.changed
+#  command: /bin/mount -a
 
 - name: copy deb builder script
   sudo: True
-  copy: src=deb_builder.sh
-        dest=/usr/local/bin/deb_builder.sh
-        mode=700 owner=root group=root
+  copy: >
+    src=deb_builder.sh
+    dest=/usr/local/bin/deb_builder.sh
+    owner=root
+    group=root
+    mode=700

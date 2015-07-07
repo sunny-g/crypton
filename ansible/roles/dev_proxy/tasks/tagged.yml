@@ -8,8 +8,12 @@
 - name: write squid config file
   sudo: True
   tags: dev_proxy
-  template: src=squid.conf.j2 dest=/etc/squid3/squid.conf
-            owner=root group=root mode=644
+  template: >
+    src=squid.conf.j2
+    dest=/etc/squid3/squid.conf
+    owner=root
+    group=root
+    mode=644
   notify: reload squid
 
 - meta: flush_handlers

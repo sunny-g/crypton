@@ -5,18 +5,28 @@ hba_file = '/etc/postgresql/{{ pg_ver }}/main/pg_hba.conf'
 ident_file = '/etc/postgresql/{{ pg_ver }}/main/pg_ident.conf'
 external_pid_file = '/var/run/postgresql/{{ pg_ver }}-main.pid'
 
-listen_addresses = 'localhost,{{inventory_hostname}}'
+listen_addresses = '*'
 port = 5432
 
-{% if production and pg_dedicated %}
-# settings for production/dedicated
+unix_socket_directories = '/var/run/postgresql'
+
+{% if production %}
+ssl = on
+ssl_ciphers = '{{ ssl_ciphers|join(':') }}'
+ssl_prefer_server_ciphers = on
+ssl_cert_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_domain }}-wildcard.pem'
+ssl_key_file = '/var/lib/postgresql/{{ pg_ver }}/main/{{ crypton_domain }}-wildcard.pem'
+{% endif %}
+
+{% if production %}
+# settings for production
 max_connections = 2000
 shared_buffers = 4096MB
 work_mem = 4MB
 maintenance_work_mem = 128MB
 effective_cache_size = 8192MB
-{% else  %}
-# settings for dev/node local
+{% else %}
+# settings for dev
 max_connections = 200
 shared_buffers = 24MB
 work_mem = 1MB
@@ -28,7 +38,7 @@ maintenance_work_mem = 16MB
 fsync = off
 {% endif %}
 
-{% if inventory_hostname == (database_master|default("none")) %}
+{% if inventory_hostname in groups.database_master %}
 # master db settings
 wal_level = hot_standby
 wal_buffers = 16MB
@@ -40,7 +50,7 @@ archive_command = '/bin/true %p'
 archive_timeout = 300
 max_wal_senders = 5
 wal_keep_segments = 100
-{% elif inventory_hostname in database_slaves %}
+{% elif inventory_hostname in groups.database_slaves %}
 hot_standby = on
 {% endif %}
 
@@ -49,9 +59,6 @@ commit_delay = 100
 commit_siblings = 5
 checkpoint_segments = 20
 checkpoint_timeout = 15min
-
-unix_socket_directory = '/var/run/postgresql'
-ssl = false
 
 log_directory = '/var/log/postgresql'
 log_destination = csvlog
@@ -73,5 +80,3 @@ log_min_duration_statement = 0
 log_statement = all # off, ddl, mod, all
 {% endif %}
 log_line_prefix = '%t %a %u'
-
-lo_compat_privileges = on

@@ -1,0 +1,78 @@
+---
+
+- name: copy crypton database schema setup file
+  sudo: yes
+  sudo_user: postgres
+  copy: >
+    src=setup.sql
+    dest={{ role_org_dir }}/setup.sql
+    backup=yes
+    owner=postgres
+    group=postgres
+    mode=600
+  tags: createdb
+
+- name: copy crypton database permissions template
+  sudo: yes
+  sudo_user: postgres
+  template: >
+    src=permissions.sql.j2
+    dest={{ role_org_dir }}/{{ item.name }}-permissions.sql
+    backup=yes
+    owner=postgres
+    group=postgres
+    mode=600
+  with_items: crypton_apps
+  tags: createdb
+
+- name: create crypton databases
+  sudo: yes
+  sudo_user: postgres
+  postgresql_db: >
+    state=present
+    name={{ item.db.name|default(item.name) }}
+    owner=postgres
+    lc_collate=en_US.UTF-8
+    encoding=UTF8
+  with_items: crypton_apps
+  when: >
+    development or create_crypton_db|default(False)
+  register: create_crypton_database
+  tags: createdb
+
+- name: create crypton central database users
+  sudo: yes
+  sudo_user: postgres
+  postgresql_user: >
+    state=present
+    name={{ item.db.user|default(item.user) }}
+    db={{ item.db.name|default(item.name) }}
+    password={{ item.db.password }}
+  with_items: crypton_apps
+  tags: pg_db_user
+
+- name: install crypton database schema
+  sudo: yes
+  sudo_user: postgres
+  command: >
+    /usr/bin/psql
+    --echo-queries
+    --file={{ role_org_dir }}/setup.sql
+    --log-file={{ role_org_dir }}/setup.sql.log.{{ timestamp }}
+    --dbname={{ item.item.db.name|default(item.item.name) }}
+  with_items: create_crypton_database.results
+  when: item.changed
+  tags: createdb
+
+- name: install crypton database permissions
+  sudo: True
+  sudo_user: postgres
+  command: >
+    /usr/bin/psql
+    --echo-queries
+    --file={{ role_org_dir }}/{{ item.item.name }}-permissions.sql
+    --log-file={{ role_org_dir }}/{{ item.item.name }}-permissions.sql.log.{{ timestamp }}
+    --dbname={{ item.item.db.name|default(item.item.name) }}
+  with_items: create_crypton_database.results
+  when: item.changed
+  tags: createdb

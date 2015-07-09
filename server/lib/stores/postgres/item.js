@@ -687,31 +687,87 @@ exports.getLatestTimelineItems =
 	limit
       ]
     };
-    console.log(query.text);
+
+    console.log('Normal Latest Query: \n\n' + query.text);
+    var resultData = [];
+    
     client.query(query, function (err, result) {
       done();
       if (err) {
         return callback(err);
       }
-
-      var resultData = [];
+      
       if (result.rowCount < 1) {
-        return callback(null, resultData);
-      }
+	// This is one of the first times a user has queried the timeline
+	// We should re-run with fewer constraints
 
-      for (var i = 0; i < result.rows.length; i++) {
-	var record = {
-          ciphertext: JSON.parse(result.rows[i].value.toString()),
-	  modTime: Date.parse(result.rows[i].modified_time),
-          creationTime: Date.parse(result.rows[i].creation_time),
-          wrappedSessionKey: result.rows[i].session_key_ciphertext,
-	  timelineId: result.rows[i].timeline_id,
-          creatorUsername: result.rows[i].creator_username
+	var newUserQuery = {
+	  /*jslint multistr: true*/
+	  text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
+            t.value, t.creation_time, t.modified_time, s.session_key_ciphertext, \
+             a.username as creator_username \
+             from timeline t \
+             left join item i on i.item_id = t.item_id \
+             left join item_session_key sk on i.item_id = sk.item_id \
+             left join item_session_key_share s \
+             on sk.item_session_key_id = s.item_session_key_id \
+             left join account a on t.creator_id = a.account_id \
+	     where \
+             t.timeline_id >= (select timeline_id from timeline WHERE receiver_id = $1 ORDER BY timeline_id DESC limit 1) and \
+	     t.receiver_id = $1 and \
+             i.deletion_time is null and \
+             sk.supercede_time is null and \
+             s.deletion_time is null and \
+             s.to_account_id = $1 \
+             order by t.timeline_id DESC \
+             limit $2',
+	  /*jslint multistr: false*/
+	  values: [
+	    accountId,
+	    limit
+	  ]
 	};
-	resultData.push(record);
-      }
+	
+        //return callback(null, resultData);
+	console.log('First Run Latest Query: \n\n' + newUserQuery.text);
+	
+	client.query(newUserQuery, function (err, result) {
+	  done();
+	  if (err) {
+            return callback(err);
+	  }
 
-      callback(null, resultData);
+	  for (var i = 0; i < result.rows.length; i++) {
+	    var record = {
+              ciphertext: JSON.parse(result.rows[i].value.toString()),
+	      modTime: Date.parse(result.rows[i].modified_time),
+              creationTime: Date.parse(result.rows[i].creation_time),
+              wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	      timelineId: result.rows[i].timeline_id,
+              creatorUsername: result.rows[i].creator_username
+	    };
+	    resultData.push(record);
+	  }
+
+	  callback(null, resultData);
+	});
+
+      } else {
+	// Using the original results here!
+	for (var i = 0; i < result.rows.length; i++) {
+	  var record = {
+            ciphertext: JSON.parse(result.rows[i].value.toString()),
+	    modTime: Date.parse(result.rows[i].modified_time),
+            creationTime: Date.parse(result.rows[i].creation_time),
+            wrappedSessionKey: result.rows[i].session_key_ciphertext,
+	    timelineId: result.rows[i].timeline_id,
+            creatorUsername: result.rows[i].creator_username
+	  };
+	  resultData.push(record);
+	}
+	
+	callback(null, resultData);
+      }
     });
   });
 };

@@ -1,4 +1,4 @@
-{% set fqdn = item.name + '.' + item.domain|default(crypton_domain) %}
+{% set fqdn = item.1.name + '.' + item.1.domain|default(crypton_domain) %}
 server {
     listen 80;
     server_name {{ fqdn }};
@@ -14,8 +14,8 @@ server {
 
     server_tokens off;
 
-    ssl_certificate /etc/nginx/{{ item.domain|default(crypton_domain) }}-wildcard.pem;
-    ssl_certificate_key /etc/nginx/{{ item.domain|default(crypton_domain) }}-wildcard.pem;
+    ssl_certificate /etc/nginx/{{ item.1.domain|default(crypton_domain) }}-wildcard.pem;
+    ssl_certificate_key /etc/nginx/{{ item.1.domain|default(crypton_domain) }}-wildcard.pem;
     ssl_session_timeout  15m;
 
     ssl_protocols {{ ssl_protocols|join(' ') }};
@@ -31,19 +31,19 @@ server {
     rewrite ^/examples/.*/crypton.js /crypton.js;
 
     location /examples/diary {
-        alias {{ item.src_checkout|default('/home/' + item.user + '/crypton') }}/client/examples/diary;
+        alias {{ item.1.src_checkout|default('/home/' + item.1.user + '/crypton') }}/client/examples/diary;
     }
 
     location /examples/chat3 {
-        alias {{ item.src_checkout|default('/home/' + item.user + '/crypton') }}/client/examples/chat3;
+        alias {{ item.1.src_checkout|default('/home/' + item.1.user + '/crypton') }}/client/examples/chat3;
     }
 
     location /vendor {
-        alias /home/{{ item.user }}/vendor;
+        alias /home/{{ item.1.user }}/vendor;
     }
 
     location / {
-        proxy_pass https://localhost:{{ item.local_port }}/;
+        proxy_pass https://localhost:{{ item.1.local_port }}/;
         proxy_set_header Host $http_host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_redirect default;

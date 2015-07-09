@@ -12,38 +12,57 @@
 - name: create stdio log runsv directories
   tags: runit
   sudo: True
-  file: state=directory owner=root group=root mode=755 
-        path=/etc/service/{{item.name}}/log
-  with_items: runit_services
+  file: state=directory owner=root group=root mode=755
+        path=/etc/service/{{ item.1.name }}/log
+  with_subelements:
+    - crypton_sites
+    - apps
+  when: >
+    inventory_hostname in groups[item[0].hostgroup]
 
 - name: create stdio log directory for services
   tags: runit
   sudo: True
-  file: state=directory owner=root group=root mode=755 
-        path={{runit_stdio_log.path}}/{{item.name}}
-  with_items: runit_services
+  file: state=directory owner=root group=root mode=755
+        path={{ runit_stdio_log.path }}/{{ item.1.name }}
+  with_subelements:
+    - crypton_sites
+    - apps
+  when: >
+    inventory_hostname in groups[item[0].hostgroup]
 
 - name: create stdio log config
   tags: runit
   sudo: True
-  template: owner=root group=root mode=640 
-            src={{ inventory_dir }}/../templates/runsv_stdio_log_config.j2 
-            dest={{runit_stdio_log.path}}/{{item.name}}/config
-  with_items: runit_services
+  template: owner=root group=root mode=640
+            src={{ inventory_dir }}/../templates/runsv_stdio_log_config.j2
+            dest={{ runit_stdio_log.path }}/{{ item.1.name }}/config
+  with_subelements:
+    - crypton_sites
+    - apps
+  when: >
+    inventory_hostname in groups[item[0].hostgroup]
 
 - name: create stdio log run scripts
   tags: runit
   sudo: True
-  template: owner=root group=root mode=754 
-            src={{ inventory_dir }}/../templates/runsv_stdio_log.j2 
-            dest=/etc/service/{{item.name}}/log/run 
-  with_items: runit_services
+  template: owner=root group=root mode=754
+            src={{ inventory_dir }}/../templates/runsv_stdio_log.j2
+            dest=/etc/service/{{ item.1.name }}/log/run
+  with_subelements:
+    - crypton_sites
+    - apps
+  when: >
+    inventory_hostname in groups[item[0].hostgroup]
 
 - name: create runsv service run scripts
   tags: runit
   sudo: True
-  template: owner=root group=root mode=750 
-            src={{ common_run_template|default('run.' + item.name + '.sh.j2') }}
-            dest=/etc/service/{{item.name}}/run 
-  with_items: runit_services
-
+  template: owner=root group=root mode=750
+            src=run.crypton_server.sh.j2
+            dest=/etc/service/{{ item.1.name }}/run
+  with_subelements:
+    - crypton_sites
+    - apps
+  when: >
+    inventory_hostname in groups[item[0].hostgroup]

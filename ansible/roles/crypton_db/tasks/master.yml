@@ -29,6 +29,21 @@
     - apps
   tags: createdb
 
+#- name: drop crypton databases
+#  sudo: yes
+#  sudo_user: postgres
+#  postgresql_db: >
+#    state=absent
+#    name={{ item.1.db.name|default(item.1.name) }}
+#  with_subelements:
+#    - crypton_sites
+#    - apps
+#  when: >
+#    drop_crypton_db is defined
+#    and item.1.db.name|default(item.1.name) == drop_crypton_db
+#    and inventory_hostname in groups[item[0].hostgroup]
+#  tags: dropdb
+
 - name: create crypton databases
   sudo: yes
   sudo_user: postgres

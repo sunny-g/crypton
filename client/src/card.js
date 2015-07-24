@@ -38,106 +38,80 @@ var Card = crypton.Card = function Card () {};
  * @param {String} fingerprint
  * @param {String} username
  * @param {String} appname
- * @param {String} url [optional]
- *                 The application homepage
  * @param {String} domId [optional]
  */
 Card.prototype.createIdCard =
-  function (fingerprint, username, appname, url, domId) {
+  function (fingerprint, username, appname, domId) {
   if (!domId) {
     domId = 'id-card';
   }
-  if (!url) {
-    url = '';
-  }
 
   var fingerArr = this.createFingerprintArr(fingerprint);
-  var colorArr = this.createColorArr(fingerArr);
-
   var canvas = document.createElement('canvas');
-  canvas.width = 420;
-  canvas.height = 420;
+  canvas.width = 290;
+  canvas.height = 500;
   canvas.setAttribute('id', domId);
 
   var ctx = canvas.getContext("2d");
-  var x = 5;
-  var y = 5;
-  var w = 50;
-  var h = 50;
-
+  var x = 20;
+  var y = 15;
+    
   ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, 420, 420);
+  ctx.fillRect(0, 0, 290, 500);
+    
+  ctx.fillStyle = "#CCCCCC";
+  ctx.fillRect(0, 0, 289, 1);
+  ctx.fillRect(0, 0, 1, 499);
+  ctx.fillRect(289, 0, 1, 499);
+  ctx.fillRect(0, 499, 290, 1);  
+
   ctx.fillStyle = "black";
-  y = y + 20;
-  ctx.font = "bold 24px sans-serif";
-  ctx.fillText(username, x, y);
-
-  y = y + 30;
-  ctx.font = "bold 18px sans-serif";
+  y = y + 15;
+  ctx.font = "16px sans-serif";
   ctx.fillText(appname, x, y);
+  y = y + 15;
+  var qrCodeCanvas = this.createQRCode(fingerArr, username, appname);
+  ctx.drawImage(qrCodeCanvas, 23, y);
+  y = y + 265;
 
-  y = y + 30;
-  ctx.font = "bold 24px sans-serif";
-  ctx.fillText('FINGERPRINT', x, y);
-  ctx.font = "24px sans-serif";
-
-  var i = 0;
-  var line = '';
-
-  for (var j = 0; j < fingerArr.length; j++) {
-    if (i == 3) {
-      line = line + fingerArr[j];
-      y = (y + 25);
-      ctx.fillText(line, x, y);
-      i = 0;
-      line = '';
-    } else {
-      line = line + fingerArr[j] + ' ';
-      i++;
-    }
-  }
-
-  y = y + 20;
-
-  var identigridCanvas = this.createIdentigrid(colorArr);
-  ctx.drawImage(identigridCanvas, x, y);
-
-  var qrCodeCanvas = this.createQRCode(fingerArr, username, appname, url);
-  ctx.drawImage(qrCodeCanvas, 210, 205);
-
+  ctx.fillText(username, x, y);
+    
+  y = y + 15;
+  ctx.fillStyle = "#CCCCCC";
+  ctx.fillRect(x, y, 1, 160);  
+  ctx.fillRect(x, y, 250, 1);
+  y = y + 160;
+  ctx.fillRect(x, y, 250, 1);
+  ctx.fillRect(270, 325, 1, 160);
+    
   return canvas;
 };
-
+  
 /**!
- * ### createQRCode(fingerprint, username, appname, url)
+ * ### createQRCode(fingerprint, username, appname)
  *
  * returns canvas element
  *
  * @param {Array} fingerArr
  * @param {String} username
  * @param {String} appname
- * @param {String} url
  */
-Card.prototype.createQRCode = function (fingerArr, username, appname, url) {
+Card.prototype.createQRCode = function (fingerArr, username, appname) {
 
-  // generate QRCode
-  var qrData = this.generateQRCodeInput(fingerArr.join(" "), username, appname, url);
-  var qrCanvas = document.createElement('canvas');
-  qrCanvas.width = 200;
-  qrCanvas.height = 200;
-
-  new QRCode(qrCanvas,
-             { text: qrData,
-               width: 200,
-               height: 200,
-               colorDark : "#000000",
-               colorLight : "#ffffff",
-               correctLevel : QRCode.CorrectLevel.H
-             });
-  // XXXddahl: QRCode wraps the canvas in another one
-  return qrCanvas.childNodes[0];
+  var qrValue = JSON.stringify({ f: fingerArr.join(' '),
+			         u: username,
+			         a: appname
+			       });
+  
+  var qrCodeCanvas = qr.canvas({
+    value: qrValue,
+    level: 'H',
+    size: 10 // 250 X 250 PX
+  });
+  
+  return qrCodeCanvas;
 };
-
+ 
 /**!
  * ### createIdentigrid(fingerprint, username, appname)
  *
@@ -228,7 +202,7 @@ Card.prototype.createFingerprintArr = function (fingerprint) {
 };
 
 /**!
- * ### generateQRCodeInput(fingerprint, username, application, url)
+ * ### generateQRCodeInput(fingerprint, username, application)
  *
  * returns Array
  *
@@ -239,7 +213,7 @@ Card.prototype.generateQRCodeInput = function (fingerprint, username, applicatio
     url = '';
   }
   var json = JSON.stringify({ fingerprint: fingerprint, username: username,
-                              application: application, url: url });
+                              application: application });
   return json;
 };
 

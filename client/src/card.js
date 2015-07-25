@@ -73,16 +73,7 @@ Card.prototype.createIdCard =
   var qrCodeCanvas = this.createQRCode(fingerArr, username, appname);
   ctx.drawImage(qrCodeCanvas, 23, y);
   y = y + 265;
-
   ctx.fillText(username, x, y);
-    
-  y = y + 15;
-  ctx.fillStyle = "#CCCCCC";
-  ctx.fillRect(x, y, 1, 160);  
-  ctx.fillRect(x, y, 250, 1);
-  y = y + 160;
-  ctx.fillRect(x, y, 250, 1);
-  ctx.fillRect(270, 325, 1, 160);
     
   return canvas;
 };

@@ -59,6 +59,10 @@ function decryptHistoryItem (creator, sessionKey) {
 
   var rawData = this.rawData;
   var cipherItem = rawData.ciphertext;
+  if (cipherItem.__timelineIgnore) {
+    // This item is not to be shown in the timeline
+    return null;
+  }
   var wrappedSessionKey = JSON.parse(rawData.wrappedSessionKey);
 
   // check if this key is already in memory

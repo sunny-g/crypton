@@ -441,6 +441,11 @@ function getLatestTimeline (options, callback) {
     var history = [];
     for (var i = 0; i < rows.length; i++) {
       var hitem = new crypton.HistoryItem(that, rows[i]);
+      if (hitem === null) {
+	continue;
+	// HistoryItem will return null if the item is
+	// supposed to be ignored by the Timeline code
+      }
       history.push(hitem);
     }
     history.reverse();

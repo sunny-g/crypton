@@ -49,7 +49,7 @@ Card.prototype.createIdCard =
   var fingerArr = this.createFingerprintArr(fingerprint);
   var canvas = document.createElement('canvas');
   canvas.width = 290;
-  canvas.height = 500;
+  canvas.height = 480;
   canvas.setAttribute('id', domId);
 
   var ctx = canvas.getContext("2d");
@@ -57,19 +57,19 @@ Card.prototype.createIdCard =
   var y = 15;
     
   ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, 290, 500);
+  ctx.fillRect(0, 0, 290, 480);
     
   ctx.fillStyle = "#CCCCCC";
   ctx.fillRect(0, 0, 289, 1);
-  ctx.fillRect(0, 0, 1, 499);
-  ctx.fillRect(289, 0, 1, 499);
-  ctx.fillRect(0, 499, 290, 1);  
+  ctx.fillRect(0, 0, 1, 479);
+  ctx.fillRect(289, 0, 1, 479);
+  ctx.fillRect(0, 479, 290, 1);  
 
   ctx.fillStyle = "black";
-  y = y + 15;
-  ctx.font = "16px sans-serif";
+  y = y + 10;
+  ctx.font = "11px sans-serif";
   ctx.fillText(appname, x, y);
-  y = y + 15;
+  y = y + 12;
   var qrCodeCanvas = this.createQRCode(fingerArr, username, appname);
   ctx.drawImage(qrCodeCanvas, 23, y);
   y = y + 265;

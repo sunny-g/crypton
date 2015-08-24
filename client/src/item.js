@@ -313,13 +313,13 @@ Item.prototype.wrapItem = function item_wrapItem () {
     itemValue = '{}';
     this._value = {};
   }
-  var timelineVisibleFlag = 0;
+  var timelineVisibleFlag = 'f';
   if (this._value.__meta) {
     if (this._value.__meta.timelineVisible) {
-      timelineVisibleFlag = 1;
+      timelineVisibleFlag = 't';
     }
   }
-
+ 
   var rawPayloadCiphertext =
     sjcl.encrypt(this.sessionKey, itemValue, crypton.cipherOptions);
   var payloadCiphertextHash = sjcl.hash.sha256.hash(rawPayloadCiphertext);

@@ -629,7 +629,7 @@ create table item (
     modified_time timestamp not null default current_timestamp,
     deletion_time timestamp,
     value bytea,
-    timeline_visible boolean not null default false
+    timeline_visible boolean default false
 );
 
 create unique index item_name_hmac_idx
@@ -766,7 +766,7 @@ CREATE OR REPLACE FUNCTION populateTimeline() RETURNS TRIGGER AS $$
         JOIN account b ON 
           (s.account_id = b.account_id)
         WHERE k.item_id = NEW.item_id AND k.supercede_time IS NULL
-	AND NEW.timeline_visible IS NOT NULL
+	AND NEW.timeline_visible = TRUE
     LOOP
       -- Insert a timeline row for each session_key_share
       INSERT INTO timeline (item_id, creator_id, receiver_id, creation_time, value)

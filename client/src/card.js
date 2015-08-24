@@ -1,20 +1,16 @@
-
-/* Crypton Client, Copyright 2014 SpiderOak, Inc.
+/* Crypton Client, Copyright 2013, 2014, 2015 SpiderOak, Inc.
  *
  * This file is part of Crypton Client.
  *
- * Crypton Client is free software: you can redistribute it and/or modify it
- * under the terms of the Affero GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Crypton Client is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the Affero GNU General Public
- * License for more details.
- *
- * You should have received a copy of the Affero GNU General Public License
- * along with Crypton Client.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
 */
 
 (function() {

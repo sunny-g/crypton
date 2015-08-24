@@ -184,7 +184,7 @@ Session.prototype.removeItem = function removeItem (itemNameHmac, callback) {
  * @param {Function} callback
  */
 Session.prototype.getOrCreateItem =
-function getOrCreateItem (itemName,  callback) {
+  function getOrCreateItem (itemName, callback) {
 
   if (!itemName) {
     return callback('itemName is required');

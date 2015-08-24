@@ -313,16 +313,13 @@ Item.prototype.wrapItem = function item_wrapItem () {
     itemValue = '{}';
     this._value = {};
   }
-  var tlIgnoreFlag = false;
-  if (this._value.__timeline_ignore) {
-    tlIgnoreFlag = true;
+  var timelineVisibleFlag = 0;
+  if (this._value.__meta) {
+    if (this._value.__meta.timelineVisible) {
+      timelineVisibleFlag = 1;
+    }
   }
 
-  var metaFlags = null;
-  if (this._value.__meta_flags) {
-    metaFlags = this._value.__meta_flags;
-  }
-  
   var rawPayloadCiphertext =
     sjcl.encrypt(this.sessionKey, itemValue, crypton.cipherOptions);
   var payloadCiphertextHash = sjcl.hash.sha256.hash(rawPayloadCiphertext);
@@ -344,8 +341,7 @@ Item.prototype.wrapItem = function item_wrapItem () {
     itemNameHmac: itemNameHmac,
     payloadCiphertext: JSON.stringify(payloadCiphertext),
     wrappedSessionKey: JSON.stringify(sessionKeyCiphertext),
-    __timelineIgnore: tlIgnoreFlag,
-    __metaFlags: metaFlags // XXX ddahl: For future use
+    timelineVisible: timelineVisibleFlag
   };
 
   return payload;

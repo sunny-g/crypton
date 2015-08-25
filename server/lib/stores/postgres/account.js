@@ -60,84 +60,107 @@ exports.saveAccount = function saveAccount(account, callback) {
   connect(function (client, done) {
     client.query('begin');
 
-    var accountQuery = {
-      text: '\
-        insert into account (username, base_keyring_id) \
-          values ($1, nextval(\'version_identifier\')) \
-        returning account_id, base_keyring_id',
+    var checkAccountFreeQuery = {
+      text: 'select username from account where username = $1',
       values: [
         account.username
       ]
     };
-
-    client.query(accountQuery, function (err, result) {
+    
+    client.query(checkAccountFreeQuery, function (err, result) {
       if (err) {
         client.query('rollback');
         done();
-
-        if (err.code === '23505') {
-          callback('Username already taken.');
-        } else {
-          console.log('Unhandled database error: ' + err);
-          callback('Database error.');
-        }
-
-        return;
+	return callback(err);
       }
 
-      var keyringQuery = {
-        text: '\
-          insert into base_keyring ( \
-            base_keyring_id, account_id, \
-            keypair, keypair_salt, keypair_mac_salt, \
-            keypair_mac, pubkey, \
-            container_name_hmac_key, \
-            hmac_key, srp_verifier, srp_salt, \
-            sign_key_pub, sign_key_private_mac_salt, \
-            sign_key_private_ciphertext, \
-            sign_key_private_mac \
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
-        values: [
-          result.rows[0].base_keyring_id,
-          result.rows[0].account_id,
-          account.keypairCiphertext,
-          account.keypairSalt,
-          account.keypairMacSalt,
-          account.keypairMac,
-          account.pubKey,
-          account.containerNameHmacKeyCiphertext,
-          account.hmacKeyCiphertext,
-          account.srpVerifier,
-          account.srpSalt,
-          account.signKeyPub,
-          account.signKeyPrivateMacSalt,
-          account.signKeyPrivateCiphertext,
-          account.signKeyPrivateMac
-        ]
-      };
+      if (!result.rowCount) {
+	// No other account by this name: proceed
+	var accountQuery = {
+	  text: '\
+          insert into account (username, base_keyring_id) \
+          values ($1, nextval(\'version_identifier\')) \
+          returning account_id, base_keyring_id',
+	  values: [
+            account.username
+	  ]
+	};
+	
+	client.query(accountQuery, function (err, result) {
+	  if (err) {
+            client.query('rollback');
+            done();
+	    
+            if (err.code === '23505') {
+              callback('Username already taken.');
+            } else {
+              console.log('Unhandled database error: ' + err);
+              callback('Database error.');
+            }
+            return;
+	  }
 
-      client.query(keyringQuery, function (err) {
-        if (err) {
-          client.query('rollback');
-          done();
+	  var keyringQuery = {
+            text: '\
+              insert into base_keyring ( \
+              base_keyring_id, account_id, \
+              keypair, keypair_salt, keypair_mac_salt, \
+              keypair_mac, pubkey, \
+              container_name_hmac_key, \
+              hmac_key, srp_verifier, srp_salt, \
+              sign_key_pub, sign_key_private_mac_salt, \
+              sign_key_private_ciphertext, \
+              sign_key_private_mac \
+            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)',
+            values: [
+              result.rows[0].base_keyring_id,
+              result.rows[0].account_id,
+              account.keypairCiphertext,
+              account.keypairSalt,
+              account.keypairMacSalt,
+              account.keypairMac,
+              account.pubKey,
+              account.containerNameHmacKeyCiphertext,
+              account.hmacKeyCiphertext,
+              account.srpVerifier,
+              account.srpSalt,
+              account.signKeyPub,
+              account.signKeyPrivateMacSalt,
+              account.signKeyPrivateCiphertext,
+              account.signKeyPrivateMac
+            ]
+	  };
 
-          if (err.code === '23514') {
-            callback('Invalid keyring data.');
-          } else {
-            console.log('Unhandled database error: ' + err);
-            callback('Database error.');
-          }
-
-          return;
-        }
-
-        client.query('commit', function () {
-          done();
-          callback();
-        });
-      });
-    });
-  });
+	  client.query(keyringQuery, function (err) {
+            if (err) {
+              client.query('rollback');
+              done();
+	      
+              if (err.code === '23514') {
+		callback('Invalid keyring data.');
+              } else {
+		console.log('Unhandled database error: ' + err);
+		callback('Database error.');
+              }
+              return;
+            }
+	    
+	    client.query('commit', function () {
+              done();
+              callback();
+            }); // Commit
+	  }); // KeyRing Query
+	}); // AccountQuery
+		 
+      } else {
+	// We found a username that is the same!
+	client.query('rollback');
+	done();
+	callback('Username already taken.');
+	return;
+      } // end 'proceed' section
+    }); //CheckAccountFree
+  }); // Connect
 };
 
 /**!

@@ -69,6 +69,9 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
   var value = req.body.payloadCiphertext;
   item.update('value', value);
 
+  var timelineVisible = req.body.timelineVisible;
+  item.update('timelineVisible', timelineVisible);
+  
   item.save(function (err, result) {
     if (err) {
       res.send({

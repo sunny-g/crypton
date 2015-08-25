@@ -85,7 +85,7 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
 };
 
 /**!
- * ### saveItem(itemNameHmac, accountId, value, callback)
+ * ### saveItem(itemNameHmac, accountId, value, timelineVisible, callback)
  * Save Item
  *
  * Calls back with value and without error if successful
@@ -95,19 +95,21 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
  * @param {String} itemNameHmac
  * @param {Number} accountId
  * @param {String} value
+ * @param {Boolean} timelineVisible
  * @param {Function} callback
  */
-exports.saveItem = function (itemNameHmac, accountId, value, callback) {
+exports.saveItem = function (itemNameHmac, accountId, value, timelineVisible, callback) {
   connect(function (client, done) {
     var updateQuery = {
       /*jslint multistr: true*/
       text: '\
         update \
-        item set value = $1 \
-        where account_id = $2 and name_hmac = $3 returning modified_time',
+        item set value = $1, timeline_visible = $2 \
+        where account_id = $3 and name_hmac = $4 returning modified_time',
       /*jslint multistr: false*/
       values: [
         value,
+	timelineVisible,
         accountId,
         itemNameHmac
       ]

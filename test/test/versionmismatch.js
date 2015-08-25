@@ -17,7 +17,7 @@
 */
 
 describe('Version Mismatch checking', function () {
-  this.timeout(20000);
+  this.timeout(50000);
 
   var REAL_VERSION = new String(crypton.version);
 
@@ -29,6 +29,10 @@ describe('Version Mismatch checking', function () {
         crypton.version = semver.inc(crypton.version, 'major');
       }
       crypton.generateAccount('mismatchname', 'pass', function (err, account) {
+	assert.equal(err, null);
+	if (err) {
+	  done();
+	}
         crypton.version = REAL_VERSION;
         assert.equal(err, 'Server and client version mismatch');
         done();

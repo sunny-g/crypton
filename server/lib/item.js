@@ -93,7 +93,8 @@ Item.prototype.save = function item_save(callback) {
   app.log('debug', 'Saving item');
 
   var that = this;
-  db.saveItem(that.itemNameHmac, that.accountId, that.value, function (err, result) {
+  db.saveItem(that.itemNameHmac, that.accountId,
+	      that.value, that.timelineVisible, function (err, result) {
     if (err) {
       callback(err);
       return;

@@ -72,23 +72,23 @@ describe('Transaction model', function () {
   });
 
   describe('#add()', function () {
-    it('should refuse a non-standard operation', function (done) {
-      var tx = new Transaction();
+    // it('should refuse a non-standard operation', function (done) {
+    //   var tx = new Transaction();
 
-      tx.update('interactingAccount', 1);
+    //   tx.update('interactingAccount', 1);
 
-      tx.get(transactionId, function (err) {
-        assert.equal(err, null);
+    //   tx.get(transactionId, function (err) {
+    //     assert.equal(err, null);
 
-        var chunk = {};
+    //     var chunk = {};
 
-        tx.add(chunk, function (err) {
-          assert.equal(err, 'Invalid transaction type');
-          done();
-        });
-      });
-    });
-
+    //     tx.add(chunk, function (err) {
+    //       assert.equal(err, 'Invalid transaction type');
+    //       done();
+    //     });
+    //   });
+    // });
+    // XXXddahl: commented out in preparation for excising transactions and containers
     it('should refuse to add transaction chunks if the transaction doesn\'t belong to the account', function (done) {
       var tx = new Transaction();
 
@@ -109,90 +109,90 @@ describe('Transaction model', function () {
       });
     });
 
-    it('should execute valid addContainer request', function (done) {
-      var tx = new Transaction();
+    // it('should execute valid addContainer request', function (done) {
+    //   var tx = new Transaction();
 
-      tx.update('interactingAccount', 1);
+    //   tx.update('interactingAccount', 1);
 
-      tx.get(transactionId, function (err) {
-        assert.equal(err, null);
+    //   tx.get(transactionId, function (err) {
+    //     assert.equal(err, null);
 
-        var chunk = {
-          type: 'addContainer',
-          containerNameHmac: 'exists'
-        };
+    //     var chunk = {
+    //       type: 'addContainer',
+    //       containerNameHmac: 'exists'
+    //     };
 
-        tx.add(chunk, function (err) {
-          assert.equal(err, null);
-          done();
-        });
-      });
-    });
+    //     tx.add(chunk, function (err) {
+    //       assert.equal(err, null);
+    //       done();
+    //     });
+    //   });
+    // }); // Excising transactions & containers
 
-    it('should execute valid addContainerSessionKey request', function (done) {
-      var tx = new Transaction();
+    // it('should execute valid addContainerSessionKey request', function (done) {
+    //   var tx = new Transaction();
 
-      tx.update('interactingAccount', 1);
+    //   tx.update('interactingAccount', 1);
 
-      tx.get(transactionId, function (err) {
-        assert.equal(err, null);
+    //   tx.get(transactionId, function (err) {
+    //     assert.equal(err, null);
 
-        var chunk = {
-          type: 'addContainerSessionKey',
-          containerNameHmac: 'exists',
-          signature: 'herp'
-        };
+    //     var chunk = {
+    //       type: 'addContainerSessionKey',
+    //       containerNameHmac: 'exists',
+    //       signature: 'herp'
+    //     };
 
-        tx.add(chunk, function (err) {
-          assert.equal(err, null);
-          done();
-        });
-      });
-    });
+    //     tx.add(chunk, function (err) {
+    //       assert.equal(err, null);
+    //       done();
+    //     });
+    //   });
+    // }); // Excising transactions & containers
 
-    it('should execute valid addContainerSessionKeyShare request', function (done) {
-      var tx = new Transaction();
+    // it('should execute valid addContainerSessionKeyShare request', function (done) {
+    //   var tx = new Transaction();
 
-      tx.update('interactingAccount', 1);
+    //   tx.update('interactingAccount', 1);
 
-      tx.get(transactionId, function (err) {
-        assert.equal(err, null);
+    //   tx.get(transactionId, function (err) {
+    //     assert.equal(err, null);
 
-        var chunk = {
-          type: 'addContainerSessionKeyShare',
-          containerNameHmac: 'exists',
-          sessionKeyCiphertext: { sessionKey: 'ciphertext' },
-          hmacKeyCiphertext: { hmacKey: 'ciphertext' }
-        };
+    //     var chunk = {
+    //       type: 'addContainerSessionKeyShare',
+    //       containerNameHmac: 'exists',
+    //       sessionKeyCiphertext: { sessionKey: 'ciphertext' },
+    //       hmacKeyCiphertext: { hmacKey: 'ciphertext' }
+    //     };
 
-        tx.add(chunk, function (err) {
-          assert.equal(err, null);
-          done();
-        });
-      });
-    });
+    //     tx.add(chunk, function (err) {
+    //       assert.equal(err, null);
+    //       done();
+    //     });
+    //   });
+    // }); // Excising transactions & containers
 
-    it('should execute addContainerRecord', function (done) {
-      var tx = new Transaction();
+    // it('should execute addContainerRecord', function (done) {
+    //   var tx = new Transaction();
 
-      tx.update('interactingAccount', 1);
+    //   tx.update('interactingAccount', 1);
 
-      tx.get(transactionId, function (err) {
-        assert.equal(err, null);
+    //   tx.get(transactionId, function (err) {
+    //     assert.equal(err, null);
 
-        var chunk = {
-          type: 'addContainerRecord',
-          containerNameHmac: 'exists',
-          latestRecordId: 123,
-          payloadCiphertext: { payload: 'ciphertext' }
-        };
+    //     var chunk = {
+    //       type: 'addContainerRecord',
+    //       containerNameHmac: 'exists',
+    //       latestRecordId: 123,
+    //       payloadCiphertext: { payload: 'ciphertext' }
+    //     };
 
-        tx.add(chunk, function (err) {
-          assert.equal(err, null);
-          done();
-        });
-      });
-    });
+    //     tx.add(chunk, function (err) {
+    //       assert.equal(err, null);
+    //       done();
+    //     });
+    //   });
+    // }); // Excising transactions & containers
   });
 
   describe('#commit()', function () {
@@ -208,24 +208,24 @@ describe('Transaction model', function () {
       });
     });
 
-    it('should commit known transaction', function (done) {
-      var tx = new Transaction();
+    // it('should commit known transaction', function (done) {
+    //   var tx = new Transaction();
 
-      tx.update('interactingAccount', 1);
+    //   tx.update('interactingAccount', 1);
 
-      tx.get(transactionId, function (err) {
-        assert.equal(err, null);
+    //   tx.get(transactionId, function (err) {
+    //     assert.equal(err, null);
 
-        tx.requestCommit(function (err) {
-          assert.equal(err, null);
+    //     tx.requestCommit(function (err) {
+    //       assert.equal(err, null);
 
-          setTimeout(function () {
-            process.finishedTransaction = true;
-            done();
-          }, 1000);
-        });
-      });
-    });
+    //       setTimeout(function () {
+    //         process.finishedTransaction = true;
+    //         done();
+    //       }, 1000);
+    //     });
+    //   });
+    // }); // Excising transactions & containers
   });
 
   describe('#abort()', function () {
@@ -241,24 +241,24 @@ describe('Transaction model', function () {
       });
     });
 
-    it('should abort a transaction if it belongs to account', function (done) {
-      var tx = new Transaction();
+    // it('should abort a transaction if it belongs to account', function (done) {
+    //   var tx = new Transaction();
 
-      tx.update('interactingAccount', 1);
+    //   tx.update('interactingAccount', 1);
 
-      tx.get(transactionId, function (err) {
-        assert.equal(err, null);
-        assert.equal(tx.abortTimestamp, null);
+    //   tx.get(transactionId, function (err) {
+    //     assert.equal(err, null);
+    //     assert.equal(tx.abortTimestamp, null);
 
-        tx.abort(function (err) {
-          assert.equal(err, null);
+    //     tx.abort(function (err) {
+    //       assert.equal(err, null);
 
-          tx.get(transactionId, function (err) {
-            assert(tx.abortTimestamp != null);
-            done();
-          });
-        });
-      });
-    });
+    //       tx.get(transactionId, function (err) {
+    //         assert(tx.abortTimestamp != null);
+    //         done();
+    //       });
+    //     });
+    //   });
+    // });
   });
 });

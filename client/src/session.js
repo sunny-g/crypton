@@ -184,7 +184,7 @@ Session.prototype.removeItem = function removeItem (itemNameHmac, callback) {
  * @param {Function} callback
  */
 Session.prototype.getOrCreateItem =
-function getOrCreateItem (itemName,  callback) {
+  function getOrCreateItem (itemName, callback) {
 
   if (!itemName) {
     return callback('itemName is required');
@@ -581,6 +581,7 @@ function getTimelineAfter (options, callback) {
  * @param {Function} callback
  */
 Session.prototype.load = function (containerName, callback) {
+  console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
   // check for a locally stored container
   for (var i = 0; i < this.containers.length; i++) {
     if (crypton.constEqual(this.containers[i].name, containerName)) {
@@ -615,6 +616,7 @@ Session.prototype.load = function (containerName, callback) {
  * @param {Function} callback
  */
 Session.prototype.loadWithHmac = function (containerNameHmac, peer, callback) {
+  console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
   // check for a locally stored container
   for (var i = 0; i < this.containers.length; i++) {
     if (crypton.constEqual(this.containers[i].nameHmac, containerNameHmac)) {
@@ -649,6 +651,8 @@ Session.prototype.loadWithHmac = function (containerNameHmac, peer, callback) {
  * @param {Function} callback
  */
 Session.prototype.create = function (containerName, callback) {
+  console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
+  
   for (var i in this.containers) {
     if (crypton.constEqual(this.containers[i].name, containerName)) {
       callback('Container already exists');
@@ -749,6 +753,8 @@ Session.prototype.create = function (containerName, callback) {
  * @param {Function} callback
  */
 Session.prototype.deleteContainer = function (containerName, callback) {
+  console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
+
   var that = this;
   var containerNameHmac = new sjcl.misc.hmac(this.account.containerNameHmacKey);
   containerNameHmac = sjcl.codec.hex.fromBits(containerNameHmac.encrypt(containerName));
@@ -797,6 +803,8 @@ Session.prototype.deleteContainer = function (containerName, callback) {
  * @param {Function} callback
  */
 Session.prototype.getContainer = function (containerName, callback) {
+  console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
+
   var container = new crypton.Container(this);
   container.name = containerName;
   container.sync(function (err) {
@@ -817,6 +825,8 @@ Session.prototype.getContainer = function (containerName, callback) {
  * @param {Function} callback
  */
 Session.prototype.getContainerWithHmac = function (containerNameHmac, peer, callback) {
+  console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
+  
   var container = new crypton.Container(this);
   container.nameHmac = containerNameHmac;
   container.peer = peer;

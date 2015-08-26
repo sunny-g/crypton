@@ -464,6 +464,7 @@ crypton.authorize = function (username, passphrase, callback, options) {
               var session = new crypton.Session(crypton.sessionId);
               session.account = new crypton.Account();
               session.account.username = username;
+	      session.account.passphrase = passphrase;
               session.account.challengeKey = res.body.account.challengeKey;
               session.account.containerNameHmacKeyCiphertext = res.body.account.containerNameHmacKeyCiphertext;
               session.account.hmacKeyCiphertext = res.body.account.hmacKeyCiphertext;

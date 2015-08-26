@@ -114,8 +114,6 @@ module.exports = function(config) {
         // @private
         _createSid : function(req, data, callback) {
             var client = mod._connect(),
-                chars  = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz',
-                cLen   = chars.length,
                 sid    = randomValueBase64(config.sidLength);
 
             client.exists(sid, function(err, exists) {

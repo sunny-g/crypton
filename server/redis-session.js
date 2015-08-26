@@ -1,6 +1,15 @@
 // https://github.com/mitchellsimoens/redis-session
 
 var redis = require('redis');
+var crypto = require('crypto');
+
+function randomValueBase64 (len) {
+  return crypto.randomBytes(Math.ceil(len * 3 / 4))
+    .toString('base64')
+    .slice(0, len)
+    .replace(/\+/g, '0')
+    .replace(/\//g, '0');
+}
 
 module.exports = function(config) {
     var mod = this;
@@ -52,7 +61,7 @@ module.exports = function(config) {
         /**
          * The number of characters to create the session ID.
          */
-        sidLength  : 40,
+        sidLength  : 64,
         /**
          * If persist is false, it will expire after the ttl config.
          * If persist is true, it will never expire and ttl config will be ignored.
@@ -107,16 +116,7 @@ module.exports = function(config) {
             var client = mod._connect(),
                 chars  = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz',
                 cLen   = chars.length,
-                len    = config.sidLength,
-                sid    = '',
-                i      = 0,
-                rNum;
-
-            for (; i < len; i++) {
-                rNum = Math.floor(Math.random() * cLen);
-
-                sid += chars.substring(rNum, rNum + 1);
-            }
+                sid    = randomValueBase64(config.sidLength);
 
             client.exists(sid, function(err, exists) {
                 if (err && config.debug) {
@@ -275,12 +275,6 @@ module.exports = function(config) {
             client.flushall(function() {
                 callback && callback.apply(mod, arguments);
             });
-        },
-
-        validateSessionId : function(sid) {
-          // XXXddahl TODO: decrypt SessionID with current secret & IV
-          // Assumption here is that  we can generate a new
-          // random IV and secret each time the server starts
         }
     });
 

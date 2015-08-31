@@ -8,7 +8,7 @@ else
   exit 1;
 fi
 
-POSTGRES_VERSION="$(psql -V | sed -r 's/.+9.[0-9]+.[0-9]+/9.X.X/'"
+POSTGRES_VERSION="$(psql -V | sed -r 's/.+9.[0-9]+.[0-9]+/9.X.X/')"
 if [ "$POSTGRES_VERSION" = "9.X.X" ]; then
   echo "Found postgres 9.x..."
 else 

@@ -8,8 +8,8 @@ else
   exit 1;
 fi
 
-POSTGRES_VERSION="$(psql -V | grep -o 9)"
-if [ "$POSTGRES_VERSION" = "9" ]; then
+POSTGRES_VERSION="$(psql -V | sed -r 's/.+9.[0-9]+.[0-9]+/9.X.X/'"
+if [ "$POSTGRES_VERSION" = "9.X.X" ]; then
   echo "Found postgres 9.x..."
 else 
   echo "Postgres 9.x is required for Crypton"

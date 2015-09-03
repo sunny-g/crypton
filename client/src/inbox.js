@@ -40,10 +40,7 @@ Inbox.prototype.poll = function (callback) {
 
     // should we merge or overwrite here?
     that.rawMessages = res.body.messages;
-    that.parseRawMessages();
-    if (callback) {
-      callback(null, res.body.messages);
-    }
+    that.parseRawMessages(callback);
   });
 };
 
@@ -149,22 +146,20 @@ Inbox.prototype.clear = function (callback) {
   });
 };
 
-Inbox.prototype.parseRawMessages = function () {
+Inbox.prototype.parseRawMessages = function (callback) {
   var that = this;
-
-  for (var i = 0; i < this.rawMessages.length; i++) {
-    var rawMessage = this.rawMessages[i];
-
-    if (this.messages[rawMessage.messageId]) {
-      continue;
-    }
-
-    var message = new crypton.Message(this.session, rawMessage);
-    message.decrypt(function (err) {
-      // XXXddahl: fix this, check for error
-      that.messages[message.messageId] = message;
-    });
-  }
+  async.each(this.rawMessages, function (rawMessage, callback) {
+ 	var message = new crypton.Message(that.session, rawMessage);
+    	message.decrypt(function (err) {
+      		that.messages[message.messageId] = message;
+      		callback();
+    	});
+  },
+  function (err) {
+      if (callback) {
+      	callback(null, that.messages);
+      }
+  })
 };
 
 })();

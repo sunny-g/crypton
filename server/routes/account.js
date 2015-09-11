@@ -184,7 +184,7 @@ app.post('/account/:username/keyring',
   function (req, res) {
     app.log('debug', 'handling POST /account/:username/keyring');
     var account = new Account();
-    account.get(req.params.username, function (err) {
+    account.getById(req.session.accountId, function (err) {
       if (err) {
         res.send({
           success: false,

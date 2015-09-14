@@ -31,7 +31,7 @@
     path={{ item.item.1.src_checkout|default('/home/' + item.item.1.user + '/crypton') }}/server/node_modules
   when: >
     rebuild_crypton is defined
-    and rebuild_crypton == 'all'
+    and (rebuild_crypton == 'all' and item.item is defined)
     or (rebuild_crypton == 'changed' and item.changed)
   with_items: clone_src.results
 
@@ -42,7 +42,7 @@
     path={{ item.item.1.src_checkout|default('/home/' + item.item.1.user + '/crypton') }}/client/dist/crypton.js
   when: >
     rebuild_crypton is defined
-    and rebuild_crypton == 'all'
+    and (rebuild_crypton == 'all' and item.item is defined)
     or (rebuild_crypton == 'changed' and item.changed)
   with_items: clone_src.results
 

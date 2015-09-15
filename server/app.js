@@ -76,7 +76,7 @@ if (app.config.securityHeaders) {
     csrf: false,
     csp: {
       policy:{
-        'default-src': "'self'",
+        'default-src': "'self' blob:",
         'connect-src': "wss://localhost localhost",
         'script-src': "'self'",
         'img-src': "'self'",

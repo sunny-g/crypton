@@ -3,27 +3,47 @@
 #postgresql checks
 if which psql > /dev/null; then
   echo "Found psql..."
-else 
+else
   echo "Postgres is not installed, psql not located"
   exit 1;
 fi
 
-POSTGRES_VERSION="$(psql -V | sed -r 's/.+9.[0-9]+.[0-9]+/9.X.X/')"
+# sed regular expression usage varies by platform.
+# do this to allow this script to work on both linux (-r, GNU sed)
+# and BSD / Mac OS X (-E). (Or re-write to use something other than sed)
+SED_EXTENDED_REGEXP_FLAG=-r
+case $(uname)
+in
+  *BSD) SED_EXTENDED_REGEXP_FLAG=-E ;;
+  Darwin) SED_EXTENDED_REGEXP_FLAG=-E ;;
+esac
+
+POSTGRES_VERSION="$(psql -V | sed $SED_EXTENDED_REGEXP_FLAG 's/.+9.[0-9]+.[0-9]+$/9.X.X/')"
 if [ "$POSTGRES_VERSION" = "9.X.X" ]; then
-  echo "Found postgres 9.x..."
-else 
+  VERSION=`psql -V`
+  echo "Found postgres $VERSION"
+else
   echo "Postgres 9.x is required for Crypton"
   echo "On Linux please install the latest postgres server package"
-  echo "On MacOS X please install postgres via Homebrew or Postgresql.app"
+  echo "On Mac OS X please install postgres via Homebrew or Postgresql.app"
   exit 1;
 fi
 
-echo "Checking for Crypton user for postgres, may require user input..."
-POSTGRES_USER_EXISTS="$(sudo -u postgres psql --user postgres -c "\du" | grep -o postgres)"
+
+# In most cases sudo is not needed on OS X since postgres runs
+# as the user who installed postgres via Homebrew.
+SUDO_POSTGRES='sudo -u postgres'
+case $(uname)
+in
+  Darwin) SUDO_POSTGRES='' ;;
+esac
+
+echo "Checking for the 'postgres' user, may require user input..."
+POSTGRES_USER_EXISTS="$($SUDO_POSTGRES psql --user postgres -c "\du" | grep -o postgres)"
 if [ $POSTGRES_USER_EXISTS ]; then
   echo "Found postgres user..."
 else
-  echo "Configuration issue: the postgres user does not exist, please create it:"
+  echo "Configuration issue: the postgres user does not exist in the database, please create it:"
   echo "  createuser -s -r postgres"
   echo "is one way to create the postgres user"
   exit 1;
@@ -46,7 +66,7 @@ fi
 NODE_VERSION="$($NODECMD --version | grep -o "0.12.")"
 if [ "$NODE_VERSION" = "0.12."  ]; then
   echo "Found node 0.12.x..."
-else 
+else
   echo "Node.js 0.12.x is required for Crypton"
   echo "Please install Node.js 0.12.x"
   exit 1;
@@ -55,17 +75,17 @@ fi
 # redis-server checks
 if which redis-server >/dev/null; then
   echo "Found redis-server..."
-else 
+else
   echo "Redis is not installed, \`which redis-server\` failed"
-  echo "Please install Redis 2.6.x or 2.8.x"
+  echo "Please install Redis 2.6.x, 2.8.x, or 3.0.x"
   exit 1;
 fi
 
 REDIS_VERSION=$(redis-server --version | grep -o -E "2\.6|2\.8|3\.0" | wc -c | awk {'print $1'})
 if [ "$REDIS_VERSION" -ne "0"  ]; then
   echo "Found supported redis version..."
-else 
-  echo "Redis 2.6.x, 2.8.x or 3.0 are required for Crypton"
+else
+  echo "Redis 2.6.x, 2.8.x or 3.0.x are required for Crypton"
   echo "You have: `redis-server --version`"
   exit 1;
 fi

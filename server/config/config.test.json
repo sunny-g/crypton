@@ -23,7 +23,7 @@
     "csrf": false,
     "csp": {
       "policy": {
-        "default-src": "'self'",
+        "default-src": "'self' blob:",
         "connect-src": "'self' wss://localhost:1025",
         "script-src": "'self'",
         "img-src": "'self'",

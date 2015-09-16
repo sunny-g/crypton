@@ -149,16 +149,15 @@ Inbox.prototype.clear = function (callback) {
 Inbox.prototype.parseRawMessages = function (callback) {
   var that = this;
   async.each(this.rawMessages, function (rawMessage, callback) {
- 	var message = new crypton.Message(that.session, rawMessage);
-    	message.decrypt(function (err) {
-      		that.messages[message.messageId] = message;
-      		callback();
-    	});
-  },
-  function (err) {
-      if (callback) {
-      	callback(null, that.messages);
-      }
+    var message = new crypton.Message(that.session, rawMessage);
+    message.decrypt(function (err) {
+      that.messages[message.messageId] = message;
+      callback();
+    });
+  }, function (err) {
+    if (callback) {
+      callback(null, that.messages);
+    }
   })
 };
 

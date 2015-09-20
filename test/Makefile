@@ -1,3 +1,7 @@
+# capture the current OS name so we can do
+# some basic conditionals for OS X vs. Linux.
+UNAME := $(shell uname -s)
+
 test: test-integration
 
 test-integration: node_modules kill-server reset build-client run-server
@@ -17,7 +21,13 @@ setup-test-environment:
 
 clean-test-db:
 	@echo "Cleaning test database..."
+ifeq ($(UNAME), Linux)
 	-@sudo -u postgres dropdb crypton_test
+endif
+ifeq ($(UNAME), Darwin)
+	# No postgres user on most OS X installs. So no sudo.
+	-@dropdb crypton_test
+endif
 
 reset: clean-test-db setup-test-environment
 

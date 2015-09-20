@@ -113,8 +113,8 @@ bin/cli.js run
 Option B) Run in the background
 
 ````
-sudo bin/cli.js start
-sudo bin/cli.js status
+bin/cli.js start
+bin/cli.js status
 ````
 
 Verify server is running with curl (if needed in `insecure` mode which skips self-signed certificate checks)
@@ -126,7 +126,7 @@ curl --insecure -i https://localhost:1025
 Stop the server
 
 ````
-sudo bin/cli.js stop
+bin/cli.js stop
 ````
 
 (Optional) cleanup : if you want to drop the DB user and DB at some point later. Drops `crypton_test_user` user, `crypton_test` DB and DB schema
@@ -139,7 +139,7 @@ Test a sample application
 
 ````
 cd ../client/examples/items/
-sudo crypton-server start
+crypton-server start
 ````
 
 Open your browser to the URL [https://localhost:1025/](https://localhost:1025/) and register a new account via the form. Since the server uses a self-signed certificate by default you may need to instruct your browser to accept and trust this `localhost` only certificate. You can find the instructions for Safari [here](http://blog.marcon.me/post/24874118286/secure-websockets-safari).

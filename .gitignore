@@ -1,6 +1,3 @@
 tags
 client/node_modules
 node_modules
-doc/*
-!doc/documentation.css
-!doc/README.md

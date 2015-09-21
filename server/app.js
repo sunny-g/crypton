@@ -57,12 +57,12 @@ app.use(cors({
 if (app.config.securityHeaders) {
   try {
     var luscaObj = app.config.securityHeaders;
-    // A naive validation check:
-    if ((typeof luscaObj.csp == 'object') && (typeof luscaObj.xframe == "string")
-                                          && (typeof luscaObj.csrf == 'boolean')) {
+    app.log("securityHeaders(lusca) config: ", JSON.stringify(luscaObj));
+
+    if (typeof luscaObj == 'object') {
       app.use(appsec(luscaObj));
     } else {
-      throw new Error("Lusca configuration invalid!");
+      throw new Error("securityHeaders must be an Object conforming to the Lusca security config.  See : https://github.com/krakenjs/lusca");
     }
   } catch (ex) {
     app.log("error", ex);

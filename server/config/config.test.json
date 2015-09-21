@@ -30,12 +30,18 @@
         "style-src": "'self'",
         "font-src": "'self'",
         "object-src": "'self'"
-      }
+      },
+      "reportOnly": false,
+      "reportUri": ""
     },
     "xframe": "SAMEORIGIN",
+    "p3p": false,
     "hsts": {
-      "maxAge": 31536000
-    }
+      "maxAge": 3600,
+      "includeSubDomains": false,
+      "preload": false
+    },
+    "xssProtection": false
   },
   "port": 1025,
   "logLevel": "debug"

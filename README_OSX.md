@@ -99,22 +99,23 @@ The init command creates `crypton_test_user` user, `crypton_test` DB and appropr
 cd ../server/
 npm install
 npm link
-bin/cli.js db:init
+crypton-server db:init
 ````
 
 ### Run the Crypton Server
 
-Option A) Run in the foreground. The default server configuration can be found in `crypton/server/config/config.test.json`
+Option A) Run in the foreground. The default server configuration can be found in `crypton/server/config/config.test.json`. Use `Control-c` to exit.
 
 ````
-bin/cli.js run
+crypton-server run
 ````
 
 Option B) Run in the background
 
 ````
-bin/cli.js start
-bin/cli.js status
+crypton-server start
+crypton-server status
+crypton-server tail
 ````
 
 Verify server is running with curl (if needed in `insecure` mode which skips self-signed certificate checks)
@@ -126,13 +127,13 @@ curl --insecure -i https://localhost:1025
 Stop the server
 
 ````
-bin/cli.js stop
+crypton-server stop
 ````
 
 (Optional) cleanup : if you want to drop the DB user and DB at some point later. Drops `crypton_test_user` user, `crypton_test` DB and DB schema
 
 ````
-bin/cli.js db:drop
+crypton-server db:drop
 ````
 
 Test a sample application

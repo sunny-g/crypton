@@ -5,11 +5,19 @@ set -e
 CLIENT_SRC_DIR="../client"
 SERVER_SRC_DIR="../server"
 
+# In most cases sudo is not needed on OS X since postgres runs
+# as the user who installed postgres via Homebrew.
+SUDO_POSTGRES='sudo -u postgres'
+case $(uname)
+in
+  Darwin) SUDO_POSTGRES='' ;;
+esac
+
 # create crypton test database user if it doesn't exist
 echo "select * from pg_user where usename = 'crypton_test_user';" \
-  | sudo -u postgres psql template1 | grep -q crypton_test_user || {
+  | $SUDO_POSTGRES psql template1 | grep -q crypton_test_user || {
     echo "Creating Crypton test user..."
-    sudo -u postgres psql template1 <<EOF
+    $SUDO_POSTGRES psql template1 <<EOF
 create user crypton_test_user with encrypted password 'crypton_test_user_password';
 EOF
 }
@@ -30,9 +38,9 @@ EOF
 }
 
 # create crypton_test db if it doesn't exist
-sudo -u postgres psql -l | grep -q crypton_test || {
+$SUDO_POSTGRES psql -l | grep -q crypton_test || {
   echo "Creating Crypton test database..."
-  sudo -u postgres createdb -O crypton_test_user crypton_test
+  $SUDO_POSTGRES createdb -O crypton_test_user crypton_test
 }
 
 # add the schema if nothing is there

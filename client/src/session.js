@@ -10,7 +10,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function () {
@@ -44,8 +44,8 @@ var Session = crypton.Session = function (id) {
 
   var joinServerParameters = { token: crypton.sessionId };
   this.socket = io.connect(crypton.url(),
-                           { query: 'joinServerParameters='
-                                  + JSON.stringify(joinServerParameters),
+                           { query: 'joinServerParameters=' +
+                                  JSON.stringify(joinServerParameters),
                              reconnection: true,
                              reconnectionDelay: 5000
                            });
@@ -152,7 +152,7 @@ var Session = crypton.Session = function (id) {
 Session.prototype.removeItem = function removeItem (itemNameHmac, callback) {
   var that = this;
   for (var name in this.items) {
-    if (this.items[name].nameHmac == itemNameHmac) {
+    if (this.items[name].nameHmac === itemNameHmac) {
       this.items[name].remove(function (err) {
         if (err) {
           console.error(err);
@@ -285,30 +285,30 @@ Session.prototype.createSelfPeer = function () {
  */
 Session.prototype.getItemHistory =
 function getItemHistory (options, callback) {
-  if (typeof options != 'object') {
+  if (typeof options !== 'object') {
     return callback(ERRS.ARG_MISSING_OBJECT);
   }
-  if (typeof callback != 'function') {
+  if (typeof callback !== 'function') {
     return callback(ERRS.ARG_MISSING_CALLBACK);
   }
   var lastItemRead = options.lastItemRead; // item_history_id
   var offset = options.offset;
   var limit = options.limit;
-  if (typeof parseInt(lastItemRead) != 'number') {
+  if (typeof parseInt(lastItemRead) !== 'number') {
     lastItemRead = 0;
   }
-  if (typeof parseInt(offset) != 'number') {
+  if (typeof parseInt(offset) !== 'number') {
     offset = 0;
   }
-  if (typeof parseInt(limit) != 'number') {
+  if (typeof parseInt(limit) !== 'number') {
     limit = 10; // default MAX of 10 - for now
   }
 
   var that = this;
-  var url = crypton.url() + '/itemhistory/' + '?sid=' + crypton.sessionId
-          + '&historyid=' + lastItemRead // item_history_id
-          + '&offset=' + offset
-          + '&limit=' + limit;
+  var url = crypton.url() + '/itemhistory/' + '?sid=' + crypton.sessionId +
+          '&historyid=' + lastItemRead + // item_history_id
+          '&offset=' + offset +
+          '&limit=' + limit;
 
   superagent.get(url)
   .withCredentials()
@@ -348,10 +348,10 @@ function getItemHistory (options, callback) {
  */
 Session.prototype.getTimeline =
 function getTimeline (options, callback) {
-  if (typeof options != 'object') {
+  if (typeof options !== 'object') {
     return callback(ERRS.ARG_MISSING_OBJECT);
   }
-  if (typeof callback != 'function') {
+  if (typeof callback !== 'function') {
     return callback(ERRS.ARG_MISSING_CALLBACK);
   }
 
@@ -359,22 +359,22 @@ function getTimeline (options, callback) {
   var offset = options.offset;
   var limit = options.limit;
   var direction = options.direction;
-  if (typeof parseInt(lastItemRead) != 'number') {
+  if (typeof parseInt(lastItemRead) !== 'number') {
     lastItemRead = 0;
   }
-  if (typeof parseInt(offset) != 'number') {
+  if (typeof parseInt(offset) !== 'number') {
     offset = 0;
   }
-  if (typeof parseInt(limit) != 'number') {
+  if (typeof parseInt(limit) !== 'number') {
     limit = 10; // default MAX of 10 - for now
   }
 
   var that = this;
-  var url = crypton.url() + '/timeline/' + '?sid=' + crypton.sessionId
-          + '&timelineid=' + lastItemRead // timeline_id
-          + '&offset=' + offset
-          + '&limit=' + limit
-          + '&direction=' + direction;
+  var url = crypton.url() + '/timeline/' + '?sid=' + crypton.sessionId +
+          '&timelineid=' + lastItemRead + // timeline_id
+          '&offset=' + offset +
+          '&limit=' + limit +
+          '&direction=' + direction;
 
   superagent.get(url)
   .withCredentials()
@@ -409,21 +409,21 @@ function getTimeline (options, callback) {
  */
 Session.prototype.getLatestTimeline =
 function getLatestTimeline (options, callback) {
-  if (typeof options != 'object') {
+  if (typeof options !== 'object') {
     return callback(ERRS.ARG_MISSING_OBJECT);
   }
-  if (typeof callback != 'function') {
+  if (typeof callback !== 'function') {
     return callback(ERRS.ARG_MISSING_CALLBACK);
   }
 
   var limit = options.limit;
-  if (typeof parseInt(limit) != 'number') {
+  if (typeof parseInt(limit) !== 'number') {
     limit = 10; // default MAX of 10 - for now
   }
-  
+
   var that = this;
-  var url = crypton.url() + '/timeline-latest/' + '?sid=' + crypton.sessionId
-        + '&limit=' + limit;
+  var url = crypton.url() + '/timeline-latest/' + '?sid=' + crypton.sessionId +
+        '&limit=' + limit;
 
   superagent.get(url)
   .withCredentials()
@@ -446,7 +446,7 @@ function getLatestTimeline (options, callback) {
       history.push(hitem);
     }
     history.reverse();
-  
+
     callback(null, history);
   });
 };
@@ -465,29 +465,29 @@ function getLatestTimeline (options, callback) {
  */
 Session.prototype.getTimelineBefore =
 function getTimelineBefore (options, callback) {
-  if (typeof options != 'object') {
+  if (typeof options !== 'object') {
     return callback(ERRS.ARG_MISSING_OBJECT);
   }
-  if (typeof callback != 'function') {
+  if (typeof callback !== 'function') {
     return callback(ERRS.ARG_MISSING_CALLBACK);
   }
 
   var limit = options.limit;
-  if (typeof parseInt(limit) != 'number') {
+  if (typeof parseInt(limit) !== 'number') {
     limit = 10; // default MAX of 10 - for now
   }
 
   var beforeId = options.beforeId;
-  if (typeof parseInt(beforeId) != 'number') {
-    console.error('\'beforeId\' property is missing from the options argument');	
+  if (typeof parseInt(beforeId) !== 'number') {
+    console.error('\'beforeId\' property is missing from the options argument');
     return callback(ERRS.ARG_MISSING);
   }
-    
+
   var that = this;
-  var url = crypton.url() + '/timeline-before/' + '?sid=' + crypton.sessionId
-          + '&limit=' + limit
-          + '&beforeId=' + beforeId;
-    
+  var url = crypton.url() + '/timeline-before/' + '?sid=' + crypton.sessionId +
+          '&limit=' + limit +
+          '&beforeId=' + beforeId;
+
   superagent.get(url)
   .withCredentials()
   .end(function (res) {
@@ -503,7 +503,7 @@ function getTimelineBefore (options, callback) {
       var hitem = new crypton.HistoryItem(that, rows[i]);
       history.push(hitem);
     }
-  
+
     callback(null, history);
   });
 };
@@ -522,29 +522,29 @@ function getTimelineBefore (options, callback) {
  */
 Session.prototype.getTimelineAfter =
 function getTimelineAfter (options, callback) {
-  if (typeof options != 'object') {
+  if (typeof options !== 'object') {
     return callback(ERRS.ARG_MISSING_OBJECT);
   }
-  if (typeof callback != 'function') {
+  if (typeof callback !== 'function') {
     return callback(ERRS.ARG_MISSING_CALLBACK);
   }
 
   var limit = options.limit;
-  if (typeof parseInt(limit) != 'number') {
+  if (typeof parseInt(limit) !== 'number') {
     limit = 10; // default MAX of 10 - for now
   }
 
   var afterId = options.afterId;
-  if (typeof parseInt(afterId) != 'number') {
-    console.error('\'afterId\' property is missing from the options argument');	
+  if (typeof parseInt(afterId) !== 'number') {
+    console.error('\'afterId\' property is missing from the options argument');
     return callback(ERRS.ARG_MISSING);
   }
-    
+
   var that = this;
-  var url = crypton.url() + '/timeline-after/' + '?sid=' + crypton.sessionId
-          + '&limit=' + limit
-          + '&afterId=' + afterId;
-    
+  var url = crypton.url() + '/timeline-after/' + '?sid=' + crypton.sessionId +
+          '&limit=' + limit +
+          '&afterId=' + afterId;
+
   superagent.get(url)
   .withCredentials()
   .end(function (res) {
@@ -561,7 +561,7 @@ function getTimelineAfter (options, callback) {
       history.push(hitem);
     }
     history.reverse();
-  
+
     callback(null, history);
   });
 };
@@ -652,7 +652,7 @@ Session.prototype.loadWithHmac = function (containerNameHmac, peer, callback) {
  */
 Session.prototype.create = function (containerName, callback) {
   console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
-  
+
   for (var i in this.containers) {
     if (crypton.constEqual(this.containers[i].name, containerName)) {
       callback('Container already exists');
@@ -826,7 +826,7 @@ Session.prototype.getContainer = function (containerName, callback) {
  */
 Session.prototype.getContainerWithHmac = function (containerNameHmac, peer, callback) {
   console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
-  
+
   var container = new crypton.Container(this);
   container.nameHmac = containerNameHmac;
   container.peer = peer;

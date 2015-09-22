@@ -10,7 +10,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function () {
@@ -126,7 +126,7 @@ Container.prototype.save = function (callback, options) {
 
     // if we aren't saving it, we're probably testing
     // to see if the transaction chunk was generated correctly
-    if (options && options.save == false) {
+    if (options && options.save === false) {
       callback(null, chunk);
       return;
     }

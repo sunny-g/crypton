@@ -10,7 +10,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function () {
@@ -101,7 +101,7 @@ Peer.prototype.encrypt = function (payload) {
   if (!this.trusted) {
     return {
       error: 'Peer is untrusted'
-    }
+    };
   }
 
   // should this be async to callback with an error if there is no pubkey?
@@ -120,7 +120,7 @@ Peer.prototype.encryptAndSign = function (payload) {
   if (!this.trusted) {
     return {
       error: 'Peer is untrusted'
-    }
+    };
   }
 
   try {

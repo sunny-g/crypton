@@ -141,7 +141,7 @@ Account.prototype.continueSrp = function(srpA, srpb, callback) {
     B: srpServer.computeB().toString('hex'),
     A: srpA
   });
-}
+};
 
 /**!
  * ### checkSrp()
@@ -181,7 +181,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
   // Don't need this right now. Maybe later?
   //var srpK = srpServer.computeK();
   callback(null, srpM2);
-}
+};
 
 /**!
  * ### update(key, value)
@@ -197,14 +197,14 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
 // TODO add field validation and callback
 Account.prototype.update = function () {
   // update({ key: 'value' });
-  if (typeof arguments[0] == 'object') {
+  if (typeof arguments[0] === 'object') {
     for (var key in arguments[0]) {
       this[key] = arguments[0][key];
     }
   }
 
   // update('key', 'value')
-  else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
+  else if (typeof arguments[0] === 'string' && typeof arguments[1] !== 'undefined') {
     this[arguments[0]] = arguments[1];
   }
 };
@@ -219,7 +219,7 @@ Account.prototype.toJSON = function () {
   var fields = {};
 
   for (var i in this) {
-    if (typeof this[i] != 'function') {
+    if (typeof this[i] !== 'function') {
       fields[i] = this[i];
     }
   }

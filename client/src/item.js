@@ -10,7 +10,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function() {
@@ -23,7 +23,7 @@ var Item = crypton.Item = function Item (name, value, session, creator, callback
   // name might be null but nameHmac not null if this is an item being loaded by a sharee
   ERRS = crypton.errors;
 
-  if (!callback || typeof callback != 'function') {
+  if (!callback || typeof callback !== 'function') {
     console.error(ERRS.ARG_MISSING_CALLBACK);
     throw new Error(ERRS.ARG_MISSING_CALLBACK);
   }
@@ -115,10 +115,10 @@ Item.prototype.syncWithHmac = function (itemNameHmac, callback) {
     .withCredentials()
     .end(function (res) {
       var doesNotExist = 'Item does not exist';
-      if ((!res.body || res.body.success !== true) && res.body.error != doesNotExist) {
+      if ((!res.body || res.body.success !== true) && res.body.error !== doesNotExist) {
         return callback(res.body.error);
       }
-      if (res.body.error == doesNotExist) {
+      if (res.body.error === doesNotExist) {
         if (that.sharedItem) {
           return callback('Item is no longer shared!', null);
         }
@@ -196,12 +196,12 @@ Item.prototype.parseAndOverwrite = function (rawData, callback) {
 };
 
 Item.prototype.save = function (callback) {
-  if (!callback || typeof callback != 'function') {
+  if (!callback || typeof callback !== 'function') {
     console.error(ERRS.ARG_MISSING_CALLBACK);
     return callback(ERRS.ARG_MISSING_CALLBACK);
   }
 
-  if (this.creator.username != this.session.account.username) {
+  if (this.creator.username !== this.session.account.username) {
     // Only creator of this Item can update it
     console.error(crypton.errors.UPDATE_PERMISSION_ERROR);
     return callback(crypton.errors.UPDATE_PERMISSION_ERROR);
@@ -233,7 +233,7 @@ Item.prototype.save = function (callback) {
 
 // Wrap save to allow manually updating the item, using a custom callback
 Item.prototype.update = function item_update (newValue, callback) {
-  if (!callback || typeof callback != 'function') {
+  if (!callback || typeof callback !== 'function') {
     console.error(ERRS.ARG_MISSING_CALLBACK);
     throw new Error(ERRS.ARG_MISSING_CALLBACK);
   }
@@ -258,7 +258,7 @@ Item.prototype.create = function (callback) {
   if (!callback) {
     throw new Error('Callback function required');
   } else {
-    if (typeof callback != 'function') {
+    if (typeof callback !== 'function') {
       throw new Error('Callback argument type must be function');
     }
   }
@@ -304,7 +304,7 @@ Item.prototype.wrapItem = function item_wrapItem () {
   var itemValue;
 
   if (this._value) {
-    if (typeof this._value == 'string') {
+    if (typeof this._value === 'string') {
       itemValue = this._value;
     } else {
       itemValue = JSON.stringify(this._value);
@@ -319,7 +319,7 @@ Item.prototype.wrapItem = function item_wrapItem () {
       timelineVisibleFlag = 't';
     }
   }
- 
+
   var rawPayloadCiphertext =
     sjcl.encrypt(this.sessionKey, itemValue, crypton.cipherOptions);
   var payloadCiphertextHash = sjcl.hash.sha256.hash(rawPayloadCiphertext);
@@ -351,12 +351,12 @@ Item.prototype.remove = function (callback) {
   if (!callback) {
     throw new Error('Callback function required');
   } else {
-    if (typeof callback != 'function') {
+    if (typeof callback !== 'function') {
       throw new Error('Callback argument type must be function');
     }
   }
   // Verify client side ownership (DB check on server will also happen)
-  if (this.creator.username != this.session.account.username) {
+  if (this.creator.username !== this.session.account.username) {
     // Only creator of this Item can update it
     console.error(crypton.errors.UPDATE_PERMISSION_ERROR);
     return callback(crypton.errors.UPDATE_PERMISSION_ERROR);

@@ -70,14 +70,14 @@ Item.prototype.get = function (itemNameHmac, callback) {
  */
 Item.prototype.update = function () {
   // XXXddahl: validate object keys/values against 'valid keys'
-  if (typeof arguments[0] == 'object') {
+  if (typeof arguments[0] === 'object') {
     for (var key in arguments[0]) {
       this[key] = arguments[0][key];
     }
   }
 
   // update('key', 'value')
-  else if (typeof arguments[0] == 'string' && arguments[1]) {
+  else if (typeof arguments[0] === 'string' && arguments[1]) {
     this[arguments[0]] = arguments[1];
   }
 };

@@ -28,7 +28,7 @@ function connect (callback) {
 
     callback(client, done);
   });
-};
+}
 
 function createUser (callback) {
   console.log('Creating user...');

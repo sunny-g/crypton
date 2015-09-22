@@ -112,14 +112,14 @@ Container.prototype.getAfter = function (containerNameHmac, timestamp, callback)
 // TODO add field validation and callback
 Container.prototype.update = function () {
   // update({ key: 'value' });
-  if (typeof arguments[0] == 'object') {
+  if (typeof arguments[0] === 'object') {
     for (var key in arguments[0]) {
       this[key] = arguments[0][key];
     }
   }
 
   // update('key', 'value')
-  else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
+  else if (typeof arguments[0] === 'string' && typeof arguments[1] !== 'undefined') {
     this[arguments[0]] = arguments[1];
   }
 };

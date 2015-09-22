@@ -37,7 +37,7 @@ var maxIndex = possibleLevels.indexOf(maxLevel);
  * Log `message` to stdout if `level` is high enough for output
  *
  * `level` defaults to `'info'`
- * 
+ *
  * @param {String} level
  * @param {String} message
  */

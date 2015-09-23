@@ -23,13 +23,14 @@ var Transaction = require('../lib/transaction');
 
 describe('Transaction model', function () {
   var transactionId;
+
   describe('#create()', function () {
     it('should add a transactionId to the object', function (done) {
       var accountId = 1; // account from account lib tests
       var tx = new Transaction();
       tx.create(accountId, function (err) {
         assert.equal(err, null);
-        assert.exist(tx.transactionId);
+        tx.transactionId.should.exist;
         transactionId = tx.transactionId;
         done();
       });

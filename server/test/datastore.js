@@ -35,10 +35,8 @@ describe("datastore", function () {
       client.query("select current_timestamp", function (err, result) {
         if (err) { return done(err); }
 
-        // util.log(util.inspect(result));
         var time = result.rows[0].now;
         time.should.be.ok;
-        // util.log("time is " + result.rows[0].now );
         done();
       });
     });
@@ -47,10 +45,9 @@ describe("datastore", function () {
   it("finds our tables", function (done) {
     db.listTables(function (err, tables) {
       if (err) { return done(err); }
-      //util.log(util.inspect(tables));
-      tables.should.include("account");
-      tables.should.include("container");
-      tables.should.include("message");
+      tables.should.containEql("account");
+      tables.should.containEql("container");
+      tables.should.containEql("message");
       done();
     });
   });

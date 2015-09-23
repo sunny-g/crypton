@@ -10,7 +10,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function() {
@@ -51,15 +51,15 @@ Card.prototype.createIdCard =
   var ctx = canvas.getContext("2d");
   var x = 20;
   var y = 15;
-    
+
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, 290, 480);
-    
+
   ctx.fillStyle = "#CCCCCC";
   ctx.fillRect(0, 0, 289, 1);
   ctx.fillRect(0, 0, 1, 479);
   ctx.fillRect(289, 0, 1, 479);
-  ctx.fillRect(0, 479, 290, 1);  
+  ctx.fillRect(0, 479, 290, 1);
 
   ctx.fillStyle = "black";
   y = y + 10;
@@ -70,10 +70,10 @@ Card.prototype.createIdCard =
   ctx.drawImage(qrCodeCanvas, 23, y);
   y = y + 265;
   ctx.fillText(username, x, y);
-    
+
   return canvas;
 };
-  
+
 /**!
  * ### createQRCode(fingerprint, username, appname)
  *
@@ -89,16 +89,16 @@ Card.prototype.createQRCode = function (fingerArr, username, appname) {
 			         u: username,
 			         a: appname
 			       });
-  
+
   var qrCodeCanvas = qr.canvas({
     value: qrValue,
     level: 'H',
     size: 10 // 250 X 250 PX
   });
-  
+
   return qrCodeCanvas;
 };
- 
+
 /**!
  * ### createIdentigrid(fingerprint, username, appname)
  *
@@ -143,8 +143,8 @@ Card.prototype.createColorArr = function (fingerArr) {
   var colorArr = [];
   var REQUIRED_LENGTH = 6;
   for (var idx in fingerArr) {
-    var pad  = (REQUIRED_LENGTH - fingerArr[idx].length);
-    if ( pad == 0) {
+    var pad = REQUIRED_LENGTH - fingerArr[idx].length;
+    if (pad === 0) {
       colorArr.push('#' + fingerArr[idx]);
     } else {
       var color = '#' + fingerArr[idx];
@@ -166,7 +166,7 @@ Card.prototype.createColorArr = function (fingerArr) {
  * @param {String} fingerprint
  */
 Card.prototype.createFingerprintArr = function (fingerprint) {
-  if (fingerprint.length != 64) {
+  if (fingerprint.length !== 64) {
     var err = 'Fingerprint has incorrect length';
     console.error(err);
     throw new Error(err);
@@ -178,7 +178,7 @@ Card.prototype.createFingerprintArr = function (fingerprint) {
   for (var chr in fingerprint) {
     segment = segment + fingerprint[chr];
     i++;
-    if (i == 4) {
+    if (i === 4) {
       fingerArr.push(segment);
       i = 0;
       segment = '';

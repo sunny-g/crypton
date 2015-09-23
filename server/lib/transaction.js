@@ -35,7 +35,7 @@ var Transaction = module.exports = function Transaction () {};
  * Attempt to add a new transaction to the database belonging to the specified `accountId`
  * Adds `transactionId` to transaction object if successful
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Number} accountId
  * @param {Function} callback
  */
@@ -61,7 +61,7 @@ Transaction.prototype.create = function (accountId, callback) {
  * Attempt retreive transaction data from the database for the specified `transactionId`
  * Adds data to transaction object if successful
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Number} transactionId
  * @param {Function} callback
  */
@@ -91,7 +91,7 @@ Transaction.prototype.get = function (transactionId, callback) {
 /**!
  * ### update()
  * Update one or a set of keys in the parent transaction object
- * 
+ *
  * @param {String} key
  * @param {Object} value
  *
@@ -102,14 +102,14 @@ Transaction.prototype.get = function (transactionId, callback) {
 // TODO add field validation and callback
 Transaction.prototype.update = function () {
   // update({ key: 'value' });
-  if (typeof arguments[0] == 'object') {
+  if (typeof arguments[0] === 'object') {
     for (var key in arguments[0]) {
       this[key] = arguments[0][key];
     }
   }
 
   // update('key', 'value')
-  else if (typeof arguments[0] == 'string' && typeof arguments[1] != 'undefined') {
+  else if (typeof arguments[0] === 'string' && typeof arguments[1] !== 'undefined') {
     this[arguments[0]] = arguments[1];
   }
 };
@@ -117,7 +117,7 @@ Transaction.prototype.update = function () {
 /**!
  * ### add(data, callback)
  * Add a chunk to current transaction
- * 
+ *
  * @param {Object} data
  * @param {Function} callback
  */
@@ -135,7 +135,7 @@ Transaction.prototype.add = function (data, callback) {
  * ### abort(callback)
  * Mark transaction as aborted with database
  * Calls back with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.abort = function (callback) {
@@ -151,7 +151,7 @@ Transaction.prototype.abort = function (callback) {
  * ### requestCommit(callback)
  * Request transaction commital with database
  * Calls back with error if request is unsuccessful
- * 
+ *
  * @param {Function} callback
  */
 Transaction.prototype.requestCommit = function (callback) {
@@ -183,7 +183,7 @@ Transaction.prototype.isProcessed = function (callback) {
  * Determine if transaction's `interactingAccount` matches `accountId` from database
  * Calls `next` if successful
  * Calls `callback` with error if unsuccessful
- * 
+ *
  * @param {Function} callback
  * @param {Function} next
  */

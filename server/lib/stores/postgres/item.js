@@ -70,7 +70,7 @@ exports.getItemValue = function (itemNameHmac, accountId, callback) {
         return callback(err);
       }
 
-      if (result.rowCount != 1) {
+      if (result.rowCount !== 1) {
         return callback('Item does not exist');
       }
 
@@ -662,7 +662,7 @@ exports.getLatestTimelineItems =
     if (!limit || (typeof parseInt(limit) != 'number')) {
       limit = 10;
     }
-    
+
     var query = {
       /*jslint multistr: true*/
       text: 'select i.item_id, t.timeline_id, t.creator_id, t.receiver_id, \
@@ -692,13 +692,13 @@ exports.getLatestTimelineItems =
 
     console.log('Normal Latest Query: \n\n' + query.text);
     var resultData = [];
-    
+
     client.query(query, function (err, result) {
       done();
       if (err) {
         return callback(err);
       }
-      
+
       if (result.rowCount < 1) {
 	// This is one of the first times a user has queried the timeline
 	// We should re-run with fewer constraints
@@ -729,10 +729,10 @@ exports.getLatestTimelineItems =
 	    limit
 	  ]
 	};
-	
+
         //return callback(null, resultData);
 	console.log('First Run Latest Query: \n\n' + newUserQuery.text);
-	
+
 	client.query(newUserQuery, function (err, result) {
 	  done();
 	  if (err) {
@@ -767,7 +767,7 @@ exports.getLatestTimelineItems =
 	  };
 	  resultData.push(record);
 	}
-	
+
 	callback(null, resultData);
       }
     });
@@ -795,7 +795,7 @@ exports.getTimelineItemsBefore =
       limit = 10;
     }
     if (typeof parseInt(beforeId) != 'number') {
-      done();	  
+      done();
       return callback('beforeId argument is missing!');
     }
     var query = {

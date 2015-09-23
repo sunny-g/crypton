@@ -49,7 +49,7 @@ var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toStr
   client.query('listen "container_update"');
 
   client.on('notification', function (data) {
-    if (data.channel != 'container_update') {
+    if (data.channel !== 'container_update') {
       return;
     }
     app.log('container update');
@@ -63,7 +63,7 @@ var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toStr
     // won't need to let them know it was updated
     // TODO perhaps this should be disabled in the case
     // where the author edited something in a separate window
-    if (fromAccountId == toAccountId) {
+    if (fromAccountId === toAccountId) {
       return;
     }
 
@@ -224,7 +224,7 @@ datastore.requestTransactionCommit = function (transactionId, accountId, callbac
         return;
       }
 
-      if (accountId != transaction.accountId) {
+      if (accountId !== transaction.accountId) {
         callback('Transaction does not belong to account');
         return;
       }

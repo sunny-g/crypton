@@ -168,4 +168,4 @@ datastore.getMessageById = function (messageId, callback) {
       callback(null, message);
     });
   });
-}
+};

@@ -83,18 +83,18 @@ app.post('/account/:username', function (req, res) {
       }
 
       app.redisSession.create(req, {srpParams: srpParams}, function createSessionCB(sid, err, status){
-	app.log('debug', arguments);
+        app.log('debug', arguments);
 
-	if (err) {
-	  res.send({success: false, error: err});
-          return;
-	}
-	res.send({
-          sid: sid,
-          success: true,
-          srpB: srpParams.B,
-          srpSalt: account.srpSalt
-	});
+        if (err) {
+            res.send({success: false, error: err});
+            return;
+        }
+        res.send({
+            sid: sid,
+            success: true,
+            srpB: srpParams.B,
+            srpSalt: account.srpSalt
+        });
 
       });
 

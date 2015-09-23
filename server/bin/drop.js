@@ -22,7 +22,7 @@ function connect (callback) {
 
     callback(client, done);
   });
-};
+}
 
 function dropDatabase (callback) {
   console.log('Dropping database...');
@@ -44,7 +44,7 @@ function dropDatabase (callback) {
       callback();
     });
   });
-};
+}
 
 function dropUser (callback) {
   console.log('Dropping user...');

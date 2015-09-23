@@ -10,12 +10,12 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function() {
 
-'use strict';
+"use strict";
 
 /**!
  * # Account()
@@ -171,7 +171,7 @@ Account.prototype.verifyAndDecrypt = function (signedCiphertext, peer) {
   if (!peer.trusted) {
     return {
       error: 'Peer is untrusted'
-    }
+    };
   }
 
   // hash the ciphertext
@@ -219,14 +219,14 @@ Account.prototype.changePassphrase =
   function (currentPassphrase, newPassphrase,
             callback, keygenProgressCallback, skipCheck) {
   if (skipCheck) {
-    if (currentPassphrase == newPassphrase) {
+    if (currentPassphrase === newPassphrase) {
       var err = 'New passphrase cannot be the same as current password';
       return callback(err);
     }
   }
 
   if (keygenProgressCallback) {
-    if (typeof keygenProgressCallback == 'function') {
+    if (typeof keygenProgressCallback === 'function') {
       keygenProgressCallback();
     }
   }
@@ -293,11 +293,11 @@ Account.prototype.changePassphrase =
     newKeyring.signKeyPrivateMacSalt = JSON.stringify(signKeyPrivateMacSalt);
     newKeyring.srpVerifier = srpVerifier;
     newKeyring.srpSalt = srpSalt;
-    var url = crypton.url()
-	  + '/account/'
-	  + that.username
-	  + '/keyring?sid='
-	  + crypton.sessionId;
+    var url = crypton.url() +
+       '/account/' +
+       that.username +
+       '/keyring?sid=' +
+       crypton.sessionId;
     superagent.post(url)
     .withCredentials()
     .send(newKeyring)
@@ -328,7 +328,7 @@ Account.prototype.wrapKey = function (selfPeer, serializedPrivateKey) {
     throw new Error('selfPeer and serializedPrivateKey are required');
   }
   var serializedKey;
-  if (typeof serializedPrivateKey != 'string') {
+  if (typeof serializedPrivateKey !== 'string') {
     serializedKey = JSON.stringify(serializedPrivateKey);
   } else {
     serializedKey = serializedPrivateKey;
@@ -365,12 +365,12 @@ Account.prototype.wrapAllKeys = function (wrappingKey, privateKeys, session) {
 
   for (var i = 0; i < privateKeysLength; i++) {
     var keyName = privateKeyNames[i];
-    if (requiredKeys.indexOf(keyName) == -1) {
+    if (requiredKeys.indexOf(keyName) === -1) {
       throw new Error('Missing private key: ' + keyName);
     }
   }
   // Check that the length of privateKeys is correct
-  if (privateKeysLength != requiredKeys.length) {
+  if (privateKeysLength !== requiredKeys.length) {
     throw new Error('privateKeys length does not match requiredKeys length');
   }
 

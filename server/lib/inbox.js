@@ -82,7 +82,7 @@ Inbox.prototype.getMessageById = function (messageId, callback) {
   var that = this;
 
   db.getMessageById(messageId, function (err, message) {
-    if (message.toAccountId != that.accountId) {
+    if (message.toAccountId !== that.accountId) {
       // don't divulge existance
       callback('Message does not exist');
       return;

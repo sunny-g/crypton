@@ -17,5 +17,3 @@
 */
 
 "use strict";
-/*jslint expr: true*/
-

@@ -10,8 +10,10 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
+
+"use strict";
 
 var assert = chai.assert;
 
@@ -256,7 +258,7 @@ describe('Core', function () {
     });
 
     it('should exist', function () {
-      assert(typeof crypton.generateAccount == 'function');
+      assert(typeof crypton.generateAccount === 'function');
     });
 
     it('should generate the correct data', function (done) {
@@ -297,10 +299,10 @@ describe('Core', function () {
       assert.equal(salt.charAt(0), '$');
       assert.equal(salt.charAt(1), '2');
 
-      if (salt.charAt(2) == '$') {
+      if (salt.charAt(2) === '$') {
         offset = 3;
       } else {
-        minor = salt.charAt(2);
+        var minor = salt.charAt(2);
         assert.equal(minor, 'a');
         assert.equal(salt.charAt(3), '$');
         offset = 4;
@@ -314,7 +316,7 @@ describe('Core', function () {
 
   describe('account authorization', function () {
     it('should exist', function () {
-      assert(typeof crypton.authorize == 'function');
+      assert(typeof crypton.authorize === 'function');
     });
 
     // TODO should we just test this functionality in the integration tests?:q

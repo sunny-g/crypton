@@ -10,7 +10,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function () {
@@ -104,14 +104,14 @@ Transaction.prototype.save = function () {
   var args = Array.prototype.slice.call(arguments);
   var callback = args.pop();
 
-  if (typeof callback != 'function') {
+  if (typeof callback !== 'function') {
     args.push(callback);
     callback = function () {};
   }
 
   async.each(args, function (chunk, cb) {
     // TODO check the type of the object
-    if (typeof chunk == 'function') {
+    if (typeof chunk === 'function') {
       cb();
       return;
     }

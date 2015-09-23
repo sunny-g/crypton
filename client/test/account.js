@@ -10,8 +10,10 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
+
+"use strict";
 
 // tests running inside phantom on Travis CI
 // don't let the PRNG seed fast enough
@@ -67,7 +69,7 @@ function setupAccount () {
   account.signKeyPrivateCiphertext = JSON.parse(sjcl.encrypt(keypairKey, JSON.stringify(signingKeys.sec.serialize()), crypton.cipherOptions));
   account.signKeyPrivateMac = crypton.hmac(signKeyPrivateMacKey, JSON.stringify(account.signKeyPrivateCiphertext));
   return account;
-};
+}
 
 describe('Account', function () {
   describe('save()', function () {

@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+"use strict";
+
 var assert = require('assert');
 var Transaction = require('../lib/transaction');
 

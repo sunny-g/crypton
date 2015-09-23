@@ -16,6 +16,8 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+"use strict";
+
 var app = require('../app');
 var assert = require('assert');
 var Account = require('../lib/account');
@@ -45,7 +47,7 @@ describe('Account model', function () {
       account.update(requestedAccount);
 
       account.save(function (err) {
-        if (err) throw err;
+        if (err) { throw err; }
         done();
       });
     });
@@ -69,7 +71,7 @@ describe('Account model', function () {
       account.update(requestedAccount);
 
       account.save(function (err) {
-        assert(err == 'Username is not valid: it is not alphanumeric!');
+        assert(err === 'Username is not valid: it is not alphanumeric!');
         done();
       });
     });
@@ -93,7 +95,7 @@ describe('Account model', function () {
       account.update(requestedAccount);
 
       account.save(function (err) {
-        assert(err == 'Username is not valid: exceeds 32 charcters!');
+        assert(err === 'Username is not valid: exceeds 32 charcters!');
         done();
       });
     });
@@ -102,7 +104,7 @@ describe('Account model', function () {
       var account = new Account();
 
       account.save(function (err) {
-        assert(err == 'undefined is not a valid username');
+        assert(err === 'undefined is not a valid username');
         done();
       });
     });
@@ -161,7 +163,7 @@ describe('Account model', function () {
       ];
 
       account.get('pizza', function (err) {
-        if (err) throw err;
+        if (err) { throw err; }
         assert.deepEqual(expectedProperties, Object.keys(account.toJSON()));
         done();
       });
@@ -202,7 +204,7 @@ describe('Account model', function () {
       account.update({srpVerifier: '00'});
 
       account.beginSrp(srpA, function (err, srpParams) {
-        if (err) throw err;
+        if (err) { throw err; }
         assert(srpParams);
         assert.equal(typeof srpParams.B, 'string');
         assert.equal(srpParams.B.length, 512); // 256-bit pubkey length
@@ -266,14 +268,14 @@ describe('Account model', function () {
       // We skip the initial b generation in beginSrp() and instead supply our
       // own to continueSrp()
       account.continueSrp(srpA, srpb, function (err, srpParams) {
-        if (err) throw err;
+        if (err) { throw err; }
 
         assert.equal(srpParams.B, '7bc17cdb11c1b76af3969c210bf3ecaecf27164da0d8ad4f775e3757e2cc743fada866e969e2a334356db0f2f1993ce0d71a03fc563e4db9784283fe5336f1a17dfe5dc174f0c16d3f3cc951d87026e7c3554fb361ceb7cf4ec57252706efce44b8444ecb43e82c36172e8e29f35aedc32dd9b7b02c71003eeb85cc3961d920b2a0c1478b4bf1d1bd77f7d5130345123485da76c8de57fe8d18f6c6f08c578370bb972c76c6caf98f586072bcafd9794eb890273f29c0b7e1cc16a19b81760b64b4810039aed814865fc8fcbf5c83493fa2fafc696861fce9d1c85345f9ce0fd56c7814d32a6dabfe7fdb714c6e42554ae975d621aeded45f9fe12784bad5ac3');
         // We've now generated our B value and sent it back to the client. They
         // give us back an M1 verification message.
         var srpM1 = '14824a6b7e6d68399db75e9d4c48079587607a425033c574592c002a9f3ba7ff';
         account.checkSrp(srpParams, srpM1, function (err, srpM2) {
-          if (err) throw err;
+          if (err) { throw err; }
           assert.equal(srpM2.toString('hex'),
                        '646921a2c9b45a53b913eadae3a79212158607079bac7c1caff9691805866057');
           done();
@@ -287,7 +289,7 @@ describe('Account model', function () {
 
       // SRP A value using alice / badpassword
       // SRP a value is the same as the valid exchange above
-      var srpA = '3c8f5244f6942995ced27dbe38d68bf3d10f2eb051d1c8e62f1d234d995cdbead2e330fbc1ceeb59953d357a23de80fb9ce9213dec251bf76b1234825ff593489257873aa9ad76d995015e71e9cbbcf846a9b50fbc125cc9d55f4bdfbe2dfc1fecb1710c70942f9b17327b49d73009c977a599b04fd5607b0f1b63810f02b6690e900a3d6d9e86b2a33dbd71e4f9a4b97a7fe8af305f471502401da7edbf567462b1c0a40e98fcd0c5b80919f7d1a382839de2ef3a2236cab81c00df07d6905316f8409f533f9aff48dde84bfcf86f8c6751f30b3e202b67adac71566f605881caf6e3466d4de8553fa0506c25362bf88cca61a21c440f2b1161a8b36389b217'
+      var srpA = '3c8f5244f6942995ced27dbe38d68bf3d10f2eb051d1c8e62f1d234d995cdbead2e330fbc1ceeb59953d357a23de80fb9ce9213dec251bf76b1234825ff593489257873aa9ad76d995015e71e9cbbcf846a9b50fbc125cc9d55f4bdfbe2dfc1fecb1710c70942f9b17327b49d73009c977a599b04fd5607b0f1b63810f02b6690e900a3d6d9e86b2a33dbd71e4f9a4b97a7fe8af305f471502401da7edbf567462b1c0a40e98fcd0c5b80919f7d1a382839de2ef3a2236cab81c00df07d6905316f8409f533f9aff48dde84bfcf86f8c6751f30b3e202b67adac71566f605881caf6e3466d4de8553fa0506c25362bf88cca61a21c440f2b1161a8b36389b217';
 
       account.beginSrp(srpA, function (err, srpParams) {
         var srpM1 = 'f6861abf8e5fa421266b04b281a4093de2b4951b86202ab37b7348edc1c30ee0';

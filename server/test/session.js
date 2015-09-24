@@ -18,6 +18,8 @@
 
 "use strict";
 
+var should = require('chai').should();
+
 describe("lib session", function () {
   it("create a new session for an account and return token");
   it("lookup and return a given session by token");

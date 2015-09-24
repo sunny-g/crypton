@@ -18,6 +18,7 @@
 
 "use strict";
 
+var should = require('chai').should();
 var assert = require('assert');
 var Container = require('../lib/container');
 

@@ -18,6 +18,7 @@
 
 "use strict";
 
+var should = require('chai').should();
 var assert = require('assert');
 var Transaction = require('../lib/transaction');
 

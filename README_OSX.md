@@ -85,6 +85,7 @@ If the output is OK then continue on.
 ````
 cd client
 npm install
+npm install -g karma-cli
 ./compile.sh --once
 ````
 
@@ -100,6 +101,29 @@ cd ../server/
 npm install
 npm link
 crypton-server db:init
+````
+
+### Test the Crypton client code (optional)
+
+PhantomJS Tests
+````
+cd client
+make test
+````
+
+Browser Tests
+````
+cd client
+[edit karma.js.conf to specify which (or all) of Chrome, Firefox, or Safari to test]
+karma start --single-run
+````
+
+### Test the Crypton server code (optional)
+
+Mocha Tests
+````
+cd server
+make test
 ````
 
 ### Run the Crypton Server

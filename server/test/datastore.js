@@ -18,8 +18,7 @@
 
 "use strict";
 
-require('should');
-
+var should = require('chai').should();
 var db = require("../lib/storage");
 
 describe("datastore", function () {
@@ -36,7 +35,7 @@ describe("datastore", function () {
         if (err) { return done(err); }
 
         var time = result.rows[0].now;
-        time.should.be.ok;
+        time.should.be.a('Date');
         done();
       });
     });
@@ -45,9 +44,7 @@ describe("datastore", function () {
   it("finds our tables", function (done) {
     db.listTables(function (err, tables) {
       if (err) { return done(err); }
-      tables.should.containEql("account");
-      tables.should.containEql("container");
-      tables.should.containEql("message");
+      tables.should.include.members(["account", "container", "message"]);
       done();
     });
   });

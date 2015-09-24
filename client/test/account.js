@@ -72,6 +72,9 @@ function setupAccount () {
 }
 
 describe('Account', function () {
+
+  this.timeout(20000);
+
   describe('save()', function () {
     // TODO should we just test this in the integration tests?
   });

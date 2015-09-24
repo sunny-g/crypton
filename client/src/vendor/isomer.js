@@ -22,6 +22,13 @@
  * THE SOFTWARE.
 */
 
+// IMPORTANT NOTE:
+// This is a modified copy of the code that can be found at:
+//
+//  https://github.com/ecto/isomer
+//
+// This version however is unique and distinct from that codebase..
+
 (function () {
 
 self.isomerize = function (obj, dependencies) {
@@ -30,6 +37,8 @@ self.isomerize = function (obj, dependencies) {
   if (!window.Worker) {
     return;
   }
+
+  var CircularJSON = window.CircularJSON;
 
   var code = '';
 
@@ -53,7 +62,7 @@ self.isomerize = function (obj, dependencies) {
   var listeners = {};
 
   worker.onmessage = function (e) {
-    var data = JSON.parse(e.data);
+    var data = CircularJSON.parse(e.data);
 
     if (!listeners[data.time]) {
       return;
@@ -75,7 +84,7 @@ self.isomerize = function (obj, dependencies) {
       var now = +new Date();
       listeners[now] = callback;
 
-      worker.postMessage(JSON.stringify({
+      worker.postMessage(CircularJSON.stringify({
         name: methodName,
         time: now,
         args: args
@@ -86,12 +95,12 @@ self.isomerize = function (obj, dependencies) {
 
 function isomerExternal () {
   onmessage = function (e) {
-    var data = JSON.parse(e.data);
+    var data = CircularJSON.parse(e.data);
     var args = data.args;
 
     args.push(function () {
       var args = [].slice.call(arguments);
-      postMessage(JSON.stringify({
+      postMessage(CircularJSON.stringify({
         time: data.time,
         args: args
       }));
@@ -111,7 +120,7 @@ function toSource (obj, name) {
   if (typeof obj == 'function') {
     code += obj.toString();
   } else {
-    code += JSON.stringify(obj);
+    code += CircularJSON.stringify(obj);
   }
 
   code += ';\n';
@@ -136,7 +145,7 @@ function toSource (obj, name) {
     if (typeof obj.prototype[i] == 'function') {
       code += obj.prototype[i].toString() + ';\n';
     } else if (typeof obj.prototype[i] == 'object') {
-      code += JSON.stringify(obj.prototype[i]) + ';\n';
+      code += CircularJSON.stringify(obj.prototype[i]) + ';\n';
     }
   }
 

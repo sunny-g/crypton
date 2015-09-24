@@ -20,6 +20,7 @@
 
 var app = require('../app');
 var assert = require('assert');
+var should = require('chai').should();
 var Account = require('../lib/account');
 
 describe('Account model', function () {

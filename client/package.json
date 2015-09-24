@@ -1,31 +1,36 @@
 {
-  "author": "SpiderOak (https://spideroak.com/)",
-  "name": "crypton",
-  "description": "A zero-knowledge application framework",
-  "version": "0.0.4",
-  "homepage": "http://crypton.io",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/SpiderOak/crypton.git"
-  },
-  "engines": {
-    "node": "0.10.x"
-  },
-  "bin": {
-    "compile": "compile.sh"
-  },
-  "dependencies": {
-    "should": "3.1.3",
-    "mocha": "1.17.1",
-    "karma": "0.12.0",
-    "mockery": "1.3.0",
-    "uglify-js": "2.4.13",
-    "karma-mocha": "0.1.1",
-    "karma-chrome-launcher": "0.1.2",
-    "karma-firefox-launcher": "0.1.3",
-    "karma-phantomjs-launcher": "~0.1.2",
-    "karma-spec-reporter": "0.0.12",
-    "json": "~9.0.2"
-  },
-  "scripts": {}
+    "author": "SpiderOak (https://spideroak.com/)",
+    "name": "crypton",
+    "description": "A zero-knowledge application framework",
+    "version": "0.0.4",
+    "homepage": "https://crypton.io",
+    "license" : "MPL-2.0",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/SpiderOak/crypton.git"
+    },
+    "engines": {
+        "node": "0.12.x"
+    },
+    "bin": {
+        "compile": "compile.sh"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "json": "9.0.3",
+        "chai": "3.3.x",
+        "mocha": "2.3.x",
+        "uglify-js": "2.4.24",
+        "phantomjs": "1.9.18",
+        "karma": "0.13.10",
+        "karma-mocha": "0.2.0",
+        "karma-chrome-launcher": "0.2.0",
+        "karma-firefox-launcher": "0.1.6",
+        "karma-phantomjs-launcher": "0.2.1",
+        "karma-spec-reporter": "0.0.20"
+    },
+    "optionalDependencies": {},
+    "scripts": {
+        "test": "make test"
+    }
 }

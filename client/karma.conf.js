@@ -1,48 +1,77 @@
+// Karma configuration
+// Generated on Wed Sep 23 2015 15:18:23 GMT-0700 (PDT)
+
+"use strict";
+
 module.exports = function(config) {
   config.set({
-    port: 9876,
 
-    runnerPort: 9100,
-
-    captureTimeout: 60000,
-
+    // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
 
+
+    // frameworks to use
+    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+    frameworks: ['mocha'],
+
+
+    // list of files / patterns to load in the browser
+    // files: [
+    //     'dist/crypton.js',
+    //     'test/vendor/chai.js',
+    //     'test/*.js'
+    // ],
+    files: [
+        // 'src/vendor/*.js',
+        // 'src/*.js',
+        'dist/crypton.js',
+        'node_modules/chai/chai.js',
+        'test/*.js'
+    ],
+
+
+    // list of files to exclude
+    exclude: [
+    ],
+
+
+    // preprocess matching files before serving them to the browser
+    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
+    preprocessors: {
+    },
+
+
+    // test results reporter to use
+    // possible values: 'dots', 'progress'
+    // available reporters: https://npmjs.org/browse/keyword/karma-reporter
+    reporters: ['progress'],
+
+
+    // web server port
+    port: 9876,
+
+
+    // enable / disable colors in the output (reporters and logs)
     colors: true,
 
+
+    // level of logging
+    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
+    logLevel: config.LOG_INFO,
+
+
+    // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
 
-    singleRun: false,
 
-    logLevel: config.LOG_WARN,
+    // start these browsers
+    // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
+    // browsers: ['Chrome', 'Firefox', 'Safari'],
+    browsers: ['Chrome'],
 
-    exclude: [],
 
-    frameworks: [
-      'mocha'
-    ],
-
-    plugins: [
-      'karma-mocha',
-      'karma-spec-reporter',
-      'karma-phantomjs-launcher'
-    ],
-
-    reporters: [
-      'spec'
-    ],
-
-    files:[
-      'dist/crypton.js',
-      'test/vendor/chai.js',
-      'test/*.js'
-    ],
-
-    browsers: [
-      'Chrome',
-      'Safari',
-      'Firefox',
-      'Opera'
-    ],
+    // Continuous Integration mode
+    // if true, Karma captures browsers, runs the tests and exits
+    singleRun: false
   });
 };

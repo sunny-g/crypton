@@ -34,7 +34,7 @@ module.exports = function(config) {
 
     files:[
       'dist/crypton.js',
-      'test/vendor/chai.js',
+      'node_modules/chai/chai.js',
       'test/*.js'
     ],
 

@@ -18,6 +18,7 @@
     "dependencies": {},
     "devDependencies": {
         "json": "9.0.3",
+        "chai": "3.3.x",
         "mocha": "2.3.x",
         "should": "7.1.x",
         "uglify-js": "2.4.24",

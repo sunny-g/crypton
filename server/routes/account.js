@@ -151,23 +151,23 @@ app.post('/account/:username/answer', function (req, res) {
 
         app.log('debug', 'SRP verification succcess');
 
-	// add accountId to session.
-	app.redisSession.set(sessionId, {accountId: account.accountId}, req,
-	function redisSessionSetCB(sid, err, status) {
-	  if (err) {
-	    res.send({
-	      success: false,
-	      error: 'Failure to authorize while setting accountId in session'
-	    });
-	    return;
-	  }
-	  res.send({
-            success: true,
-            account: account.toJSON(),
-            sid: sid,
-            srpM2: srpM2.toString('hex')
-           });
-	});
+        // add accountId to session.
+        app.redisSession.set(sessionId, {accountId: account.accountId}, req,
+        function redisSessionSetCB(sid, err, status) {
+          if (err) {
+            res.send({
+              success: false,
+              error: 'Failure to authorize while setting accountId in session'
+            });
+            return;
+          }
+          res.send({
+                success: true,
+                account: account.toJSON(),
+                sid: sid,
+                srpM2: srpM2.toString('hex')
+               });
+        });
 
       });
     });

@@ -16,7 +16,7 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-"use strict";
+'use strict';
 
 var app = require('../app');
 var assert = require('assert');

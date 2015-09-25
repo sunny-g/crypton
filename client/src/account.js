@@ -15,7 +15,7 @@
 
 (function() {
 
-"use strict";
+'use strict';
 
 /**!
  * # Account()

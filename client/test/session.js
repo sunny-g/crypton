@@ -13,6 +13,6 @@
  * limitations under the License.
 */
 
-"use strict";
+'use strict';
 
 var assert = chai.assert;

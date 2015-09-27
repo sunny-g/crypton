@@ -82,6 +82,7 @@ app.post('/account/:username', function (req, res) {
         return;
       }
 
+      /*jshint unused: false */
       app.redisSession.create(req, {srpParams: srpParams}, function createSessionCB(sid, err, status){
         app.log('debug', arguments);
 
@@ -95,8 +96,8 @@ app.post('/account/:username', function (req, res) {
             srpB: srpParams.B,
             srpSalt: account.srpSalt
         });
-
       });
+      /*jshint unused: true */
 
     });
   });
@@ -113,6 +114,8 @@ app.post('/account/:username/answer', function (req, res) {
   app.log('debug', req.query.sid);
 
   var sid = req.query.sid;
+
+  /*jshint unused: false */
   app.redisSession.get(sid, req, function answerCallback(data, err, info) {
     if (err) {
       app.log('error', err);
@@ -122,6 +125,7 @@ app.post('/account/:username/answer', function (req, res) {
     var srpParams = data.srpParams;
     finishSrp(srpParams, sid);
   });
+  /*jshint unused: true */
 
   function finishSrp(params, sessionId) {
     var srpM1 = req.body.srpM1;
@@ -152,22 +156,25 @@ app.post('/account/:username/answer', function (req, res) {
         app.log('debug', 'SRP verification succcess');
 
         // add accountId to session.
+        /*jshint unused: false */
         app.redisSession.set(sessionId, {accountId: account.accountId}, req,
-        function redisSessionSetCB(sid, err, status) {
-          if (err) {
-            res.send({
-              success: false,
-              error: 'Failure to authorize while setting accountId in session'
-            });
-            return;
-          }
-          res.send({
-                success: true,
-                account: account.toJSON(),
-                sid: sid,
-                srpM2: srpM2.toString('hex')
-               });
-        });
+            function redisSessionSetCB(sid, err, status) {
+              if (err) {
+                res.send({
+                  success: false,
+                  error: 'Failure to authorize while setting accountId in session'
+                });
+                return;
+              }
+              res.send({
+                    success: true,
+                    account: account.toJSON(),
+                    sid: sid,
+                    srpM2: srpM2.toString('hex')
+                   });
+            }
+        );
+        /*jshint unused: true */
 
       });
     });

@@ -19,7 +19,6 @@
 'use strict';
 
 var app = process.app;
-var db = app.datastore;
 var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
 var Container = require('../lib/container');

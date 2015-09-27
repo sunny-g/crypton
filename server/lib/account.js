@@ -101,7 +101,7 @@ Account.prototype.getById = function (id, callback) {
  */
 Account.prototype.beginSrp = function(srpA, callback) {
   // TODO: 512 byte length will change when a different SRP group is used
-  if (typeof srpA != 'string' || srpA.length != 512) {
+  if (typeof srpA !== 'string' || srpA.length !== 512) {
     callback('Invalid SRP A value.');
     return;
   }
@@ -154,12 +154,12 @@ Account.prototype.continueSrp = function(srpA, srpb, callback) {
  * @param {Function} callback
  */
 Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
-  if (typeof srpParams != 'object' || !srpParams.b || !srpParams.A) {
+  if (typeof srpParams !== 'object' || !srpParams.b || !srpParams.A) {
     callback('Invalid srpParams.');
     return;
   }
 
-  if (typeof srpM1 != 'string' || srpM1.length != 64) {
+  if (typeof srpM1 !== 'string' || srpM1.length !== 64) {
     callback('Invalid SRP M1.');
     return;
   }

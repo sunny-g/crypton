@@ -21,7 +21,6 @@
 var app = require('../app');
 var db = app.datastore;
 var config = app.config;
-var bcrypt = require('bcrypt');
 var srp = require('srp');
 var validator = require('validator');
 

@@ -199,7 +199,10 @@ Account.prototype.update = function () {
   // update({ key: 'value' });
   if (typeof arguments[0] === 'object') {
     for (var key in arguments[0]) {
-      this[key] = arguments[0][key];
+        if (arguments[0].hasOwnProperty(key)) {
+            this[key] = arguments[0][key];
+        }
+
     }
   }
 

@@ -195,7 +195,9 @@ app.post('/account/:username/keyring',
       // Let's update the account
       var newAccountData = {};
       for (var key in req.body) {
-        newAccountData[key] = req.body[key];
+          if (req.body.hasOwnProperty(key)) {
+              newAccountData[key] = req.body[key];
+          }
       }
       // Need the account ID
       newAccountData.accountId = account.accountId;

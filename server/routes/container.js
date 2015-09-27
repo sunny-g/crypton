@@ -62,7 +62,7 @@ app.get('/container/:containerNameHmac/:recordVersionIdentifier', verifySession,
   app.log('debug', 'handling GET /container/:containerNameHmac/:recordVersionIdentifier');
 
   var accountId = req.session.accountId;
-  var containerName = req.params.containerNameHmac;
+  var containerNameHmac = req.params.containerNameHmac;
   var versionIdentifier = req.params.recordVersionIdentifier;
 
   var container = new Container();

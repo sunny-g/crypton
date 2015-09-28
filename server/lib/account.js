@@ -340,8 +340,7 @@ Account.prototype.sendMessage = function (options, callback) {
  * @param {Function} callback
  */
 Account.prototype.changePassphrase = function (keyring, callback) {
-  // FIXME ; jshint : confusing use of !
-  if (!keyring && !(typeof keyring == 'object')) {
+  if (typeof keyring !== 'object') {
     return callback('changePassphrase failed, keyring object required.');
   }
 

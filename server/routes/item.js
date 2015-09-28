@@ -19,7 +19,6 @@
 'use strict';
 
 var app = process.app;
-var db = app.datastore;
 var middleware = require('../lib/middleware');
 var verifySession = middleware.verifySession;
 var Item = require('../lib/item');
@@ -58,6 +57,8 @@ app.get('/item/:itemNameHmac', verifySession, function (req, res) {
  * Update item value for the given `itemNameHmac`
 */
 app.post('/item/:itemNameHmac', verifySession, function (req, res) {
+  app.log('debug', 'handling POST /item/:itemNameHmac');
+
   var item = new Item();
 
   var accountId = req.session.accountId;
@@ -89,11 +90,11 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
 });
 
 /**!
- * ### POST /item/create
+ * ### POST /createitem
  * Create item value for the given `itemNameHmac`
 */
 app.post('/createitem', verifySession, function (req, res) {
-  app.log('debug', 'handling "create"');
+  app.log('debug', 'handling POST /createitem');
 
   var item = new Item();
 
@@ -113,7 +114,7 @@ app.post('/createitem', verifySession, function (req, res) {
   if (!(value && wrappedSessionKey && itemNameHmac && accountId)) {
     res.send({
       success: false,
-      error: '/item/create: missing argument error'
+      error: '/createitem: missing argument error'
     });
     return;
   }
@@ -135,11 +136,12 @@ app.post('/createitem', verifySession, function (req, res) {
 });
 
 /**!
- * ### POST /item/remove
+ * ### POST /removeitem
  * Create item value for the given `itemNameHmac`
 */
 app.post('/removeitem', verifySession, function (req, res) {
-  app.log('debug', 'handling "remove"');
+  app.log('debug', 'handling POST /removeitem');
+
   var item = new Item();
 
   var accountId = req.session.accountId;
@@ -177,11 +179,11 @@ app.post('/removeitem', verifySession, function (req, res) {
 });
 
 /**!
- * ### POST /itemshare/:itemNameHmac
+ * ### POST /shareitem/:itemNameHmac
  * Share item for the given `itemNameHmac` with peer
 */
 app.post('/shareitem/:itemNameHmac', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /itemshare/:itemNameHmac');
+  app.log('debug', 'handling POST /shareitem/:itemNameHmac');
 
   var accountId = req.session.accountId;
   var itemNameHmac = req.params.itemNameHmac;
@@ -214,11 +216,11 @@ app.post('/shareitem/:itemNameHmac', verifySession, function (req, res) {
 });
 
 /**!
- * ### POST /itemunshare/:itemNameHmac
+ * ### POST /unshareitem/:itemNameHmac
  * unshare item for the given `itemNameHmac` from peer
 */
 app.post('/unshareitem/:itemNameHmac', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /unshareitem/:itemNameHmac');
+  app.log('debug', 'handling POST /unshareitem/:itemNameHmac');
 
   var accountId = req.session.accountId;
   var itemNameHmac = req.params.itemNameHmac;

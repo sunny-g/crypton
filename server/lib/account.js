@@ -21,7 +21,6 @@
 var app = require('../app');
 var db = app.datastore;
 var config = app.config;
-var bcrypt = require('bcrypt');
 var srp = require('srp');
 var validator = require('validator');
 
@@ -101,7 +100,7 @@ Account.prototype.getById = function (id, callback) {
  */
 Account.prototype.beginSrp = function(srpA, callback) {
   // TODO: 512 byte length will change when a different SRP group is used
-  if (typeof srpA != 'string' || srpA.length != 512) {
+  if (typeof srpA !== 'string' || srpA.length !== 512) {
     callback('Invalid SRP A value.');
     return;
   }
@@ -154,12 +153,15 @@ Account.prototype.continueSrp = function(srpA, srpb, callback) {
  * @param {Function} callback
  */
 Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
-  if (typeof srpParams != 'object' || !srpParams.b || !srpParams.A) {
+
+  var srpM2;
+
+  if (typeof srpParams !== 'object' || !srpParams.b || !srpParams.A) {
     callback('Invalid srpParams.');
     return;
   }
 
-  if (typeof srpM1 != 'string' || srpM1.length != 64) {
+  if (typeof srpM1 !== 'string' || srpM1.length !== 64) {
     callback('Invalid SRP M1.');
     return;
   }
@@ -172,7 +174,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
   srpServer.setA(srpA);
 
   try {
-    var srpM2 = srpServer.checkM1(new Buffer(srpM1, 'hex'));
+    srpM2 = srpServer.checkM1(new Buffer(srpM1, 'hex'));
   } catch(e) {
     callback('Incorrect password');
     app.log('debug', 'SRP verification error: ' + e.toString());
@@ -180,6 +182,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
   }
   // Don't need this right now. Maybe later?
   //var srpK = srpServer.computeK();
+
   callback(null, srpM2);
 };
 
@@ -199,7 +202,10 @@ Account.prototype.update = function () {
   // update({ key: 'value' });
   if (typeof arguments[0] === 'object') {
     for (var key in arguments[0]) {
-      this[key] = arguments[0][key];
+        if (arguments[0].hasOwnProperty(key)) {
+            this[key] = arguments[0][key];
+        }
+
     }
   }
 
@@ -242,22 +248,6 @@ Account.prototype.save = function (callback) {
 
   var that = this;
 
-  if (!config.maximumUsers) {
-    return _saveUser();
-  }
-
-  db.getUserCount(function (err, userCount) {
-    if (err) {
-      return callback(err);
-    }
-
-    if (userCount >= config.maximumUsers) {
-      return callback('Maximum user count reached');
-    }
-
-    _saveUser();
-  });
-
   function _saveUser () {
     if (!that.username) {
       return callback('undefined is not a valid username');
@@ -274,6 +264,23 @@ Account.prototype.save = function (callback) {
 
     db.saveAccount(that.toJSON(), callback);
   }
+
+  if (!config.maximumUsers) {
+    return _saveUser();
+  }
+
+  db.getUserCount(function (err, userCount) {
+    if (err) {
+      return callback(err);
+    }
+
+    if (userCount >= config.maximumUsers) {
+      return callback('Maximum user count reached');
+    }
+
+    _saveUser();
+  });
+
 };
 
 /**!
@@ -333,7 +340,7 @@ Account.prototype.sendMessage = function (options, callback) {
  * @param {Function} callback
  */
 Account.prototype.changePassphrase = function (keyring, callback) {
-  if (!keyring && !(typeof keyring == 'object')) {
+  if (typeof keyring !== 'object') {
     return callback('changePassphrase failed, keyring object required.');
   }
 

@@ -13,7 +13,7 @@
  * limitations under the License.
 */
 
-"use strict";
+'use strict';
 
 // tests running inside phantom on Travis CI
 // don't let the PRNG seed fast enough

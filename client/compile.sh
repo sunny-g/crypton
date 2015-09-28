@@ -69,7 +69,7 @@ daemon () {
   while [[ true ]]
   do
     chsum2=`find src/ -type f -exec $MD5 {} \;`
-    if [[ $chsum1 != $chsum2 ]] ; then           
+    if [[ $chsum1 != $chsum2 ]] ; then
       compile
       chsum1=`find src/ -type f -exec $MD5 {} \;`
       echo "Watching..."

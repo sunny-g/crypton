@@ -13,7 +13,7 @@
  * limitations under the License.
 */
 
-"use strict";
+'use strict';
 
 describe('Card', function () {
   var card = new crypton.Card();

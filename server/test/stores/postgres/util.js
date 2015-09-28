@@ -16,7 +16,7 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-"use strict";
+'use strict';
 
 var assert = require('assert');
 var postgres = require('../../../lib/stores/postgres');

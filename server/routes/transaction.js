@@ -182,6 +182,7 @@ app.del('/transaction/:id', verifySession, function (req, res) {
 
   tx.update('interactingAccount', accountId);
 
+  // FIXME : tbe outer 'err' is never handled.
   tx.get(transactionId, function (err) {
     tx.abort(function (err) {
       if (err) {

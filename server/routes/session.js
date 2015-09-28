@@ -22,9 +22,6 @@ var semver = require('semver');
 
 var app = process.app;
 
-app.get('/session', function (req, res) {
-});
-
 /**!
  * ### GET /
  * Get '/' - just needs to return any kind of data for certain mobile (cordova) uses like testing if a user is still connected

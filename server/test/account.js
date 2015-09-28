@@ -16,7 +16,7 @@
  * along with Crypton Server.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-"use strict";
+'use strict';
 
 var app = require('../app');
 var assert = require('assert');
@@ -255,7 +255,7 @@ describe('Account model', function () {
     // verifier for 'alice' / 'password123'
     // The associated salt is 000102030405060708090a0b0c0d0e0f
     var verifier = '21b37591ff48766be9b93d18d34ccace802c37f8889c61f2bc374809458f0c4c42baf45cae4d48366006abb25ddc3ac5aa651a9779e3e9fe3916f2be28f86884610d75ade8b08508483adb9fef1ba28eec56322f356cea145047c7d3c1309dac1253aabe08446f23b63c7062ae9cf0bee503bcd781536f4b21d27dc96d787e2a31dc74c30a7544e779429f3ee9fd508e52c8ddf02d311b79682870f44053b79b62198f780178f571f42e9a546cb8507a92aa2542103474ae63564f1194c144f444a008936a031c959e1d4b5dddea40ead43a75ee654b5179ce29cb7d5e6a1124e582c6240822eca10fb727eee198456f4c3f95b6b579f57dff0904347e6467c9';
-    var srpb = new Buffer('65f472bd0b070a766ced6c18657fd5d9ac246a80ec19e46f9794a4864a1f0f4f', 'hex')
+    var srpb = new Buffer('65f472bd0b070a766ced6c18657fd5d9ac246a80ec19e46f9794a4864a1f0f4f', 'hex');
 
     it('should callback without error on correct input', function (done) {
       var account = new Account();

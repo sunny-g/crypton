@@ -19,6 +19,7 @@
 'use strict';
 
 var config = require('./config');
+var colors = require('colors');
 
 var possibleLevels = [
   'error',

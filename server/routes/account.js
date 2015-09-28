@@ -35,7 +35,7 @@ app.post('/account', function (req, res) {
 
   account.save(function (err) {
     if (err) {
-      res.send({
+      res.json({
         success: false,
         error: err
       });
@@ -43,7 +43,7 @@ app.post('/account', function (req, res) {
       return;
     }
 
-    res.send({
+    res.json({
       success: true
     });
   });
@@ -108,7 +108,7 @@ app.post('/account/:username', function (req, res) {
  * If successful, start a session.
 */
 app.post('/account/:username/answer', function (req, res) {
-  logger.info(req.query.sid);
+  logger.info('/account/:username/answer : sid :', req.query.sid);
 
   var sid = req.query.sid;
 
@@ -139,7 +139,6 @@ app.post('/account/:username/answer', function (req, res) {
       }
 
       account.checkSrp(params, srpM1, function (err, srpM2) {
-        // XXXddahl: fix this later... delete req.session.srpParams;
         if (err) {
           logger.info('SRP verification failed: ' + err);
           res.send({
@@ -155,21 +154,38 @@ app.post('/account/:username/answer', function (req, res) {
         // add accountId to session.
         /*jshint unused: false */
         app.redisSession.set(sessionId, {accountId: account.accountId}, req,
-            function redisSessionSetCB(sid, err, status) {
-              if (err) {
-                res.send({
-                  success: false,
-                  error: 'Failure to authorize while setting accountId in session'
-                });
-                return;
-              }
+          function redisSessionSetCB(sid, err, status) {
+            if (err) {
               res.send({
-                    success: true,
-                    account: account.toJSON(),
-                    sid: sid,
-                    srpM2: srpM2.toString('hex')
-                   });
+                success: false,
+                error: 'Failure to authorize while setting accountId in session',
+              });
+              return;
             }
+
+            logger.debug('cleanup srpParams session key', sessionId);
+
+            // cleanup the 'srpParams' key
+            app.redisSession.rmProp(sessionId, ['srpParams'], req,
+              function(sid, err, status) {
+                if (err) {
+                  res.send({
+                    success: false,
+                    error: 'Failure to remove srpParams session key',
+                  });
+                }
+
+                res.send({
+                  success: true,
+                  account: account.toJSON(),
+                  sid: sid,
+                  srpM2: srpM2.toString('hex'),
+                });
+
+              }
+            );
+
+          }
         );
         /*jshint unused: true */
 
@@ -233,7 +249,7 @@ app.post('/account/:username/keyring',
 */
 app.get('/accountBuffer', function (req, res) {
   if (!config.maximumUsers) {
-    return res.send({
+    return res.json({
       success: true,
       accountBuffer: null
     });
@@ -241,7 +257,7 @@ app.get('/accountBuffer', function (req, res) {
 
   db.getUserCount(function (err, userCount) {
     if (err) {
-      return res.send({
+      return res.json({
         success: false,
         error: 'Database error'
       });
@@ -249,7 +265,7 @@ app.get('/accountBuffer', function (req, res) {
 
     var accountBuffer = config.maximumUsers - userCount;
 
-    res.send({
+    res.json({
       success: true,
       accountBuffer: accountBuffer
     });

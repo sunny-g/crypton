@@ -13,6 +13,6 @@ reset:
 
 node_modules:
 	@echo "Installing node modules for server..."
-	@npm install
+	@npm install --silent
 
 .PHONY: test test-unit test-debug reset node_modules

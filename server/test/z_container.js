@@ -25,14 +25,14 @@ var Container = require('../lib/container');
 describe('Container model', function () {
   describe('#update()', function () {
     it('should update the container by key/value', function () {
-      console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
+      logger.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
       var container = new Container();
       container.update('foo', 'bar');
       assert.equal(container.foo, 'bar');
     });
 
     it('should update the container with an object of key/value pairs', function () {
-      console.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
+      logger.warn('CONTAINERS ARE DEPRECATED, use the "Items" API');
       var container = new Container();
       container.update({
         foo: 'bar',

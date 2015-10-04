@@ -356,7 +356,7 @@ function (itemNameHmac, sessionKeyCiphertext,
           if (err) {
             client.query('rollback');
             done();
-            console.error(err);
+            logger.error(err);
             return callback(err);
           }
 
@@ -419,7 +419,7 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
     client.query(query, function (err, result) {
       done();
       if (err) {
-        console.error('ERROR UPDATING ITEM SESSION KEY SHARE');
+        logger.error('ERROR UPDATING ITEM SESSION KEY SHARE');
         return callback(err);
       }
       if (result.rowCount != 1) {

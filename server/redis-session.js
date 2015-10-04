@@ -118,8 +118,8 @@ module.exports = function(config) {
 
             client.exists(sid, function(err, exists) {
                 if (err && config.debug) {
-                    console.error('----_createSid ERROR');
-                    console.error(err);
+                    logger.error('----_createSid ERROR');
+                    logger.error(err);
                 }
 
                 if (exists === 1) {
@@ -139,8 +139,8 @@ module.exports = function(config) {
                 //session active?
                 client.exists(sid, function(err, exists) {
                     if (err && config.debug) {
-                        console.error('----_createSid ERROR');
-                        console.error(err);
+                        logger.error('----_createSid ERROR');
+                        logger.error(err);
                     }
 
                     if (exists === 1) {
@@ -164,8 +164,8 @@ module.exports = function(config) {
                         data.sid        = sid;
                         req.sessionData = data;
                     } else if (config.debug) {
-                        console.error('----createSet ERROR');
-                        console.error(err);
+                        logger.error('----createSet ERROR');
+                        logger.error(err);
                     }
 
                     callback && callback.call(mod, sid, err, status);
@@ -188,8 +188,8 @@ module.exports = function(config) {
 
             client.get(sid, function(err, info) {
                 if (err && config.debug) {
-                    console.error('----get ERROR');
-                    console.error(err);
+                    logger.error('----get ERROR');
+                    logger.error(err);
                     info = err;
                     err  = true;
                 } else if (info) {
@@ -251,7 +251,7 @@ module.exports = function(config) {
             var client = mod._connect();
 
             if (!config.debug) {
-                console.log('you cannot call getAllKeys when not in debug mode');
+                logger.info('you cannot call getAllKeys when not in debug mode');
                 callback && callback.call(mod);
                 return;
             }
@@ -265,7 +265,7 @@ module.exports = function(config) {
             var client = mod._connect();
 
             if (!config.debug) {
-                console.log('You cannot call clearAll when not in debug mode');
+                logger.info('You cannot call clearAll when not in debug mode');
                 callback && callback.call(mod);
                 return;
             }

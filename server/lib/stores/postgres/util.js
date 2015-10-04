@@ -74,8 +74,8 @@ var connect = datastore.connect = function connect(callback) {
       // TODO: retry a few times with delays, so we can survive a quick
       // database hiccup. crash the whole app only if the DB's really
       // unavailable.
-      console.log('Could not connect to database:');
-      console.log(err);
+      logger.error('Could not connect to database:');
+      logger.error(err);
       process.exit(1);
     }
 

@@ -304,7 +304,7 @@ app.get('/timeline/', verifySession, function (req, res) {
   item.update('offset', offset);
   item.update('direction', direction);
 
-  console.log('direction: ', direction);
+  logger.info('direction: ', direction);
 
   item.getTimeline(function (err) {
     if (err) {

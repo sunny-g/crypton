@@ -42,7 +42,7 @@ var Item = module.exports = function Item () {};
  * @param {Function} callback
  */
 Item.prototype.get = function (itemNameHmac, callback) {
-  app.log('debug', 'getting item');
+  logger.info('getting item');
 
   var that = this;
 
@@ -92,7 +92,7 @@ Item.prototype.update = function () {
  *
  */
 Item.prototype.save = function item_save(callback) {
-  app.log('debug', 'Saving item');
+  logger.info('Saving item');
 
   var that = this;
   db.saveItem(that.itemNameHmac, that.accountId,
@@ -114,7 +114,7 @@ Item.prototype.save = function item_save(callback) {
  *
  */
 Item.prototype.create = function item_create(callback) {
-  app.log('debug', 'creating item');
+  logger.info('creating item');
 
   var that = this;
   db.createItem(that.itemNameHmac, that.accountId,
@@ -136,7 +136,7 @@ Item.prototype.create = function item_create(callback) {
  *
  */
 Item.prototype.remove = function item_remove(callback) {
-  app.log('debug', 'remove item');
+  logger.info('remove item');
 
   var that = this;
   db.removeItem(that.itemNameHmac, that.accountId,
@@ -158,7 +158,7 @@ Item.prototype.remove = function item_remove(callback) {
  *
  */
 Item.prototype.share = function item_share(callback) {
-  app.log('debug', 'share item');
+  logger.info('share item');
 
   var that = this;
   db.shareItem(that.itemNameHmac, that.sessionKeyCiphertext,
@@ -180,7 +180,7 @@ Item.prototype.share = function item_share(callback) {
  *
  */
 Item.prototype.unshare = function item_unshare(callback) {
-  app.log('debug', 'unshare item');
+  logger.info('unshare item');
 
   var that = this;
   db.unshareItem(that.itemNameHmac,  that.accountId, that.shareeUsername,
@@ -210,7 +210,7 @@ Item.prototype.unshare = function item_unshare(callback) {
 Item.prototype.getAuthorItems =
 function getAuthorItems(callback) {
   var that = this;
-  app.log('debug', 'getting author items from ' + that.lastItemRead);
+  logger.info('getting author items from ' + that.lastItemRead);
 
   db.getAuthorItems(that.accountId, that.lastItemRead, that.offset, that.limit, function (err, rows) {
     if (err) {
@@ -236,7 +236,7 @@ function getAuthorItems(callback) {
 Item.prototype.getTimeline =
 function getTimeline(callback) {
   var that = this;
-  app.log('debug', 'getting timeline from ' + that.lastItemRead);
+  logger.info('getting timeline from ' + that.lastItemRead);
 
   db.getTimelineItems(that.accountId, that.lastItemRead, that.offset, that.limit, that.direction, function (err, rows) {
     if (err) {

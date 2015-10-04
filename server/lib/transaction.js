@@ -40,7 +40,7 @@ var Transaction = module.exports = function Transaction () {};
  * @param {Function} callback
  */
 Transaction.prototype.create = function (accountId, callback) {
-  app.log('debug', 'creating transaction');
+  logger.info('creating transaction');
 
   var that = this;
   this.update('accountId', accountId);
@@ -67,7 +67,7 @@ Transaction.prototype.create = function (accountId, callback) {
  */
 // TODO which data?
 Transaction.prototype.get = function (transactionId, callback) {
-  app.log('debug', 'getting transaction with id: ' + transactionId);
+  logger.info('getting transaction with id: ' + transactionId);
 
   var that = this;
 
@@ -78,7 +78,7 @@ Transaction.prototype.get = function (transactionId, callback) {
     }
 
     if (!transaction.transactionId) {
-      app.log('warn', 'transaction does not exist');
+      logger.warn('transaction does not exist');
       callback('Transaction does not exist');
       return;
     }
@@ -124,7 +124,7 @@ Transaction.prototype.update = function () {
  * @param {Function} callback
  */
 Transaction.prototype.add = function (data, callback) {
-  app.log('debug', 'adding data to transaction');
+  logger.info('adding data to transaction');
 
   var that = this;
 
@@ -141,7 +141,7 @@ Transaction.prototype.add = function (data, callback) {
  * @param {Function} callback
  */
 Transaction.prototype.abort = function (callback) {
-  app.log('debug', 'aborting transaction');
+  logger.info('aborting transaction');
 
   var that = this;
   this.assertOwnership(callback, function () {
@@ -157,7 +157,7 @@ Transaction.prototype.abort = function (callback) {
  * @param {Function} callback
  */
 Transaction.prototype.requestCommit = function (callback) {
-  app.log('debug', 'requesting transaction commit');
+  logger.info('requesting transaction commit');
 
   var that = this;
   this.assertOwnership(callback, function () {
@@ -175,7 +175,7 @@ Transaction.prototype.requestCommit = function (callback) {
  * @param {Function} callback
  */
 Transaction.prototype.isProcessed = function (callback) {
-  app.log('debug', 'checking transaction commit status');
+  logger.info('checking transaction commit status');
 
   db.transactionIsProcessed(this.transactionId, callback);
 };
@@ -191,12 +191,12 @@ Transaction.prototype.isProcessed = function (callback) {
  */
 // TODO consider switching argument order
 Transaction.prototype.assertOwnership = function (callback, next) {
-  app.log('debug', 'asserting transaction ownership');
+  logger.info('asserting transaction ownership');
 
   if (this.interactingAccount === this.accountId) {
     next();
   } else {
-    app.log('warn', 'transaction does not belong to account');
+    logger.warn('transaction does not belong to account');
     callback('Transaction does not belong to account');
   }
 };

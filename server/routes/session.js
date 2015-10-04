@@ -27,8 +27,6 @@ var app = process.app;
  * Get '/' - just needs to return any kind of data for certain mobile (cordova) uses like testing if a user is still connected
 */
 app.get('/', function (req, res) {
-  app.log('debug', 'handling GET /');
-
   res.send({
     success: true,
     data: { server: 'crypton'}
@@ -40,8 +38,7 @@ app.get('/', function (req, res) {
  * Get '/versioncheck/' - see if the current client has the same version as the server
 */
 app.get('/versioncheck', function (req, res) {
-  app.log('debug', 'handling GET /versioncheck');
-  app.log('debug', 'server version: ' + app.SERVER_VERSION);
+  logger.info('server version: ' + app.SERVER_VERSION);
   if (!semver.satisfies(app.SERVER_VERSION, '~'+req.query.v)) {
     return res.send({
       success: false,

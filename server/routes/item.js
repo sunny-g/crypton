@@ -28,8 +28,6 @@ var Item = require('../lib/item');
  * Retrieve item value for the given `itemNameHmac`
 */
 app.get('/item/:itemNameHmac', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /item/:itemNameHmac');
-
   var accountId = req.session.accountId;
   var itemNameHmac = req.params.itemNameHmac;
 
@@ -57,8 +55,6 @@ app.get('/item/:itemNameHmac', verifySession, function (req, res) {
  * Update item value for the given `itemNameHmac`
 */
 app.post('/item/:itemNameHmac', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /item/:itemNameHmac');
-
   var item = new Item();
 
   var accountId = req.session.accountId;
@@ -94,8 +90,6 @@ app.post('/item/:itemNameHmac', verifySession, function (req, res) {
  * Create item value for the given `itemNameHmac`
 */
 app.post('/createitem', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /createitem');
-
   var item = new Item();
 
   var accountId = req.session.accountId;
@@ -140,8 +134,6 @@ app.post('/createitem', verifySession, function (req, res) {
  * Create item value for the given `itemNameHmac`
 */
 app.post('/removeitem', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /removeitem');
-
   var item = new Item();
 
   var accountId = req.session.accountId;
@@ -183,8 +175,6 @@ app.post('/removeitem', verifySession, function (req, res) {
  * Share item for the given `itemNameHmac` with peer
 */
 app.post('/shareitem/:itemNameHmac', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /shareitem/:itemNameHmac');
-
   var accountId = req.session.accountId;
   var itemNameHmac = req.params.itemNameHmac;
 
@@ -220,8 +210,6 @@ app.post('/shareitem/:itemNameHmac', verifySession, function (req, res) {
  * unshare item for the given `itemNameHmac` from peer
 */
 app.post('/unshareitem/:itemNameHmac', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /unshareitem/:itemNameHmac');
-
   var accountId = req.session.accountId;
   var itemNameHmac = req.params.itemNameHmac;
 
@@ -254,8 +242,6 @@ app.post('/unshareitem/:itemNameHmac', verifySession, function (req, res) {
  * Retrieve item history
 */
 app.get('/itemhistory/', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /itemhistory/');
-
   var accountId = req.session.accountId;
   var lastItemRead = req.query.historyid || 0;
   var offset = req.query.offset || 0;
@@ -292,8 +278,6 @@ app.get('/itemhistory/', verifySession, function (req, res) {
  * Retrieve Timeline
 */
 app.get('/timeline/', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /timeline/');
-
   var accountId = parseInt(req.session.accountId);
   var lastItemRead = parseInt(req.query.timelineid) || 0;
   var offset = parseInt(req.query.offset) || 0;
@@ -342,8 +326,6 @@ app.get('/timeline/', verifySession, function (req, res) {
  * Retrieve Latest Timeline Items
 */
 app.get('/timeline-latest/', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /timeline-latest/');
-
   var accountId = parseInt(req.session.accountId);
 
   // set max limit
@@ -380,8 +362,6 @@ app.get('/timeline-latest/', verifySession, function (req, res) {
  * Retrieve Timeline Items before 'beforeId'
 */
 app.get('/timeline-before/', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /timeline-before/');
-
   var accountId = parseInt(req.session.accountId);
 
   var beforeId = parseInt(req.query.beforeId);
@@ -427,8 +407,6 @@ app.get('/timeline-before/', verifySession, function (req, res) {
  * Retrieve Timeline Items after 'afterId'
 */
 app.get('/timeline-after/', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /timeline-after/');
-
   var accountId = parseInt(req.session.accountId);
 
   var afterId = parseInt(req.query.afterId);

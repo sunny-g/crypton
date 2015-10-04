@@ -28,8 +28,6 @@ var Account = require('../lib/account');
  * Retrieve public key for given `username`
 */
 app.get('/peer/:username', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /peer/:username');
-
   var account = new Account();
 
   account.get(req.params.username, function (err) {
@@ -61,7 +59,6 @@ app.get('/peer/:username', verifySession, function (req, res) {
  * Send a message to posted `toAccount` from current session's `accountId`
 */
 app.post('/peer', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /peer');
 
   // TODO verify non-null values
   // TODO there is a more eloquent way to write this

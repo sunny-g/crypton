@@ -30,8 +30,6 @@ var Account = require('../lib/account');
  * then save the resulting account object to the server
 */
 app.post('/account', function (req, res) {
-  app.log('debug', 'handling POST /account');
-
   var account = new Account();
   account.update(req.body);
 
@@ -63,7 +61,7 @@ app.post('/account/:username', function (req, res) {
 
   account.get(req.params.username, function (err) {
     if (err) {
-      app.log('debug', 'could not get account for ' + req.params.username);
+      logger.info('could not get account for ' + req.params.username);
       res.send({
         success: false,
         error: err
@@ -84,7 +82,7 @@ app.post('/account/:username', function (req, res) {
 
       /*jshint unused: false */
       app.redisSession.create(req, {srpParams: srpParams}, function createSessionCB(sid, err, status){
-        app.log('debug', arguments);
+        logger.info(arguments);
 
         if (err) {
             res.send({success: false, error: err});
@@ -110,15 +108,14 @@ app.post('/account/:username', function (req, res) {
  * If successful, start a session.
 */
 app.post('/account/:username/answer', function (req, res) {
-  app.log('debug', 'handling POST /account/:username/answer');
-  app.log('debug', req.query.sid);
+  logger.info(req.query.sid);
 
   var sid = req.query.sid;
 
   /*jshint unused: false */
   app.redisSession.get(sid, req, function answerCallback(data, err, info) {
     if (err) {
-      app.log('error', err);
+      logger.error(err);
       res.send({success: false, error: 'srp cache failure'});
       return;
     }
@@ -144,7 +141,7 @@ app.post('/account/:username/answer', function (req, res) {
       account.checkSrp(params, srpM1, function (err, srpM2) {
         // XXXddahl: fix this later... delete req.session.srpParams;
         if (err) {
-          app.log('debug', 'SRP verification failed: ' + err);
+          logger.info('SRP verification failed: ' + err);
           res.send({
             success: false,
             error: err
@@ -153,7 +150,7 @@ app.post('/account/:username/answer', function (req, res) {
           return;
         }
 
-        app.log('debug', 'SRP verification succcess');
+        logger.info('SRP verification succcess');
 
         // add accountId to session.
         /*jshint unused: false */
@@ -189,7 +186,6 @@ app.post('/account/:username/answer', function (req, res) {
 app.post('/account/:username/keyring',
   middleware.verifySession,
   function (req, res) {
-    app.log('debug', 'handling POST /account/:username/keyring');
     var account = new Account();
     account.getById(req.session.accountId, function (err) {
       if (err) {
@@ -212,7 +208,7 @@ app.post('/account/:username/keyring',
       // Write new keyring into the database
       account.changePassphrase(newAccountData, function (err) {
         if (err) {
-          app.log('debug', err);
+          logger.info(err);
           res.send({
             success: false,
             error: 'Could not update passphrase'

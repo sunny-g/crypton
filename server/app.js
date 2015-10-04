@@ -27,17 +27,64 @@ var express = require('express');
 var util = require('./lib/util');
 var appsec = require('lusca');
 var version = require('./package.json').version;
-var redis = require("redis");
+var redis = require('redis');
 var redisSession = require('./redis-session')();
 
+// logging
+var colors = require('colors');
+var expressWinston = require('express-winston');
+var winston = require('winston'); // for transports.Console
+winston.emitErrs = true;
+
 var app = process.app = module.exports = express();
-app.log = require('./lib/log');
+
+var myLogTransports = [];
+
+if (process.env.NODE_ENV === 'production') {
+  myLogTransports.push(new winston.transports.File(
+    {
+      level: 'warn',
+      filename: './logs/production.log',
+      handleExceptions: true,
+      json: true,
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+      colorize: false
+    }
+  ));
+} else {
+  myLogTransports.push(new winston.transports.Console(
+    {
+      timestamp: true,
+      level: 'info',
+      handleExceptions: true,
+      json: false,
+      colorize: true
+    }
+  ));
+}
+
+var logger = new winston.Logger({
+  transports: myLogTransports,
+  exitOnError: false
+});
+
+global.logger = logger;
+
+// express-winston logger makes sense BEFORE the router.
+app.use(expressWinston.logger({
+  transports: myLogTransports,
+  meta: true, // optional: control whether you want to log the meta data about the request (default to true)
+  msg: 'HTTP {{req.method}} {{req.url}}', // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
+  expressFormat: true, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true
+  colorStatus: true // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
+}));
+
 app.config = require('./lib/config');
+
 app.datastore = require('./lib/storage');
 
 app.redisSession = redisSession;
-
-app.log('info', 'configuring server');
 
 app.SERVER_VERSION = version;
 
@@ -57,20 +104,22 @@ app.use(cors({
 if (app.config.securityHeaders) {
   try {
     var luscaObj = app.config.securityHeaders;
-    app.log("securityHeaders(lusca) config: ", JSON.stringify(luscaObj));
+    logger.info("securityHeaders(lusca) config: ", JSON.stringify(luscaObj));
 
-    if (typeof luscaObj == 'object') {
+    if (typeof luscaObj === 'object') {
       app.use(appsec(luscaObj));
     } else {
       throw new Error("securityHeaders must be an Object conforming to the Lusca security config.  See : https://github.com/krakenjs/lusca");
     }
   } catch (ex) {
-    app.log("error", ex);
+    logger.error(ex);
+
     // Exit in an orderly fashion
     process.exit(1);
   }
 } else {
-  app.log('warn','No securityHeaders set in app.config! Security Headers are required to run this application in production. CSP connect-src is limited to localhost');
+  logger.warn('No securityHeaders set in app.config! Security Headers are required to run this application in production. CSP connect-src is limited to localhost');
+
   // A very strict CSP, CSRF enabled and xframe options as sameorigin.
   app.use(appsec({
     csrf: false,
@@ -101,17 +150,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(express.logger(function (info, req, res) {
-  var color = 'green';
-
-  if (res.statusCode == 404) {
-    color = 'red';
-  }
-
-  var line = res.statusCode.toString()[color] + ' ' + req.method + ' ' + req.url;
-  app.log('info', line);
-}));
-
 if (app.config.appPath) {
   var appPath = path.resolve(process.cwd(), app.config.appPath);
   app.use(express.static(appPath));
@@ -123,7 +161,7 @@ app.options('/*', function (req, res) {
 });
 
 app.start = function start () {
-  app.log('info', 'starting HTTPS server');
+  logger.info('starting HTTPS server');
 
   var privateKeyPath = path.resolve(process.cwd(), app.config.privateKey);
   var certificatePath = path.resolve(process.cwd(), app.config.certificate);
@@ -139,16 +177,20 @@ app.start = function start () {
 
   app.port = app.config.port || 443;
   app.server = https.createServer(options, app).listen(app.port, function () {
-    app.log('HTTPS server listening on port ' + app.port);
+    logger.info('HTTPS server listening on port ' + app.port);
     require('./lib/sockets');
   });
 };
 
-app.log('info', 'loading routes');
 require('./routes');
 
+// express-winston errorLogger makes sense AFTER the router.
+app.use(expressWinston.errorLogger({
+  transports: myLogTransports
+}));
+
 function handleError(err) {
-  console.error("uncaught exception:", err, err.stack);
+  logger.error("uncaught exception:", err, err.stack);
   process.exit(1);
 }
 

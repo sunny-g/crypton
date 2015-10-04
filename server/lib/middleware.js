@@ -33,8 +33,8 @@ var middleware = module.exports = {};
 middleware.verifySession = function (req, res, next) {
   var sessionId = req.query.sid;
 
-  app.log('debug', 'sessionId: ');
-  app.log('debug', sessionId);
+  logger.info('sessionId: ');
+  logger.info(sessionId);
 
   if (!sessionId) {
     // we are not logged in and a client is attempting to reach a protected URL

@@ -66,7 +66,7 @@ exports.saveAccount = function saveAccount(account, callback) {
         account.username
       ]
     };
-    
+
     client.query(checkAccountFreeQuery, function (err, result) {
       if (err) {
         client.query('rollback');
@@ -85,16 +85,16 @@ exports.saveAccount = function saveAccount(account, callback) {
             account.username
 	  ]
 	};
-	
+
 	client.query(accountQuery, function (err, result) {
 	  if (err) {
             client.query('rollback');
             done();
-	    
+
             if (err.code === '23505') {
               callback('Username already taken.');
             } else {
-              console.log('Unhandled database error: ' + err);
+              logger.error('Unhandled database error: ' + err);
               callback('Database error.');
             }
             return;
@@ -135,23 +135,23 @@ exports.saveAccount = function saveAccount(account, callback) {
             if (err) {
               client.query('rollback');
               done();
-	      
+
               if (err.code === '23514') {
 		callback('Invalid keyring data.');
               } else {
-		console.log('Unhandled database error: ' + err);
+		logger.error('Unhandled database error: ' + err);
 		callback('Database error.');
               }
               return;
             }
-	    
+
 	    client.query('commit', function () {
               done();
               callback();
             }); // Commit
 	  }); // KeyRing Query
 	}); // AccountQuery
-		 
+
       } else {
 	// We found a username that is the same!
 	client.query('rollback');
@@ -197,7 +197,7 @@ exports.getAccount = function getAccount(username, callback) {
       done();
 
       if (err) {
-        console.log('*** Unhandled database error: ' + err);
+        logger.error('*** Unhandled database error: ' + err);
         callback('Database error.');
         return;
       }
@@ -262,7 +262,7 @@ exports.getAccountById = function getAccountById(accountId, callback) {
       done();
 
       if (err) {
-        console.log('Unhandled database error: ' + err);
+        logger.error('Unhandled database error: ' + err);
         callback('Database error.');
         return;
       }
@@ -325,7 +325,7 @@ exports.saveMessage = function (options, callback) {
       done();
 
       if (err) {
-        console.log('Unhandled database error: ' + err);
+        logger.error('Unhandled database error: ' + err);
         callback('Database error.');
         return;
       }
@@ -356,7 +356,7 @@ exports.getUserCount = function (callback) {
       done();
 
       if (err) {
-        console.log('Unhandled database error: ' + err);
+        logger.error('Unhandled database error: ' + err);
         return callback('Database error.');
       }
 
@@ -438,7 +438,7 @@ exports.updateKeyring = function updateKeyring(keyring, callback) {
         if (err.code === '23514') {
           callback('Invalid keyring data.');
         } else {
-          console.log('Unhandled database error: ' + err);
+          logger.error('Unhandled database error: ' + err);
           callback('Database error.');
         }
         return;

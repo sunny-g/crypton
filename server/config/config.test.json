@@ -43,6 +43,5 @@
     },
     "xssProtection": false
   },
-  "port": 1025,
-  "logLevel": "debug"
+  "port": 1025
 }

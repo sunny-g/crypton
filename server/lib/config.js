@@ -39,7 +39,7 @@ try {
   data = JSON.parse(file);
 } catch (e) {
   var app = require('../app');
-  app.log('fatal', 'could not parse config file');
+  logger.error('could not parse config file');
   throw e;
 }
 

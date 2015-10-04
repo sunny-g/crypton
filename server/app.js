@@ -140,7 +140,6 @@ app.use(cors({
 if (app.config.securityHeaders) {
   try {
     var luscaObj = app.config.securityHeaders;
-    logger.info("securityHeaders(lusca) config: ", JSON.stringify(luscaObj));
 
     if (typeof luscaObj === 'object') {
       app.use(appsec(luscaObj));

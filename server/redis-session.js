@@ -55,10 +55,6 @@ module.exports = function(config) {
          */
         ttl        : 900000, // 15min
         /**
-         * true to enable debug mode
-         */
-        debug      : true,
-        /**
          * The number of characters to create the session ID.
          */
         sidLength  : 64,
@@ -117,7 +113,7 @@ module.exports = function(config) {
                 sid    = randomValueBase64(config.sidLength);
 
             client.exists(sid, function(err, exists) {
-                if (err && config.debug) {
+                if (err && process.env.NODE_ENV === 'development') {
                     logger.error('----_createSid ERROR');
                     logger.error(err);
                 }
@@ -138,7 +134,7 @@ module.exports = function(config) {
             if (sid) {
                 //session active?
                 client.exists(sid, function(err, exists) {
-                    if (err && config.debug) {
+                    if (err && process.env.NODE_ENV === 'development') {
                         logger.error('----_createSid ERROR');
                         logger.error(err);
                     }
@@ -163,7 +159,7 @@ module.exports = function(config) {
                     if (!err) {
                         data.sid        = sid;
                         req.sessionData = data;
-                    } else if (config.debug) {
+                    } else if (process.env.NODE_ENV === 'development') {
                         logger.error('----createSet ERROR');
                         logger.error(err);
                     }
@@ -187,7 +183,7 @@ module.exports = function(config) {
             }
 
             client.get(sid, function(err, info) {
-                if (err && config.debug) {
+                if (err && process.env.NODE_ENV === 'development') {
                     logger.error('----get ERROR');
                     logger.error(err);
                     info = err;
@@ -250,8 +246,8 @@ module.exports = function(config) {
         getAllKeys : function(req, callback) {
             var client = mod._connect();
 
-            if (!config.debug) {
-                logger.info('you cannot call getAllKeys when not in debug mode');
+            if (process.env.NODE_ENV !== 'development') {
+                logger.info('you cannot call getAllKeys when not in development mode');
                 callback && callback.call(mod);
                 return;
             }
@@ -264,8 +260,8 @@ module.exports = function(config) {
         clearAll : function(req, callback) {
             var client = mod._connect();
 
-            if (!config.debug) {
-                logger.info('You cannot call clearAll when not in debug mode');
+            if (process.env.NODE_ENV !== 'development') {
+                logger.info('You cannot call clearAll when not in development mode');
                 callback && callback.call(mod);
                 return;
             }

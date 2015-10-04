@@ -116,6 +116,7 @@ app.use(expressWinston.logger({
 }));
 
 app.config = require('./lib/config');
+logger.info("app.config", app.config);
 
 app.datastore = require('./lib/storage');
 

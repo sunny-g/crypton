@@ -47,21 +47,56 @@ if (process.env.NODE_ENV === 'production') {
       filename: './logs/production.log',
       handleExceptions: true,
       json: true,
-      maxsize: 5242880, // 5MB
+      maxsize: 104857600, // 100MB
       maxFiles: 5,
-      colorize: false
+      colorize: false,
+      tailable: true
     }
   ));
-} else {
+} else if (process.env.NODE_ENV === 'development') {
   myLogTransports.push(new winston.transports.Console(
     {
       timestamp: true,
       level: 'info',
       handleExceptions: true,
       json: false,
-      colorize: true
+      colorize: true,
+      prettyPrint: true
     }
   ));
+  myLogTransports.push(new winston.transports.File(
+    {
+      level: 'info',
+      filename: './logs/development.log',
+      handleExceptions: true,
+      json: true,
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+      colorize: false,
+      tailable: true
+    }
+  ));
+} else if (process.env.NODE_ENV === 'test') {
+  myLogTransports.push(new winston.transports.Console(
+    {
+      silent: true
+    }
+  ));
+  myLogTransports.push(new winston.transports.File(
+    {
+      level: 'info',
+      filename: './logs/test.log',
+      handleExceptions: true,
+      json: true,
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+      colorize: false,
+      tailable: true
+    }
+  ));
+} else {
+  console.error("ERROR : NODE_ENV must be set to one of: development | test | production");
+  process.exit(1);
 }
 
 var logger = new winston.Logger({

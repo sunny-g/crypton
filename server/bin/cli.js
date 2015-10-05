@@ -22,27 +22,8 @@
 /**!
  * A CLI to manage running and daemonizing the Crypton server
  *
- * ````
- *  Usage: crypton-server [options] [command]
+ * crypton-server -h
  *
- *  Commands:
- *
- *    run                    Run the Crypton server
- *    status                 Print the status of the daemonized the Crypton server
- *    start                  Daemonize the Crypton server
- *    stop                   Stop the daemonized Crypton server
- *    restart                Restart the daemonized Crypton server
- *    logs                   Print the latest Crypton server logs
- *    tail                   Tail Crypton server logs to stdout
- *    cleanlogs              Remove the log files
- *
- *  Options:
- *
- *    -h, --help           output usage information
- *    -V, --version        output the version number
- *    -c, --config [file]  Specify a custom configuration file [default config]
- *    -d, --docker         Enable docker mode to use environment variables rather than a config file [default false]
- * ````
  */
 
 var fs = require('fs');
@@ -50,138 +31,7 @@ var program = require('commander');
 var forever = require('forever');
 var version = require('../package.json').version;
 
-program
-  .version(version)
-  .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
-  .option('-d, --docker', 'Enable docker mode to use environment variables rather than a config file [default false]');
-
-program.command('run')
-  .description('Run the Crypton server')
-  .action(function () {
-    process.configFile = program.config;
-    process.docker = program.docker;
-    var app = require('../app');
-    app.start();
-  });
-
-program.command('db:init')
-  .description('Initialize the Crypton database')
-  .action(function () {
-    process.configFile = program.config;
-    process.docker = program.docker;
-    require('./init')();
-  });
-
-program.command('db:drop')
-  .description('Drop the Crypton sdatabase')
-  .action(function () {
-    process.configFile = program.config;
-    process.docker = program.docker;
-    require('./drop')();
-  });
-
-program.command('status')
-  .description('Print the status of the daemonized the Crypton server')
-  .action(function () {
-    getServer(function (data) {
-      if (!data) {
-        console.log('No Crypton server daemon is running');
-      } else {
-        console.log(data);
-      }
-    });
-  });
-
-program.command('start')
-  .description('Daemonize the Crypton server')
-  .action(function () {
-    getServer(function (data) {
-      if (data) {
-        console.log('Crypton already running');
-        process.exit(1);
-      }
-
-      var monitor = forever.startDaemon(__filename, {
-        options: [ 'run' ]
-      });
-
-      console.log('Crypton server started');
-    });
-  });
-
-program.command('stop')
-  .description('Stop the daemonized Crypton server')
-  .action(function () {
-    getServer(function (data) {
-      if (!data) {
-        console.log('Crypton is not running');
-        process.exit(1);
-      }
-
-      forever.stop(data.index);
-      console.log('Crypton server stopped');
-    });
-  });
-
-program.command('restart')
-  .description('Restart the daemonized Crypton server')
-  .action(function () {
-    getServer(function (data) {
-      if (!data) {
-        console.log('Crypton is not running');
-        process.exit(1);
-      }
-
-      forever.restart(data.index);
-      console.log('Crypton server restarted');
-    });
-  });
-
-program.command('logs')
-  .description('Print the latest Crypton server logs')
-  .action(function () {
-    getServer(function (data) {
-      if (!data) {
-        console.log('Crypton is not running');
-        process.exit(1);
-      }
-
-      forever.tail(data.index, {}, function (err, log) {
-        console.log(log.line);
-      });
-    });
-  });
-
-program.command('tail')
-  .description('Tail Crypton server logs to stdout')
-  .action(function () {
-    getServer(function (data) {
-      if (!data) {
-        console.log('Crypton is not running');
-        process.exit(1);
-      }
-
-      forever.tail(data.index, {
-        stream: true
-      }, function (err, log) {
-        console.log(log.line);
-      });
-    });
-  });
-
-program.command('cleanlogs')
-  .description('Remove the log files')
-  .action(function () {
-    forever.cleanUp(true);
-  });
-
-program.parse(process.argv);
-
-if (!program.args[0]) {
-  program.help();
-}
-
-function getServer (callback) {
+function getServer(callback) {
   forever.list(false, function (err, data) {
     if (err) {
       console.log(err);
@@ -197,4 +47,135 @@ function getServer (callback) {
 
     callback(null);
   });
+}
+
+program
+  .version(version)
+  .option('-c, --config [file]', 'Specify a custom configuration file [default config]')
+  .option('-d, --docker', 'Enable Docker mode to use environment variables instead of a config file [default false]');
+
+program.command('run')
+  .description('Run the server')
+  .action(function () {
+    process.configFile = program.config;
+    process.docker = program.docker;
+    var app = require('../app');
+    app.start();
+  });
+
+program.command('db:init')
+  .description('Initialize the database')
+  .action(function () {
+    process.configFile = program.config;
+    process.docker = program.docker;
+    require('./init')();
+  });
+
+program.command('db:drop')
+  .description('Drop the database')
+  .action(function () {
+    process.configFile = program.config;
+    process.docker = program.docker;
+    require('./drop')();
+  });
+
+program.command('status')
+  .description('Print the status of the daemonized server')
+  .action(function () {
+    getServer(function (data) {
+      if (!data) {
+        console.log('No server daemon is running');
+      } else {
+        console.log(data);
+      }
+    });
+  });
+
+program.command('start')
+  .description('Daemonize the server')
+  .action(function () {
+    getServer(function (data) {
+      if (data) {
+        console.log('Server daemon already running');
+        process.exit(1);
+      }
+
+      var monitor = forever.startDaemon(__filename, {
+        options: [ 'run' ]
+      });
+
+      console.log('Server started');
+    });
+  });
+
+program.command('stop')
+  .description('Stop the daemonized server')
+  .action(function () {
+    getServer(function (data) {
+      if (!data) {
+        console.log('Server daemon was not running');
+        process.exit(1);
+      }
+
+      forever.stop(data.index);
+      console.log('Server stopped');
+    });
+  });
+
+program.command('restart')
+  .description('Restart the daemonized server')
+  .action(function () {
+    getServer(function (data) {
+      if (!data) {
+        console.log('Server daemon was not running');
+        process.exit(1);
+      }
+
+      forever.restart(data.index);
+      console.log('Server daemon restarted');
+    });
+  });
+
+program.command('logs')
+  .description('Print the latest server logs')
+  .action(function () {
+    getServer(function (data) {
+      if (!data) {
+        console.log('Server daemon is not running');
+        process.exit(1);
+      }
+
+      forever.tail(data.index, {}, function (err, log) {
+        console.log(log.line);
+      });
+    });
+  });
+
+program.command('tail')
+  .description('Tail the server logs to STDOUT')
+  .action(function () {
+    getServer(function (data) {
+      if (!data) {
+        console.log('Server daemon was not running');
+        process.exit(1);
+      }
+
+      forever.tail(data.index, {
+        stream: true
+      }, function (err, log) {
+        console.log(log.line);
+      });
+    });
+  });
+
+program.command('cleanlogs')
+  .description('Remove the server logs')
+  .action(function () {
+    forever.cleanUp(true);
+  });
+
+program.parse(process.argv);
+
+if (!program.args[0]) {
+  program.help();
 }

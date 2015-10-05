@@ -20,7 +20,7 @@
 
 var app = process.app || require('../app');
 
-app.log('info', 'loading datastore');
+logger.info('loading datastore');
 
 /**!
  * Attempt to load the configured database driver
@@ -28,6 +28,6 @@ app.log('info', 'loading datastore');
 try {
   module.exports = require('./stores/' + app.config.database.type);
 } catch (e) {
-  app.log('fatal', 'Could not load datastore from config:');
+  logger.error('Could not load datastore from config:');
   throw e;
 }

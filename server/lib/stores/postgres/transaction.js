@@ -41,7 +41,7 @@ var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toStr
  * will be notified by this server if they have an active websocket
  */
 (function listenForContainerUpdates () {
-  app.log('debug', 'listening for container updates');
+  logger.info('listening for container updates');
 
   var config = process.app.config.database;
   var client = new pg.Client(config);
@@ -52,7 +52,7 @@ var transactionQuery = fs.readFileSync(__dirname + '/sql/transaction.sql').toStr
     if (data.channel !== 'container_update') {
       return;
     }
-    app.log('container update');
+    logger.info('container update');
 
     var payload = data.payload.split(':');
     var containerNameHmac = payload[0];
@@ -98,7 +98,7 @@ datastore.createTransaction = function (accountId, callback) {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
         callback('Database error');
         return;
       }
@@ -132,7 +132,7 @@ datastore.getTransaction = function (transactionId, callback) {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
         callback('Database error');
         return;
       }
@@ -293,7 +293,7 @@ datastore.transaction.addContainer = function (data, transaction, callback) {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
 
         if (~err.message.indexOf('violates unique constraint')) {
           callback('Container already exists');
@@ -350,7 +350,7 @@ datastore.transaction.deleteContainer = function (data, transaction, callback) {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
 
         if (~err.message.indexOf('violates unique constraint')) {
           callback('Container already exists');
@@ -397,7 +397,7 @@ datastore.transaction.addContainerSessionKey = function (data, transaction, call
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
         callback('Invalid chunk data');
         return;
       }
@@ -440,7 +440,7 @@ datastore.transaction.addContainerSessionKeyShare = function (data, transaction,
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
         callback('Invalid chunk data');
         return;
       }
@@ -498,7 +498,7 @@ datastore.transaction.addContainerRecord = function (data, transaction, callback
         done();
 
         if (err) {
-          app.log('warn', err);
+          logger.warn(err);
           callback('Invalid chunk data');
           return;
         }
@@ -541,7 +541,7 @@ datastore.transaction.deleteMessage = function (data, transaction, callback) {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
         callback('Invalid chunk data');
         return;
       }
@@ -607,13 +607,13 @@ commit.troll = function () {
       done();
 
       if (err) {
-        app.log('fatal', err);
+        logger.error(err);
         process.exit(1);
         return;
       }
 
       if (result.rows.length) {
-        app.log('debug', result.rows.length + ' transactions to commit');
+        logger.info(result.rows.length + ' transactions to commit');
         // TODO queue
         for (var i in result.rows) {
           commit.finish(result.rows[i].transaction_id);
@@ -637,7 +637,7 @@ commit.finish = function (transactionId) {
     client.query(tq, function (err, result) {
       if (err) {
         client.query('rollback');
-        app.log('warn', err);
+        logger.warn(err);
         commit.fail(transactionId, err);
       }
 
@@ -653,7 +653,7 @@ commit.finish = function (transactionId) {
  * XXX there is definitely a more eloquent way to do this
  */
 commit.fail = function (transactionId, err) {
-  app.log('warn', 'marking failed transaction', transactionId);
+  logger.warn('marking failed transaction', transactionId);
 
   connect(function (client, done) {
     var formattedError = JSON.stringify(err, [ 'message', 'detail', 'code' ]);
@@ -672,7 +672,7 @@ commit.fail = function (transactionId, err) {
 
     client.query(failQuery, function (err, result) {
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
       }
 
       done();
@@ -698,14 +698,14 @@ garbage.trollContainers = function () {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
       }
 
       if (!result.rows.length) {
         return;
       }
 
-      app.log('debug', result.rows.length + ' containers need deletion');
+      logger.info(result.rows.length + ' containers need deletion');
 
       for (var i = 0; i < result.rows.length; i++) {
         garbage.destroyContainer(result.rows[i].container_id);
@@ -730,14 +730,14 @@ garbage.trollMessages = function () {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
       }
 
       if (!result.rows.length) {
         return;
       }
 
-      app.log('debug', result.rows.length + ' messages need deletion');
+      logger.info(result.rows.length + ' messages need deletion');
 
       for (var i = 0; i < result.rows.length; i++) {
         garbage.destroyMessage(result.rows[i].message_id);
@@ -751,7 +751,7 @@ garbage.trollMessages = function () {
  * Execute deletion SQL for given `containerId`
  */
 garbage.destroyContainer = function (containerId) {
-  app.log('debug', 'destroying container with id ' + containerId);
+  logger.info('destroying container with id ' + containerId);
 
   connect(function (client, done) {
     var containerDeletionQuery = {
@@ -763,7 +763,7 @@ garbage.destroyContainer = function (containerId) {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
       }
     });
   });
@@ -774,7 +774,7 @@ garbage.destroyContainer = function (containerId) {
  * Execute deletion SQL for given `messageId`
  */
 garbage.destroyMessage = function (messageId) {
-  app.log('debug', 'destroying message with id ' + messageId);
+  logger.info('destroying message with id ' + messageId);
 
   connect(function (client, done) {
     var messageDeletionQuery = {
@@ -786,7 +786,7 @@ garbage.destroyMessage = function (messageId) {
       done();
 
       if (err) {
-        app.log('warn', err);
+        logger.warn(err);
       }
     });
   });

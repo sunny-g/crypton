@@ -42,7 +42,7 @@ var Container = module.exports = function Container () {};
  * @param {Function} callback
  */
 Container.prototype.get = function (containerNameHmac, callback) {
-  app.log('debug', 'getting container');
+  logger.info('getting container');
 
   var that = this;
 
@@ -53,7 +53,7 @@ Container.prototype.get = function (containerNameHmac, callback) {
     }
 
     if (!records.length) {
-      app.log('debug', 'container does not exist');
+      logger.info('container does not exist');
       callback('Container does not exist');
       return;
     }
@@ -77,7 +77,7 @@ Container.prototype.get = function (containerNameHmac, callback) {
  * @param {Function} callback
  */
 Container.prototype.getAfter = function (containerNameHmac, timestamp, callback) {
-  app.log('debug', 'getting container');
+  logger.info('getting container');
 
   var that = this;
 
@@ -88,7 +88,7 @@ Container.prototype.getAfter = function (containerNameHmac, timestamp, callback)
     }
 
     if (!records.length) {
-      app.log('debug', 'no new records');
+      logger.info('no new records');
       callback('No new records');
       return;
     }

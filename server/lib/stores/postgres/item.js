@@ -124,8 +124,8 @@ exports.saveItem = function (itemNameHmac, accountId, value, timelineVisible, ca
       try {
         modTime = result.rows[0].modified_time;
       } catch (ex) {
-        app.log('info', ex);
-        app.log('info',ex.stack);
+        logger.info(ex);
+        logger.info(ex.stack);
       }
       callback(null, { modTime: Date.parse(modTime),
                        itemNameHmac: itemNameHmac
@@ -167,7 +167,7 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
 
     client.query(query, function (err, result) {
       if (err) {
-        app.log('debug', err);
+        logger.info(err);
         client.query('rollback');
         done();
         return callback(err);
@@ -185,7 +185,7 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
 
       client.query(sessionKeyQuery, function (err, result) {
         if (err) {
-          app.log('debug', err);
+          logger.info(err);
           client.query('rollback');
           done();
           return callback(err);
@@ -202,7 +202,7 @@ function (itemNameHmac, accountId, value, wrappedSessionKey, callback) {
 
         client.query(sessionKeyShareQuery, function (err, result) {
           if (err) {
-            app.log('debug', err);
+            logger.info(err);
             client.query('rollback');
             done();
             return callback(err);
@@ -250,7 +250,7 @@ function (itemNameHmac, accountId, callback) {
 
     client.query(query, function (err, result) {
       if (err) {
-        app.log('debug', err);
+        logger.info(err);
 	client.query('rollback');
         done();
         return callback(err);
@@ -297,7 +297,7 @@ function (itemNameHmac, sessionKeyCiphertext,
       if (err) {
         client.query('rollback');
         done();
-        app.log('debug', err);
+        logger.info(err);
         return callback(err);
       }
 
@@ -325,7 +325,7 @@ function (itemNameHmac, sessionKeyCiphertext,
         if (err) {
           client.query('rollback');
           done();
-          app.log('debug', err);
+          logger.info(err);
           return callback(err);
         }
 
@@ -356,7 +356,7 @@ function (itemNameHmac, sessionKeyCiphertext,
           if (err) {
             client.query('rollback');
             done();
-            console.error(err);
+            logger.error(err);
             return callback(err);
           }
 
@@ -392,7 +392,7 @@ function (itemNameHmac, sessionKeyCiphertext,
  */
 exports.unshareItem =
 function (itemNameHmac, accountId, shareeUsername, callback) {
-  app.log('debug', 'unshareItem()');
+  logger.info('unshareItem()');
 
   connect(function (client, done) {
     var query = {
@@ -419,7 +419,7 @@ function (itemNameHmac, accountId, shareeUsername, callback) {
     client.query(query, function (err, result) {
       done();
       if (err) {
-        console.error('ERROR UPDATING ITEM SESSION KEY SHARE');
+        logger.error('ERROR UPDATING ITEM SESSION KEY SHARE');
         return callback(err);
       }
       if (result.rowCount != 1) {
@@ -530,7 +530,7 @@ function getAuthorItems (accountId, lastHistoryItemIdRead, offset, limit, callba
  */
 exports.getTimelineItems =
 function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, direction, callback) {
-  console.log(arguments);
+  logger.info(arguments);
   connect(function (client, done) {
     if (!offset || (typeof parseInt(offset) != 'number')) {
       offset = 0;
@@ -580,7 +580,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
       whereClause = whereNext;
     }
 
-    console.log('direction in query: ', direction);
+    logger.info('direction in query: ', direction);
 
     var values = [
       accountId,
@@ -614,7 +614,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
       /*jslint multistr: false*/
       values: values
     };
-    console.log(query.text);
+    logger.info(query.text);
     client.query(query, function (err, result) {
       done();
       if (err) {
@@ -657,7 +657,7 @@ function getTimelineItems (accountId, lastTimelineIdRead, offset, limit, directi
  */
 exports.getLatestTimelineItems =
   function getLatestTimelineItems (accountId, limit, callback) {
-  console.log(arguments);
+  logger.info(arguments);
   connect(function (client, done) {
     if (!limit || (typeof parseInt(limit) != 'number')) {
       limit = 10;
@@ -690,7 +690,7 @@ exports.getLatestTimelineItems =
       ]
     };
 
-    console.log('Normal Latest Query: \n\n' + query.text);
+    logger.info('Normal Latest Query: \n\n' + query.text);
     var resultData = [];
 
     client.query(query, function (err, result) {
@@ -730,8 +730,8 @@ exports.getLatestTimelineItems =
 	  ]
 	};
 
-        //return callback(null, resultData);
-	console.log('First Run Latest Query: \n\n' + newUserQuery.text);
+  //return callback(null, resultData);
+	logger.info('First Run Latest Query: \n\n' + newUserQuery.text);
 
 	client.query(newUserQuery, function (err, result) {
 	  done();
@@ -789,7 +789,7 @@ exports.getLatestTimelineItems =
  */
 exports.getTimelineItemsBefore =
   function getTimelineItemsBefore (accountId, limit, beforeId, callback) {
-  console.log(arguments);
+  logger.info(arguments);
   connect(function (client, done) {
     if (!limit || (typeof parseInt(limit) != 'number')) {
       limit = 10;
@@ -825,7 +825,7 @@ exports.getTimelineItemsBefore =
 	limit
       ]
     };
-    console.log(query.text);
+    logger.info(query.text);
     client.query(query, function (err, result) {
       done();
       if (err) {
@@ -871,7 +871,7 @@ exports.getTimelineItemsBefore =
  */
 exports.getTimelineItemsAfter =
     function getTimelineItemsAfter (accountId, limit, afterId, callback) {
-  console.log(arguments);
+  logger.info(arguments);
   connect(function (client, done) {
     if (!limit || (typeof parseInt(limit) != 'number')) {
       limit = 10;
@@ -904,7 +904,7 @@ exports.getTimelineItemsAfter =
 	limit
       ]
     };
-    console.log(query.text);
+    logger.info(query.text);
     client.query(query, function (err, result) {
       done();
       if (err) {
@@ -953,7 +953,7 @@ exports.getTimelineItemsAfter =
  * XXXddahl: If not, a message is sent
  */
 (function listenForItemUpdates () {
-  app.log('debug', 'listening for item updates');
+  logger.info('listening for item updates');
 
   var config = process.app.config.database;
   var client = new pg.Client(config);
@@ -964,7 +964,7 @@ exports.getTimelineItemsAfter =
     if (data.channel != 'SharedItemUpdated') {
       return;
     }
-    app.log('SharedItemUpdated', JSON.stringify(data));
+    logger.info('SharedItemUpdated', JSON.stringify(data));
     var payload = data.payload.split(' ');
     var itemNameHmac = payload[2];
     var toAccountId = payload[0];
@@ -987,8 +987,8 @@ exports.getTimelineItemsAfter =
                                       toUsername: toUsername });
     } else {
       // XXXddahl: Can we store a message for later in Redis???
-      console.warn('Sharee is not connected via websocket');
-      console.log('Connected clients: ', app.clients);
+      logger.warn('Sharee is not connected via websocket');
+      logger.warn('Connected clients: ', app.clients);
     }
   });
 })();

@@ -38,8 +38,6 @@ if (!config.commitStatusCheckLimit || !config.commitStatusCheckDelay) {
  * and return created transaction's `transactionId`
 */
 app.post('/transaction/create', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /transaction/create');
-
   var accountId = req.session.accountId;
 
   var tx = new Transaction();
@@ -64,8 +62,6 @@ app.post('/transaction/create', verifySession, function (req, res) {
  * Add posted body as a chunk to `transactionId`
 */
 app.post('/transaction/:transactionId', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /transaction/:transactionId');
-
   var data = req.body;
   var transactionId = req.params.transactionId;
   var accountId = req.session.accountId;
@@ -103,8 +99,6 @@ app.post('/transaction/:transactionId', verifySession, function (req, res) {
  * Request commit for given `transactionId`
 */
 app.post('/transaction/:transactionId/commit', verifySession, function (req, res) {
-  app.log('debug', 'handling POST /transaction/:transactionId/commit');
-
   var transactionId = req.params.transactionId;
   var accountId = req.session.accountId;
 
@@ -173,8 +167,6 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
  * Abort given `transactionId`
 */
 app.del('/transaction/:id', verifySession, function (req, res) {
-  app.log('debug', 'handling DEL /transaction/:id');
-
   var transactionId = req.params.id;
   var accountId = req.session.accountId;
 

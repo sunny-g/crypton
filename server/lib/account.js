@@ -45,7 +45,7 @@ var Account = module.exports = function Account () {};
  * @param {Function} callback
  */
 Account.prototype.get = function (username, callback) {
-  app.log('debug', 'getting account for username: ' + username);
+  logger.info('getting account for username: ' + username);
 
   var that = this;
 
@@ -72,7 +72,7 @@ Account.prototype.get = function (username, callback) {
  * @param {Function} callback
  */
 Account.prototype.getById = function (id, callback) {
-  app.log('debug', 'getting account for id: ' + id);
+  logger.info('getting account for id: ' + id);
 
   var that = this;
 
@@ -177,7 +177,7 @@ Account.prototype.checkSrp = function(srpParams, srpM1, callback) {
     srpM2 = srpServer.checkM1(new Buffer(srpM1, 'hex'));
   } catch(e) {
     callback('Incorrect password');
-    app.log('debug', 'SRP verification error: ' + e.toString());
+    logger.info('SRP verification error: ' + e.toString());
     return;
   }
   // Don't need this right now. Maybe later?
@@ -244,7 +244,7 @@ Account.prototype.toJSON = function () {
  * @param {Function} callback
  */
 Account.prototype.save = function (callback) {
-  app.log('debug', 'saving account');
+  logger.info('saving account');
 
   var that = this;
 
@@ -297,14 +297,14 @@ Account.prototype.save = function (callback) {
 Account.prototype.sendMessage = function (options, callback) {
   // TODO is this necessary if we're just passing `options` into db.saveMessage?
   if (!this.accountId) {
-    app.log('warn', 'accountId was not supplied');
+    logger.warn('accountId was not supplied');
     callback('Recipient account object must have accountId');
     return;
   }
 
   var toAccountId = this.accountId;
 
-  app.log('info', 'saving message for account id: ' + toAccountId);
+  logger.info('saving message for account id: ' + toAccountId);
 
   db.saveMessage(options, function (err, messageId) {
     if (err) {
@@ -316,7 +316,7 @@ Account.prototype.sendMessage = function (options, callback) {
     var sender = new Account();
     sender.getById(options.fromAccountId, function (err) {
       if (app.clients[toAccountId]) {
-        app.log('debug', 'sending message over websocket');
+        logger.info('sending message over websocket');
 
         app.clients[toAccountId].emit('message', {
           messageId: messageId

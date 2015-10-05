@@ -28,8 +28,6 @@ var Inbox = require('../lib/inbox');
  * Get all messages for the current session's `accountId`
 */
 app.get('/inbox', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /inbox');
-
   var accountId = req.session.accountId;
   var inbox = new Inbox(accountId);
 
@@ -54,8 +52,6 @@ app.get('/inbox', verifySession, function (req, res) {
  * Get specific message for the current session's `accountId` by `messageId`
 */
 app.get('/inbox/:messageId', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /inbox/:messageId');
-
   var messageId = req.params.messageId;
   var accountId = req.session.accountId;
   var inbox = new Inbox(accountId);
@@ -81,8 +77,6 @@ app.get('/inbox/:messageId', verifySession, function (req, res) {
  * Get all message Ids & to/from usernames for the current session's `accountId`
 */
 app.get('/inbox-metadata', verifySession, function (req, res) {
-  app.log('debug', 'handling GET /inbox-metadata');
-
   var accountId = req.session.accountId;
   var inbox = new Inbox(accountId);
 

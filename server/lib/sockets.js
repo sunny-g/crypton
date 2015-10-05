@@ -21,14 +21,14 @@
 var app = process.app;
 app.io = require('socket.io')(app.server);
 
-app.log('info', 'starting socket.io');
+logger.info('starting socket.io');
 
 app.clients = {};
 
 function getToken (socket) {
   var obj = JSON.parse(socket.handshake.query.joinServerParameters);
-  app.log('debug', 'getToken() : ' + obj.token);
-  app.log('debug', obj.token);
+  logger.info('getToken() : ' + obj.token);
+  logger.info(obj.token);
   return obj.token || null;
 }
 
@@ -48,27 +48,27 @@ app.io.use(function(socket, next) {
  * Remove handle from app.clients upon disconnection
  */
 app.io.sockets.on('connection', function (socket) {
-  app.log('debug', 'socket.io on(\'connection\')');
+  logger.info('socket.io on(\'connection\')');
   var sid = getToken(socket);
   app.redisSession.get(sid, socket, function _socketCallback(data, err, info) {
     if (err) {
-      app.log('debug', err);
+      logger.info(err);
       // No session established.
-      app.log('info', 'Fatal Error: Cannot authorize WebSocket connection! No Session is established.');
+      logger.info('Fatal Error: Cannot authorize WebSocket connection! No Session is established.');
       return;
     }
-    app.log('debug', 'adding client to app.clients');
+    logger.info('adding client to app.clients');
     var accountId = data.accountId;
-    app.log('debug', 'accountId: ' + accountId);
+    logger.info('accountId: ' + accountId);
     app.clients[accountId] = socket;
-    app.log('debug', 'websocket connection added to pool for account: ' + accountId);
-    app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
+    logger.info('websocket connection added to pool for account: ' + accountId);
+    logger.info(Object.keys(app.clients).length + ' websocket connections in pool');
 
     socket.on('disconnect', function () {
       delete app.clients[accountId];
       // XXXddahl: delete the session as well!
-      app.log('debug', 'websocket connection deleted for account: ' + accountId);
-      app.log('info', Object.keys(app.clients).length + ' websocket connections in pool');
+      logger.info('websocket connection deleted for account: ' + accountId);
+      logger.info(Object.keys(app.clients).length + ' websocket connections in pool');
     });
   });
 

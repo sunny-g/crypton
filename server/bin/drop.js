@@ -1,5 +1,8 @@
 var pg = require('pg').native;
 var config = require('../lib/config');
+var fs = require('fs');
+var realConfig = JSON.parse(fs.readFileSync('./server/config/config.test.json', 'utf8'));
+var dbConfig = realConfig['database'];
 
 module.exports = function () {
   config.database.user = 'postgres';
@@ -29,7 +32,7 @@ function dropDatabase (callback) {
 
   connect(function (client, done) {
     var query = {
-      text: 'drop database crypton_test'
+      text: 'drop database ' + dbConfig['database']
     };
 
     client.query(query, function (err, result) {
@@ -51,7 +54,7 @@ function dropUser (callback) {
 
   connect(function (client, done) {
     var query = {
-      text: 'drop role crypton_test_user'
+      text: 'drop role ' + dbConfig['user']
     };
 
     client.query(query, function (err, result) {

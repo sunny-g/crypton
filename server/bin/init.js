@@ -2,6 +2,8 @@ var fs = require('fs');
 var pg = require('pg').native;
 var config = require('../lib/config');
 var oldConfig;
+var realConfig = JSON.parse(fs.readFileSync('./server/config/config.test.json', 'utf8'));
+var dbConfig = realConfig['database'];
 
 module.exports = function () {
   oldConfig = JSON.parse(JSON.stringify(config));
@@ -35,7 +37,7 @@ function createUser (callback) {
 
   connect(function (client, done) {
     var query = {
-      text: 'create user crypton_test_user with encrypted password \'crypton_test_user_password\''
+      text: 'create user ' + dbConfig['user'] + ' with encrypted password \'' + dbConfig['password'] + '\''
     };
 
     client.query(query, function (err, result) {
@@ -57,7 +59,7 @@ function createDatabase (callback) {
 
   connect(function (client, done) {
     var query = {
-      text: 'create database crypton_test with owner = crypton_test_user'
+      text: 'create database ' + dbConfig['database'] + ' with owner = ' + dbConfig['user']
     };
 
     client.query(query, function (err, result) {

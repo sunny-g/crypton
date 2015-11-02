@@ -58,22 +58,22 @@ createuser -s -r postgres
 
 ### Install the [Node.js Version Manager](https://github.com/creationix/nvm) and Node.js
 
-See the [nvm](https://github.com/creationix/nvm) website for detailed installation instructions. Crypton currently expects Node.js version `0.12.x` to be installed (which is no longer the current stable version).
+See the [nvm](https://github.com/creationix/nvm) website for detailed installation instructions. Crypton currently expects Node.js version `4.2.1` to be installed which is the most current LTS release.
 
 ````
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.26.1/install.sh | bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
 
-nvm install 0.12.7
+nvm install 4.2.1
 ````
 
 Verify your `node` installation:
 
 ````
 $ which node
-~/.nvm/versions/node/v0.12.7/bin/node
+~/.nvm/versions/node/v4.2.1/bin/node
 
 $ which npm
-~/.nvm/versions/node/v0.12.7/bin/npm
+~/.nvm/versions/node/v4.2.1/bin/npm
 ````
 
 # Build the client and server

@@ -38,6 +38,9 @@ winston.emitErrs = true;
 
 var app = process.app = module.exports = express();
 
+// Don't expose 'X-Powered-By: Express' response header.
+app.disable('x-powered-by');
+
 var myLogTransports = [];
 
 if (process.env.NODE_ENV === 'production') {

@@ -28,7 +28,6 @@ var util = require('./lib/util');
 var appsec = require('lusca');
 var version = require('./package.json').version;
 var redis = require('redis');
-var redisSession = require('./redis-session')();
 
 // logging
 var colors = require('colors');
@@ -122,6 +121,15 @@ app.config = require('./lib/config');
 logger.info("app.config", app.config);
 
 app.datastore = require('./lib/storage');
+
+var redisSession = require('./redis-session')({
+  debug: true,
+  connection: {
+    port: app.config.redis.port,
+    host: app.config.redis.host,
+    db: app.config.redis.db,
+  },
+});
 
 app.redisSession = redisSession;
 

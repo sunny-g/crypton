@@ -109,36 +109,6 @@ describe('Account model', function () {
         done();
       });
     });
-
-    it('should err when user limit is hit', function (done) {
-      app.config.maximumUsers = 1;
-
-      var account = new Account();
-
-      var requestedAccount = {
-        username: 'lateToTheParty',
-        keypairSalt: '[1,2,3]',
-        keypairMacSalt: '[1,2,3]',
-        keypairCiphertext: { keypair: 'ciphertext' },
-        keypairMac: '[1,2,3]',
-        pubKey: { pub: 'key' },
-        srpSalt: 'saltstring',
-        srpVerifier: 'verifierstring',
-        containerNameHmacKeyCiphertext: '[1,2,3]',
-        hmacKeyCiphertext: '[1,2,3]',
-        signKeyPub: { pub: 'key' },
-        signKeyPrivateMacSalt: '[1,2,3]',
-        signKeyPrivateCiphertext: '[1,2,3]',
-        signKeyPrivateMac: '[1,2,3]'
-      };
-
-      account.update(requestedAccount);
-
-      account.save(function (err) {
-        assert.equal(err, 'Maximum user count reached');
-        done();
-      });
-    });
   });
 
   describe('get()', function () {

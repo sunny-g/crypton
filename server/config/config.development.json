@@ -8,7 +8,6 @@
     "port": 5432
   },
   "defaultKeySize": 32,
-  "cookieSecretFile": "/dev/urandom",
   "privateKey": "privateKeyExample.pem",
   "certificate": "certificateExample.pem",
   "appPath": ".",

@@ -18,14 +18,15 @@
 
 'use strict';
 
+var https = require('https');
+var express = require('express');
+var path = require('path');
+var bodyParser = require('body-parser');
+var errorhandler = require('errorhandler');
+var appsec = require('lusca');
 var fs = require('fs');
 var cors = require('cors');
-var path = require('path');
-var https = require('https');
-var connect = require('connect');
-var express = require('express');
 var util = require('./lib/util');
-var appsec = require('lusca');
 var version = require('./package.json').version;
 var redis = require('redis');
 
@@ -39,6 +40,9 @@ var app = process.app = module.exports = express();
 
 // Don't expose 'X-Powered-By: Express' response header.
 app.disable('x-powered-by');
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 var myLogTransports = [];
 
@@ -136,11 +140,11 @@ app.redisSession = redisSession;
 
 app.SERVER_VERSION = version;
 
-app.use(connect.urlencoded());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(connect.json({
-  limit: '20mb',
-}));
+// parse application/json
+app.use(bodyParser.json());
 
 app.use(cors({
   credentials: true,
@@ -223,7 +227,8 @@ app.start = function start() {
   };
 
   app.port = app.config.port || 443;
-  app.server = https.createServer(options, app).listen(app.port, function() {
+  app.server = https.createServer(options, app);
+  app.server.listen(app.port, function() {
     logger.info('HTTPS server listening on port ' + app.port);
     require('./lib/sockets');
   });
@@ -231,13 +236,19 @@ app.start = function start() {
 
 require('./routes');
 
+// load after the routes
+if (process.env.NODE_ENV === 'development') {
+  // only use in development
+  app.use(errorhandler());
+}
+
 // express-winston errorLogger makes sense AFTER the router.
 app.use(expressWinston.errorLogger({
   transports: myLogTransports,
 }));
 
 function handleError(err) {
-  logger.error('uncaught exception:', err, err.stack);
+  logger.error('handleError : ', err, err.stack);
   process.exit(1);
 }
 

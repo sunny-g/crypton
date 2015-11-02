@@ -163,10 +163,10 @@ app.post('/transaction/:transactionId/commit', verifySession, function (req, res
 });
 
 /**!
- * ### DEL /transaction/:transactionId
+ * ### DELETE /transaction/:transactionId
  * Abort given `transactionId`
 */
-app.del('/transaction/:id', verifySession, function (req, res) {
+app.delete('/transaction/:id', verifySession, function (req, res) {
   var transactionId = req.params.id;
   var accountId = req.session.accountId;
 

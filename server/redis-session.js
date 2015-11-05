@@ -194,7 +194,7 @@ module.exports = function(config) {
                   if (!info) {
                       logger.error('Session ID invalid!');
                   }
-                    return callback && callback.apply(mod, [null, true, err]);
+                  return callback && callback.apply(mod, [null, true, err]);
               } else {
                 logger.info(info);
                    var data = JSON.parse(info.toString());

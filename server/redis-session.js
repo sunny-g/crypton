@@ -182,20 +182,28 @@ module.exports = function(config) {
                 return;
             }
 
-            client.get(sid, function(err, info) {
-                if (err && process.env.NODE_ENV === 'development') {
-                    logger.error('----get ERROR');
-                    logger.error(err);
-                    info = err;
-                    err  = true;
-                } else if (info) {
-                    var data = JSON.parse(info.toString());
+          client.get(sid, function(err, info) {
 
-                    data.sid        = sid;
-                    req.sessionData = data;
-                }
-
-                callback && callback.apply(mod, [data, err, info]);
+              logger.info('info............', info);
+              logger.info('err...........', err);
+              if (err || !info) {
+                  logger.error('----get ERROR');
+                  logger.error(err);
+                  info = err;
+                  err  = true;
+                  if (!info) {
+                      logger.error('Session ID invalid!');
+                  }
+                  return callback && callback.apply(mod, [null, err, info]);
+              } else {
+                  logger.info(info);
+                  var data = JSON.parse(info.toString());
+                  data.sid        = sid;
+                  req.sessionData = data;
+              }
+              logger.info('data', data);
+              logger.info('info', info);
+              callback && callback.apply(mod, [data, err, info]);
             });
         },
 

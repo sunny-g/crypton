@@ -62,7 +62,7 @@ Peer.prototype.fetch = function (callback) {
   }
 
   var that = this;
-  var url = crypton.url() + '/peer/' + this.username + '?sid=' + crypton.sessionId;
+  var url = crypton.url() + '/peer/' + encodeURIComponent(this.username) + '?sid=' + crypton.sessionId;
   superagent.get(url)
     .withCredentials()
     .end(function (res) {

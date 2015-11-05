@@ -196,10 +196,10 @@ module.exports = function(config) {
                   }
                   return callback && callback.apply(mod, [null, true, err]);
               } else {
-                logger.info(info);
-                   var data = JSON.parse(info.toString());
-                   data.sid        = sid;
-                   req.sessionData = data;
+                  logger.info(info);
+                  var data = JSON.parse(info.toString());
+                  data.sid        = sid;
+                  req.sessionData = data;
               }
               logger.info('data', data);
               logger.info('info', info);

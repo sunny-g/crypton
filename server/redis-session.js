@@ -185,18 +185,18 @@ module.exports = function(config) {
           client.get(sid, function(err, info) {
 
               logger.info('info............', info);
-	      logger.info('err...........', err);
+              logger.info('err...........', err);
               if (err || !info) {
                   logger.error('----get ERROR');
                   logger.error(err);
                   info = err;
                   err  = true;
-		  if (!info) {
+                  if (!info) {
                       logger.error('Session ID invalid!');
-		  }
-		  return callback && callback.apply(mod, [null, true, err]);
+                  }
+                    return callback && callback.apply(mod, [null, true, err]);
               } else {
-		  logger.info(info);
+                logger.info(info);
                    var data = JSON.parse(info.toString());
                    data.sid        = sid;
                    req.sessionData = data;

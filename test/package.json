@@ -14,11 +14,11 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "mocha": "2.3.*",
-    "chai": "3.3.*",
-    "phantomjs": "1.9.*",
-    "mocha-phantomjs": "4.0.*",
-    "semver": "~5.0.*"
+    "mocha": "^2.3.3",
+    "chai": "^3.4.0",
+    "phantomjs": "^1.9.7",
+    "mocha-phantomjs": "^4.0.1",
+    "semver": "^5.0.3"
   },
   "optionalDependencies": {},
   "scripts": {

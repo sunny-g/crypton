@@ -20,11 +20,29 @@ To learn more, check out the [Crypton website](https://crypton.io/).
 
 ### Install [Redis](http://redis.io)
 
-TBD
+"The suggested way of installing Redis is compiling it from sources as Redis has no dependencies other than a working GCC compiler and libc. Installing it using the package manager of your Linux distribution is somewhat discouraged as usually the available version is not the latest." - [Redis documentation](http://redis.io/topics/quickstart#installing-redis)
+
+```
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+
+sudo cp src/redis-server /usr/local/bin/
+sudo cp src/redis-cli /usr/local/bin/
+```
 
 ### Install PostgreSQL Database
 
-TBD
+[PostgreSQL](http://www.postgresql.org/download/linux/) supports a variety of Linux versions:
+
+- [Red Hat](http://www.postgresql.org/download/linux/redhat/): `yum install postgresql-server`
+
+- [Debian](http://www.postgresql.org/download/linux/debian/): `apt-get install postgresql-9.4`
+
+- [Ubuntu](http://www.postgresql.org/download/linux/ubuntu/): `apt-get install postgresql-9.4`
+
+- [SuSE](http://www.postgresql.org/download/linux/suse/): See the [official instructions](http://www.postgresql.org/download/linux/suse/) for more detail
 
 ## OS X
 

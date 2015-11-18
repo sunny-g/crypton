@@ -2,7 +2,7 @@ var fs = require('fs');
 var pg = require('pg').native;
 var config = require('../lib/config');
 var oldConfig;
-var realConfig = JSON.parse(fs.readFileSync('./server/config/config.test.json', 'utf8'));
+var realConfig = JSON.parse(fs.readFileSync('./server/config/config.' + process.env.NODE_ENV + '.json', 'utf8'));
 var dbConfig = realConfig['database'];
 
 module.exports = function () {

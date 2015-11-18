@@ -18,17 +18,17 @@
 
 'use strict';
 
+var https = require('https');
+var express = require('express');
+var path = require('path');
+var bodyParser = require('body-parser');
+var errorhandler = require('errorhandler');
+var appsec = require('lusca');
 var fs = require('fs');
 var cors = require('cors');
-var path = require('path');
-var https = require('https');
-var connect = require('connect');
-var express = require('express');
 var util = require('./lib/util');
-var appsec = require('lusca');
 var version = require('./package.json').version;
 var redis = require('redis');
-var redisSession = require('./redis-session')();
 
 // logging
 var colors = require('colors');
@@ -37,6 +37,12 @@ var winston = require('winston'); // for transports.Console
 winston.emitErrs = true;
 
 var app = process.app = module.exports = express();
+
+// Don't expose 'X-Powered-By: Express' response header.
+app.disable('x-powered-by');
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 var myLogTransports = [];
 
@@ -50,7 +56,7 @@ if (process.env.NODE_ENV === 'production') {
       maxsize: 104857600, // 100MB
       maxFiles: 5,
       colorize: false,
-      tailable: true
+      tailable: true,
     }
   ));
 } else if (process.env.NODE_ENV === 'development') {
@@ -61,7 +67,7 @@ if (process.env.NODE_ENV === 'production') {
       handleExceptions: true,
       json: false,
       colorize: true,
-      prettyPrint: true
+      prettyPrint: true,
     }
   ));
   myLogTransports.push(new winston.transports.File(
@@ -73,13 +79,13 @@ if (process.env.NODE_ENV === 'production') {
       maxsize: 5242880, // 5MB
       maxFiles: 5,
       colorize: false,
-      tailable: true
+      tailable: true,
     }
   ));
 } else if (process.env.NODE_ENV === 'test') {
   myLogTransports.push(new winston.transports.Console(
     {
-      silent: true
+      silent: true,
     }
   ));
   myLogTransports.push(new winston.transports.File(
@@ -91,17 +97,17 @@ if (process.env.NODE_ENV === 'production') {
       maxsize: 5242880, // 5MB
       maxFiles: 5,
       colorize: false,
-      tailable: true
+      tailable: true,
     }
   ));
 } else {
-  console.error("ERROR : NODE_ENV must be set to one of: development | test | production");
+  console.error('ERROR : NODE_ENV must be set to one of: development | test | production');
   process.exit(1);
 }
 
 var logger = new winston.Logger({
   transports: myLogTransports,
-  exitOnError: false
+  exitOnError: false,
 });
 
 global.logger = logger;
@@ -112,29 +118,39 @@ app.use(expressWinston.logger({
   meta: true, // optional: control whether you want to log the meta data about the request (default to true)
   msg: 'HTTP {{req.method}} {{req.url}}', // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
   expressFormat: true, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true
-  colorStatus: true // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
+  colorStatus: true, // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
 }));
 
 app.config = require('./lib/config');
-logger.info("app.config", app.config);
+
+// logger.info('app.config', app.config);
 
 app.datastore = require('./lib/storage');
+
+var redisSession = require('./redis-session')({
+  debug: true,
+  connection: {
+    port: app.config.redis.port,
+    host: app.config.redis.host,
+    db: app.config.redis.db,
+  },
+});
 
 app.redisSession = redisSession;
 
 app.SERVER_VERSION = version;
 
-app.use(connect.urlencoded());
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(connect.json({
-  limit: '20mb'
-}));
+// parse application/json
+app.use(bodyParser.json());
 
 app.use(cors({
   credentials: true,
-  origin: function (origin, callback) {
+  origin: function(origin, callback) {
     callback(null, true);
-  }
+  },
 }));
 
 if (app.config.securityHeaders) {
@@ -144,7 +160,7 @@ if (app.config.securityHeaders) {
     if (typeof luscaObj === 'object') {
       app.use(appsec(luscaObj));
     } else {
-      throw new Error("securityHeaders must be an Object conforming to the Lusca security config.  See : https://github.com/krakenjs/lusca");
+      throw new Error('securityHeaders must be an Object conforming to the Lusca security config.  See : https://github.com/krakenjs/lusca');
     }
   } catch (ex) {
     logger.error(ex);
@@ -166,21 +182,21 @@ if (app.config.securityHeaders) {
         'img-src': "'self'",
         'style-src': "'self'",
         'font-src': "'self'",
-        'object-src': "'self'"
-      }
+        'object-src': "'self'",
+      },
     },
     xframe: 'SAMEORIGIN',
     hsts: {
-      maxAge: 31536000
-    }
+      maxAge: 31536000,
+    },
   }));
 }
 
 // Do not cache responses.
 // XXXddahl: We are using a sledge hammer here, perhaps we can refine this at some point?
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
   res.set({
-    'Cache-Control': 'no-cache'
+    'Cache-Control': 'no-cache',
   });
   next();
 });
@@ -191,11 +207,11 @@ if (app.config.appPath) {
   app.use(express.static(__dirname + '/../client/dist'));
 }
 
-app.options('/*', function (req, res) {
+app.options('/*', function(req, res) {
   res.send('');
 });
 
-app.start = function start () {
+app.start = function start() {
   logger.info('starting HTTPS server');
 
   var privateKeyPath = path.resolve(process.cwd(), app.config.privateKey);
@@ -207,11 +223,12 @@ app.start = function start () {
 
   var options = {
     key: fs.readFileSync(privateKeyRealPath).toString(),
-    cert: fs.readFileSync(certificateRealPath).toString()
+    cert: fs.readFileSync(certificateRealPath).toString(),
   };
 
   app.port = app.config.port || 443;
-  app.server = https.createServer(options, app).listen(app.port, function () {
+  app.server = https.createServer(options, app);
+  app.server.listen(app.port, function() {
     logger.info('HTTPS server listening on port ' + app.port);
     require('./lib/sockets');
   });
@@ -219,14 +236,20 @@ app.start = function start () {
 
 require('./routes');
 
+// load after the routes
+if (process.env.NODE_ENV === 'development') {
+  // only use in development
+  app.use(errorhandler());
+}
+
 // express-winston errorLogger makes sense AFTER the router.
 app.use(expressWinston.errorLogger({
-  transports: myLogTransports
+  transports: myLogTransports,
 }));
 
 function handleError(err) {
-  logger.error("uncaught exception:", err, err.stack);
+  logger.error('handleError : ', err, err.stack);
   process.exit(1);
 }
 
-process.on("uncaughtException", handleError);
+process.on('uncaughtException', handleError);

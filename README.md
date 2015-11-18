@@ -5,10 +5,9 @@
 [![Build Status](https://img.shields.io/travis/SpiderOak/crypton.svg?style=flat)](https://travis-ci.org/SpiderOak/crypton)
 
 
-
 Crypton is a framework for creating zero-knowledge applications with JavaScript.
 
-Zero Knowledge applications offer meaningful privacy assurance to end users
+Zero-Knowledge applications offer meaningful privacy assurance to end users
 because the servers running the application cannot read the data created and
 stored by the application.
 
@@ -77,22 +76,22 @@ createuser -s -r postgres
 
 ### Install the [Node.js Version Manager](https://github.com/creationix/nvm) and Node.js
 
-See the [nvm](https://github.com/creationix/nvm) website for detailed installation instructions. Crypton currently expects Node.js version `0.12.x` to be installed (which is no longer the current stable version).
+See the [nvm](https://github.com/creationix/nvm) website for detailed installation instructions. Crypton currently expects Node.js version `4.2.1` to be installed which is the most current LTS release.
 
 ````
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.26.1/install.sh | bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
 
-nvm install 0.12.7
+nvm install 4.2.1
 ````
 
 Verify your `node` installation:
 
 ````
 $ which node
-~/.nvm/versions/node/v0.12.7/bin/node
+~/.nvm/versions/node/v4.2.1/bin/node
 
 $ which npm
-~/.nvm/versions/node/v0.12.7/bin/npm
+~/.nvm/versions/node/v4.2.1/bin/npm
 ````
 
 # Build the client and server
@@ -105,9 +104,15 @@ cd crypton
 nvm use
 ````
 
-***Important*** : If you are using `nvm` enable the use of the correct Node.js version after you enter the crypton directory by typing `nvm use` which will reference the `.nvmrc` file which is already present in the root of the repository. This will setup the correct version of `node` and `npm`.
+***Important*** : If you are using `nvm` enable the use of the correct Node.js version after you enter the `crypton` directory by typing `nvm use` which will reference the `.nvmrc` file which is already present in the root of the repository. This will setup the correct version of `node` and `npm`.
 
-You need to do this ***every*** time you `cd` into the crypton dir in every terminal shell you open.
+You need to do this ***every*** time you `cd` into the `crypton` dir in every terminal shell you open.
+
+## Install `npm` global packages used for development:
+
+````
+npm install -g karma-cli
+````
 
 ## Test that all Crypton dependencies are installed
 
@@ -121,12 +126,11 @@ If the output is OK then continue.
 
 ````
 cd crypton/client
-npm install -g karma-cli
 npm install
 ./compile.sh --once
 ````
 
-`compile.sh` will place a `crypton.js` file in the `crypton/client/dist/` directory, this is the Javscript file you'll use in your client applications.
+`compile.sh` will place a `crypton.js` file in the `crypton/client/dist/` directory, this is the JavaScript file you'll use in your client applications.
 
 
 ## Build the Crypton Node.js Server and setup the DB
@@ -137,7 +141,8 @@ The `db:init` command creates a `crypton_test_user` DB user, `crypton_test` data
 cd crypton/server
 npm install
 npm link
-crypton-server db:init
+NODE_ENV=development crypton-server db:init
+NODE_ENV=test crypton-server db:init
 ````
 
 # Test the client and server
@@ -176,7 +181,7 @@ make test
 The default server configurations can be found in `crypton/server/config/config.test.json`.
 
 ````
-crypton-server run
+NODE_ENV=development crypton-server run
 ````
 
 Use `Control-c` to exit.
@@ -186,6 +191,7 @@ Use `Control-c` to exit.
 The default server configurations can be found in `crypton/server/config/config.test.json`.
 
 ````
+export NODE_ENV=development
 crypton-server start
 crypton-server status
 crypton-server tail
@@ -233,7 +239,7 @@ curl --insecure -i https://localhost:1025
 
 ````
 cd client/examples/items
-crypton-server run
+NODE_ENV=development crypton-server run
 ````
 
 Open your browser to the URL [https://localhost:1025/](https://localhost:1025/) and register a new account via the form. Since the server uses a self-signed certificate by default you may need to instruct your browser to accept and trust this `localhost` only certificate. You can find the instructions for Safari [here](http://blog.marcon.me/post/24874118286/secure-websockets-safari).

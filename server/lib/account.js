@@ -265,21 +265,7 @@ Account.prototype.save = function (callback) {
     db.saveAccount(that.toJSON(), callback);
   }
 
-  if (!config.maximumUsers) {
-    return _saveUser();
-  }
-
-  db.getUserCount(function (err, userCount) {
-    if (err) {
-      return callback(err);
-    }
-
-    if (userCount >= config.maximumUsers) {
-      return callback('Maximum user count reached');
-    }
-
-    _saveUser();
-  });
+  return _saveUser();
 
 };
 

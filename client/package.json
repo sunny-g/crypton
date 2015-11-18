@@ -17,17 +17,17 @@
     },
     "dependencies": {},
     "devDependencies": {
-        "json": "9.0.3",
-        "chai": "3.3.x",
-        "mocha": "2.3.x",
-        "uglify-js": "2.4.24",
-        "phantomjs": "1.9.18",
-        "karma": "0.13.10",
-        "karma-mocha": "0.2.0",
-        "karma-chrome-launcher": "0.2.0",
-        "karma-firefox-launcher": "0.1.6",
-        "karma-phantomjs-launcher": "0.2.1",
-        "karma-spec-reporter": "0.0.20"
+        "json": "^9.0.3",
+        "chai": "^3.4.0",
+        "mocha": "^2.3.3",
+        "uglify-js": "^2.4.24",
+        "phantomjs": "^1.9.18",
+        "karma": "^0.13.14",
+        "karma-mocha": "^0.2.0",
+        "karma-chrome-launcher": "^0.2.1",
+        "karma-firefox-launcher": "^0.1.6",
+        "karma-phantomjs-launcher": "^0.2.1",
+        "karma-spec-reporter": "0.0.22"
     },
     "optionalDependencies": {},
     "scripts": {

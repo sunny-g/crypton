@@ -31,7 +31,7 @@ var configFile;
 if (process.configFile) {
   configFile = path.resolve(process.env.PWD, process.configFile);
 } else {
-  configFile = __dirname + '/../config/config.test.json';
+  configFile = __dirname + '/../config/config.' + process.env.NODE_ENV + '.json';
 }
 
 try {

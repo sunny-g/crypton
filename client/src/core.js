@@ -22,6 +22,18 @@ var crypton = {};
 var MISMATCH_ERR = 'Server and client version mismatch';
 
 /**!
+ * ### scriptName
+ * Holds the URL of the script that contains this code.
+ * This will be used by the 'isomerize' function and can be
+ * removed if it is removed.
+ */
+if (document && document.getElementsByTagName) {
+  var scripts = document.getElementsByTagName('script');
+  var script = scripts[scripts.length-1].src
+  crypton.scriptName = script;
+}
+
+/**!
  * ### version
  * Holds framework version for potential future backward compatibility.
  * 'PACKAGE_VERSION' string is replaced with the version from package.json

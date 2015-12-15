@@ -10,7 +10,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
 */
 
 (function() {
@@ -24,16 +24,7 @@
  * with a bridge API to said worker
 */
 !self.worker && window.addEventListener('load', function () {
-  var scriptEls = document.getElementsByTagName('script');
-  var path;
-
-  for (var i in scriptEls) {
-    if (scriptEls[i].src && ~scriptEls[i].src.indexOf('crypton.js')) {
-      path = scriptEls[i].src;
-    }
-  }
-
-  isomerize(crypton.work, path)
+  isomerize(crypton.work, crypton.scriptName)
 }, false);
 
 var work = crypton.work = {};

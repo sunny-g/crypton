@@ -39,7 +39,7 @@ if (document && document.getElementsByTagName) {
  * 'PACKAGE_VERSION' string is replaced with the version from package.json
  * at build time
  */
-crypton.version = 'PACKAGE_VERSION';
+crypton.version = '0.0.4';
 
 /**!
  * ### MIN_PBKDF2_ROUNDS

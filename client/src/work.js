@@ -23,7 +23,7 @@
  * put its methods in a worker and replace them
  * with a bridge API to said worker
 */
-!self.worker && window.addEventListener('load', function () {
+!self.worker && window && window.addEventListener('load', function () {
   isomerize(crypton.work, crypton.scriptName)
 }, false);
 
